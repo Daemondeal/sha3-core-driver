@@ -1,0 +1,71 @@
+[*]
+[*] GTKWave Analyzer v3.3.100 (w)1999-2019 BSI
+[*] Mon Dec 11 19:04:14 2023
+[*]
+[dumpfile] "C:\Users\Daem\Desktop\KeccakSHA3\Simulation\signals.vcd"
+[dumpfile_mtime] "Mon Dec 11 18:51:20 2023"
+[dumpfile_size] 1907356
+[savefile] "C:\Users\Daem\Desktop\KeccakSHA3\Simulation\signals_setup.gtkw"
+[timestart] 0
+[size] 1858 1057
+[pos] -647 -224
+*-20.000000 1614000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] peripheral_tb.
+[treeopen] peripheral_tb.keccak_instance.
+[sst_width] 225
+[signals_width] 275
+[sst_expanded] 1
+[sst_vpaned_height] 315
+@28
+peripheral_tb.axi_clock
+peripheral_tb.axi_aresetn
+peripheral_tb.axi_rresp[1:0]
+@200
+-Read Signals
+@22
+peripheral_tb.axi_araddr[6:0]
+@28
+peripheral_tb.axi_arvalid
+peripheral_tb.axi_rready
+peripheral_tb.axi_arready
+@22
+peripheral_tb.axi_rdata[31:0]
+@200
+-Write Signals
+@22
+peripheral_tb.axi_awaddr[6:0]
+peripheral_tb.axi_wstrb[3:0]
+@28
+peripheral_tb.axi_awvalid
+peripheral_tb.axi_wvalid
+peripheral_tb.axi_bready
+peripheral_tb.axi_awready
+peripheral_tb.axi_wready
+peripheral_tb.axi_bvalid
+@22
+peripheral_tb.axi_wdata[31:0]
+@200
+-Slave Registers
+@22
+peripheral_tb.keccak_instance.slv_control[31:0]
+peripheral_tb.keccak_instance.slv_status[31:0]
+peripheral_tb.keccak_instance.slv_in_low[31:0]
+peripheral_tb.keccak_instance.slv_in_high[31:0]
+peripheral_tb.keccak_instance.keccak_output[511:0]
+@200
+-Keccak Core
+@28
+peripheral_tb.keccak_instance.keccak_reset
+@22
+peripheral_tb.keccak_instance.keccak_input[31:0]
+@28
+peripheral_tb.keccak_instance.keccak_byte_to_send[1:0]
+peripheral_tb.keccak_instance.keccak_is_sending_bytes
+peripheral_tb.keccak_instance.keccak_is_last
+peripheral_tb.keccak_instance.keccak_buffer_full
+@22
+peripheral_tb.keccak_instance.keccak_output[511:0]
+@28
+peripheral_tb.keccak_instance.keccak_out_ready
+[pattern_trace] 1
+[pattern_trace] 0
