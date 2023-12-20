@@ -1,0 +1,27 @@
+amba_pl: amba_pl {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		compatible = "simple-bus";
+		ranges ;
+		axi4_adder_0: axi4_adder@43c00000 {
+			clock-names = "s00_axi_aclk";
+			clocks = <&clkc 15>;
+			compatible = "xlnx,axi4-adder-1.0";
+			reg = <0x43c00000 0x10000>;
+			xlnx,s00-axi-addr-width = <0x4>;
+			xlnx,s00-axi-data-width = <0x20>;
+			
+			registerA: register_set@0 {
+				reg = <0x43c00000 0x00020>;
+			};
+			
+			registerB: register_set@1 {
+				reg = <0x43c00004 0x00020>;
+			};
+			
+			registerC: register_set@2 {
+				reg = <0x43c00008 0x00020>;
+			};
+		};
+	};
+};
