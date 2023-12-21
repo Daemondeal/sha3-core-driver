@@ -32,7 +32,7 @@
 .metadata
 *.data
 *.ipdefs
-.Xil
+.Xil/
 *.sdk
 *.hw
 *.ip_user_files
