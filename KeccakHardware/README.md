@@ -8,6 +8,8 @@ Under the Vitis folder, there is some test code for the peripheral, alongside a 
 
 ## Peripheral Specification
 
+FIXME: THIS IS NOW OUT OF DATE
+
 The Keccak Peripheral has 20 registers, all starting from address `0x43C00000`. Those registers are:
 |Name|Offset|
 |-|-|
