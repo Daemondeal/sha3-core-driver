@@ -3,27 +3,35 @@
 #include <xparameters.h>
 #include "ketchup.h"
 
-#define KETCHUP_BASE XPAR_KETCHUPPERIPHERAL_0_BASEADDR
+#define KETCHUP_BASE_512_1 XPAR_KETCHUPPERIPHERALPAR_0_BASEADDR
+#define KETCHUP_BASE_384_1 XPAR_KETCHUPPERIPHERALPAR_1_BASEADDR
+#define KETCHUP_BASE_256_1 XPAR_KETCHUPPERIPHERALPAR_2_BASEADDR
+#define KETCHUP_BASE_224_1 XPAR_KETCHUPPERIPHERALPAR_3_BASEADDR
+#define KETCHUP_BASE_512_2 XPAR_KETCHUPPERIPHERALPAR_4_BASEADDR
 
 
+void sha3_512_init_2(Sha3Context *context) {
+    context->base_address = KETCHUP_BASE_512_2;
+    context->digest_length = 512/8;
+}
 
 void sha3_512_init(Sha3Context *context) {
-    context->base_address = KETCHUP_BASE;
+    context->base_address = KETCHUP_BASE_512_1;
     context->digest_length = 512/8;
 }
 
 void sha3_384_init(Sha3Context *context) {
-    context->base_address = KETCHUP_BASE + 32*4;
+    context->base_address = KETCHUP_BASE_384_1;
     context->digest_length = 384/8;
 }
 
 void sha3_256_init(Sha3Context *context) {
-    context->base_address = KETCHUP_BASE + 64*4;
+    context->base_address = KETCHUP_BASE_256_1;
     context->digest_length = 256/8;
 }
 
 void sha3_224_init(Sha3Context *context) {
-    context->base_address = KETCHUP_BASE + 96*4;
+    context->base_address = KETCHUP_BASE_224_1;
     context->digest_length = 224/8;
 }
 
@@ -33,6 +41,8 @@ void sha3(Sha3Context context, void const *input, u32 input_size, u8 *output, u3
     u32 reg_input = context.base_address + 8;
     u32 reg_command = context.base_address + 12;
     u32 reg_output = context.base_address + 16;
+    printf("Control: %08x\n", reg_control);
+
 
     // Reset the peripheral
     Xil_Out32(reg_command, 1);
