@@ -1,7 +1,7 @@
 Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2023 Advanced Micro Devices, Inc. All Rights Reserved.
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 | Tool Version : Vivado v.2023.2 (lin64) Build 4029153 Fri Oct 13 20:13:54 MDT 2023
-| Date         : Thu Dec 21 23:12:50 2023
+| Date         : Sat Dec 23 18:09:32 2023
 | Host         : daem-laptop-ubuntu running 64-bit Ubuntu 22.04.3 LTS
 | Command      : report_timing_summary -max_paths 10 -report_unconstrained -file processing_wrapper_timing_summary_routed.rpt -pb processing_wrapper_timing_summary_routed.pb -rpx processing_wrapper_timing_summary_routed.rpx -warn_on_violation
 | Design       : processing_wrapper
@@ -138,7 +138,7 @@ Table of Contents
 
     WNS(ns)      TNS(ns)  TNS Failing Endpoints  TNS Total Endpoints      WHS(ns)      THS(ns)  THS Failing Endpoints  THS Total Endpoints     WPWS(ns)     TPWS(ns)  TPWS Failing Endpoints  TPWS Total Endpoints  
     -------      -------  ---------------------  -------------------      -------      -------  ---------------------  -------------------     --------     --------  ----------------------  --------------------  
-      0.608        0.000                      0                33110        0.037        0.000                      0                33110        4.020        0.000                       0                 11320  
+      1.593        0.000                      0                36591        0.018        0.000                      0                36591        4.020        0.000                       0                 12564  
 
 
 All user specified timing constraints are met.
@@ -161,7 +161,7 @@ clk_fpga_0  {0.000 5.000}      10.000          100.000
 
 Clock             WNS(ns)      TNS(ns)  TNS Failing Endpoints  TNS Total Endpoints      WHS(ns)      THS(ns)  THS Failing Endpoints  THS Total Endpoints     WPWS(ns)     TPWS(ns)  TPWS Failing Endpoints  TPWS Total Endpoints  
 -----             -------      -------  ---------------------  -------------------      -------      -------  ---------------------  -------------------     --------     --------  ----------------------  --------------------  
-clk_fpga_0          0.608        0.000                      0                33110        0.037        0.000                      0                33110        4.020        0.000                       0                 11320  
+clk_fpga_0          1.593        0.000                      0                36591        0.018        0.000                      0                36591        4.020        0.000                       0                 12564  
 
 
 ------------------------------------------------------------------------------------------------
@@ -211,27 +211,296 @@ Path Group    From Clock    To Clock
 From Clock:  clk_fpga_0
   To Clock:  clk_fpga_0
 
-Setup :            0  Failing Endpoints,  Worst Slack        0.608ns,  Total Violation        0.000ns
-Hold  :            0  Failing Endpoints,  Worst Slack        0.037ns,  Total Violation        0.000ns
+Setup :            0  Failing Endpoints,  Worst Slack        1.593ns,  Total Violation        0.000ns
+Hold  :            0  Failing Endpoints,  Worst Slack        0.018ns,  Total Violation        0.000ns
 PW    :            0  Failing Endpoints,  Worst Slack        4.020ns,  Total Violation        0.000ns
 ---------------------------------------------------------------------------------------------------
 
 
 Max Delay Paths
 --------------------------------------------------------------------------------------
-Slack (MET) :             0.608ns  (required time - arrival time)
-  Source:                 processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha3_reset_reg[0]/C
+Slack (MET) :             1.593ns  (required time - arrival time)
+  Source:                 processing_i/KetchupPeripheralPar_2/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/axi_araddr_reg[2]/C
                             (rising edge-triggered cell FDRE clocked by clk_fpga_0  {rise@0.000ns fall@5.000ns period=10.000ns})
-  Destination:            processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha512_core/f_permutation_/out_reg[291]/R
+  Destination:            processing_i/KetchupPeripheralPar_2/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/axi_rdata_reg[17]/D
                             (rising edge-triggered cell FDRE clocked by clk_fpga_0  {rise@0.000ns fall@5.000ns period=10.000ns})
   Path Group:             clk_fpga_0
   Path Type:              Setup (Max at Slow Process Corner)
   Requirement:            10.000ns  (clk_fpga_0 rise@10.000ns - clk_fpga_0 rise@0.000ns)
-  Data Path Delay:        8.705ns  (logic 0.518ns (5.951%)  route 8.187ns (94.049%))
-  Logic Levels:           0  
-  Clock Path Skew:        -0.105ns (DCD - SCD + CPR)
-    Destination Clock Delay (DCD):    2.726ns = ( 12.726 - 10.000 ) 
-    Source Clock Delay      (SCD):    2.960ns
+  Data Path Delay:        8.168ns  (logic 1.091ns (13.357%)  route 7.077ns (86.643%))
+  Logic Levels:           3  (LUT6=2 MUXF7=1)
+  Clock Path Skew:        -0.113ns (DCD - SCD + CPR)
+    Destination Clock Delay (DCD):    2.876ns = ( 12.876 - 10.000 ) 
+    Source Clock Delay      (SCD):    3.136ns
+    Clock Pessimism Removal (CPR):    0.147ns
+  Clock Uncertainty:      0.154ns  ((TSJ^2 + TIJ^2)^1/2 + DJ) / 2 + PE
+    Total System Jitter     (TSJ):    0.071ns
+    Total Input Jitter      (TIJ):    0.300ns
+    Discrete Jitter          (DJ):    0.000ns
+    Phase Error              (PE):    0.000ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock clk_fpga_0 rise edge)
+                                                      0.000     0.000 r  
+    PS7_X0Y0             PS7                          0.000     0.000 r  processing_i/processing_system7_0/inst/PS7_i/FCLKCLK[0]
+                         net (fo=1, routed)           1.193     1.193    processing_i/processing_system7_0/inst/FCLK_CLK_unbuffered[0]
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.101     1.294 r  processing_i/processing_system7_0/inst/buffer_fclk_clk_0.FCLK_CLK_0_BUFG/O
+                         net (fo=12564, routed)       1.842     3.136    processing_i/KetchupPeripheralPar_2/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/s00_axi_aclk
+    SLICE_X37Y110        FDRE                                         r  processing_i/KetchupPeripheralPar_2/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/axi_araddr_reg[2]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X37Y110        FDRE (Prop_fdre_C_Q)         0.456     3.592 r  processing_i/KetchupPeripheralPar_2/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/axi_araddr_reg[2]/Q
+                         net (fo=160, routed)         5.378     8.970    processing_i/KetchupPeripheralPar_2/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/f_permutation_/axi_rdata_reg[1][0]
+    SLICE_X61Y144        LUT6 (Prop_lut6_I4_O)        0.124     9.094 r  processing_i/KetchupPeripheralPar_2/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/f_permutation_/axi_rdata[17]_i_6/O
+                         net (fo=1, routed)           0.000     9.094    processing_i/KetchupPeripheralPar_2/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/f_permutation_/axi_rdata[17]_i_6_n_0
+    SLICE_X61Y144        MUXF7 (Prop_muxf7_I0_O)      0.212     9.306 r  processing_i/KetchupPeripheralPar_2/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/f_permutation_/axi_rdata_reg[17]_i_3/O
+                         net (fo=1, routed)           1.699    11.005    processing_i/KetchupPeripheralPar_2/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/f_permutation_/axi_rdata_reg[17]_i_3_n_0
+    SLICE_X61Y125        LUT6 (Prop_lut6_I1_O)        0.299    11.304 r  processing_i/KetchupPeripheralPar_2/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/f_permutation_/axi_rdata[17]_i_1/O
+                         net (fo=1, routed)           0.000    11.304    processing_i/KetchupPeripheralPar_2/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core_n_14
+    SLICE_X61Y125        FDRE                                         r  processing_i/KetchupPeripheralPar_2/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/axi_rdata_reg[17]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock clk_fpga_0 rise edge)
+                                                     10.000    10.000 r  
+    PS7_X0Y0             PS7                          0.000    10.000 r  processing_i/processing_system7_0/inst/PS7_i/FCLKCLK[0]
+                         net (fo=1, routed)           1.088    11.088    processing_i/processing_system7_0/inst/FCLK_CLK_unbuffered[0]
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.091    11.179 r  processing_i/processing_system7_0/inst/buffer_fclk_clk_0.FCLK_CLK_0_BUFG/O
+                         net (fo=12564, routed)       1.697    12.876    processing_i/KetchupPeripheralPar_2/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/s00_axi_aclk
+    SLICE_X61Y125        FDRE                                         r  processing_i/KetchupPeripheralPar_2/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/axi_rdata_reg[17]/C
+                         clock pessimism              0.147    13.023    
+                         clock uncertainty           -0.154    12.869    
+    SLICE_X61Y125        FDRE (Setup_fdre_C_D)        0.029    12.898    processing_i/KetchupPeripheralPar_2/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/axi_rdata_reg[17]
+  -------------------------------------------------------------------
+                         required time                         12.898    
+                         arrival time                         -11.304    
+  -------------------------------------------------------------------
+                         slack                                  1.593    
+
+Slack (MET) :             1.712ns  (required time - arrival time)
+  Source:                 processing_i/rst_ps7_0_100M/U0/ACTIVE_LOW_PR_OUT_DFF[0].FDRE_PER_N/C
+                            (rising edge-triggered cell FDRE clocked by clk_fpga_0  {rise@0.000ns fall@5.000ns period=10.000ns})
+  Destination:            processing_i/KetchupPeripheralPar_1/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/axi_rdata_reg[16]/R
+                            (rising edge-triggered cell FDRE clocked by clk_fpga_0  {rise@0.000ns fall@5.000ns period=10.000ns})
+  Path Group:             clk_fpga_0
+  Path Type:              Setup (Max at Slow Process Corner)
+  Requirement:            10.000ns  (clk_fpga_0 rise@10.000ns - clk_fpga_0 rise@0.000ns)
+  Data Path Delay:        7.583ns  (logic 0.580ns (7.649%)  route 7.003ns (92.351%))
+  Logic Levels:           1  (LUT1=1)
+  Clock Path Skew:        -0.122ns (DCD - SCD + CPR)
+    Destination Clock Delay (DCD):    2.738ns = ( 12.738 - 10.000 ) 
+    Source Clock Delay      (SCD):    2.975ns
+    Clock Pessimism Removal (CPR):    0.115ns
+  Clock Uncertainty:      0.154ns  ((TSJ^2 + TIJ^2)^1/2 + DJ) / 2 + PE
+    Total System Jitter     (TSJ):    0.071ns
+    Total Input Jitter      (TIJ):    0.300ns
+    Discrete Jitter          (DJ):    0.000ns
+    Phase Error              (PE):    0.000ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock clk_fpga_0 rise edge)
+                                                      0.000     0.000 r  
+    PS7_X0Y0             PS7                          0.000     0.000 r  processing_i/processing_system7_0/inst/PS7_i/FCLKCLK[0]
+                         net (fo=1, routed)           1.193     1.193    processing_i/processing_system7_0/inst/FCLK_CLK_unbuffered[0]
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.101     1.294 r  processing_i/processing_system7_0/inst/buffer_fclk_clk_0.FCLK_CLK_0_BUFG/O
+                         net (fo=12564, routed)       1.681     2.975    processing_i/rst_ps7_0_100M/U0/slowest_sync_clk
+    SLICE_X29Y73         FDRE                                         r  processing_i/rst_ps7_0_100M/U0/ACTIVE_LOW_PR_OUT_DFF[0].FDRE_PER_N/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X29Y73         FDRE (Prop_fdre_C_Q)         0.456     3.431 f  processing_i/rst_ps7_0_100M/U0/ACTIVE_LOW_PR_OUT_DFF[0].FDRE_PER_N/Q
+                         net (fo=14, routed)          3.177     6.608    processing_i/KetchupPeripheralPar_1/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/s00_axi_aresetn
+    SLICE_X60Y78         LUT1 (Prop_lut1_I0_O)        0.124     6.732 r  processing_i/KetchupPeripheralPar_1/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/axi_awready_i_1/O
+                         net (fo=116, routed)         3.826    10.558    processing_i/KetchupPeripheralPar_1/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/axi_awready_i_1_n_0
+    SLICE_X70Y49         FDRE                                         r  processing_i/KetchupPeripheralPar_1/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/axi_rdata_reg[16]/R
+  -------------------------------------------------------------------    -------------------
+
+                         (clock clk_fpga_0 rise edge)
+                                                     10.000    10.000 r  
+    PS7_X0Y0             PS7                          0.000    10.000 r  processing_i/processing_system7_0/inst/PS7_i/FCLKCLK[0]
+                         net (fo=1, routed)           1.088    11.088    processing_i/processing_system7_0/inst/FCLK_CLK_unbuffered[0]
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.091    11.179 r  processing_i/processing_system7_0/inst/buffer_fclk_clk_0.FCLK_CLK_0_BUFG/O
+                         net (fo=12564, routed)       1.559    12.738    processing_i/KetchupPeripheralPar_1/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/s00_axi_aclk
+    SLICE_X70Y49         FDRE                                         r  processing_i/KetchupPeripheralPar_1/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/axi_rdata_reg[16]/C
+                         clock pessimism              0.115    12.853    
+                         clock uncertainty           -0.154    12.699    
+    SLICE_X70Y49         FDRE (Setup_fdre_C_R)       -0.429    12.270    processing_i/KetchupPeripheralPar_1/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/axi_rdata_reg[16]
+  -------------------------------------------------------------------
+                         required time                         12.270    
+                         arrival time                         -10.558    
+  -------------------------------------------------------------------
+                         slack                                  1.712    
+
+Slack (MET) :             1.712ns  (required time - arrival time)
+  Source:                 processing_i/rst_ps7_0_100M/U0/ACTIVE_LOW_PR_OUT_DFF[0].FDRE_PER_N/C
+                            (rising edge-triggered cell FDRE clocked by clk_fpga_0  {rise@0.000ns fall@5.000ns period=10.000ns})
+  Destination:            processing_i/KetchupPeripheralPar_1/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/axi_rdata_reg[17]/R
+                            (rising edge-triggered cell FDRE clocked by clk_fpga_0  {rise@0.000ns fall@5.000ns period=10.000ns})
+  Path Group:             clk_fpga_0
+  Path Type:              Setup (Max at Slow Process Corner)
+  Requirement:            10.000ns  (clk_fpga_0 rise@10.000ns - clk_fpga_0 rise@0.000ns)
+  Data Path Delay:        7.583ns  (logic 0.580ns (7.649%)  route 7.003ns (92.351%))
+  Logic Levels:           1  (LUT1=1)
+  Clock Path Skew:        -0.122ns (DCD - SCD + CPR)
+    Destination Clock Delay (DCD):    2.738ns = ( 12.738 - 10.000 ) 
+    Source Clock Delay      (SCD):    2.975ns
+    Clock Pessimism Removal (CPR):    0.115ns
+  Clock Uncertainty:      0.154ns  ((TSJ^2 + TIJ^2)^1/2 + DJ) / 2 + PE
+    Total System Jitter     (TSJ):    0.071ns
+    Total Input Jitter      (TIJ):    0.300ns
+    Discrete Jitter          (DJ):    0.000ns
+    Phase Error              (PE):    0.000ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock clk_fpga_0 rise edge)
+                                                      0.000     0.000 r  
+    PS7_X0Y0             PS7                          0.000     0.000 r  processing_i/processing_system7_0/inst/PS7_i/FCLKCLK[0]
+                         net (fo=1, routed)           1.193     1.193    processing_i/processing_system7_0/inst/FCLK_CLK_unbuffered[0]
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.101     1.294 r  processing_i/processing_system7_0/inst/buffer_fclk_clk_0.FCLK_CLK_0_BUFG/O
+                         net (fo=12564, routed)       1.681     2.975    processing_i/rst_ps7_0_100M/U0/slowest_sync_clk
+    SLICE_X29Y73         FDRE                                         r  processing_i/rst_ps7_0_100M/U0/ACTIVE_LOW_PR_OUT_DFF[0].FDRE_PER_N/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X29Y73         FDRE (Prop_fdre_C_Q)         0.456     3.431 f  processing_i/rst_ps7_0_100M/U0/ACTIVE_LOW_PR_OUT_DFF[0].FDRE_PER_N/Q
+                         net (fo=14, routed)          3.177     6.608    processing_i/KetchupPeripheralPar_1/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/s00_axi_aresetn
+    SLICE_X60Y78         LUT1 (Prop_lut1_I0_O)        0.124     6.732 r  processing_i/KetchupPeripheralPar_1/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/axi_awready_i_1/O
+                         net (fo=116, routed)         3.826    10.558    processing_i/KetchupPeripheralPar_1/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/axi_awready_i_1_n_0
+    SLICE_X70Y49         FDRE                                         r  processing_i/KetchupPeripheralPar_1/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/axi_rdata_reg[17]/R
+  -------------------------------------------------------------------    -------------------
+
+                         (clock clk_fpga_0 rise edge)
+                                                     10.000    10.000 r  
+    PS7_X0Y0             PS7                          0.000    10.000 r  processing_i/processing_system7_0/inst/PS7_i/FCLKCLK[0]
+                         net (fo=1, routed)           1.088    11.088    processing_i/processing_system7_0/inst/FCLK_CLK_unbuffered[0]
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.091    11.179 r  processing_i/processing_system7_0/inst/buffer_fclk_clk_0.FCLK_CLK_0_BUFG/O
+                         net (fo=12564, routed)       1.559    12.738    processing_i/KetchupPeripheralPar_1/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/s00_axi_aclk
+    SLICE_X70Y49         FDRE                                         r  processing_i/KetchupPeripheralPar_1/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/axi_rdata_reg[17]/C
+                         clock pessimism              0.115    12.853    
+                         clock uncertainty           -0.154    12.699    
+    SLICE_X70Y49         FDRE (Setup_fdre_C_R)       -0.429    12.270    processing_i/KetchupPeripheralPar_1/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/axi_rdata_reg[17]
+  -------------------------------------------------------------------
+                         required time                         12.270    
+                         arrival time                         -10.558    
+  -------------------------------------------------------------------
+                         slack                                  1.712    
+
+Slack (MET) :             1.717ns  (required time - arrival time)
+  Source:                 processing_i/rst_ps7_0_100M/U0/ACTIVE_LOW_PR_OUT_DFF[0].FDRE_PER_N/C
+                            (rising edge-triggered cell FDRE clocked by clk_fpga_0  {rise@0.000ns fall@5.000ns period=10.000ns})
+  Destination:            processing_i/KetchupPeripheralPar_1/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/axi_rdata_reg[20]/R
+                            (rising edge-triggered cell FDRE clocked by clk_fpga_0  {rise@0.000ns fall@5.000ns period=10.000ns})
+  Path Group:             clk_fpga_0
+  Path Type:              Setup (Max at Slow Process Corner)
+  Requirement:            10.000ns  (clk_fpga_0 rise@10.000ns - clk_fpga_0 rise@0.000ns)
+  Data Path Delay:        7.579ns  (logic 0.580ns (7.653%)  route 6.999ns (92.347%))
+  Logic Levels:           1  (LUT1=1)
+  Clock Path Skew:        -0.122ns (DCD - SCD + CPR)
+    Destination Clock Delay (DCD):    2.738ns = ( 12.738 - 10.000 ) 
+    Source Clock Delay      (SCD):    2.975ns
+    Clock Pessimism Removal (CPR):    0.115ns
+  Clock Uncertainty:      0.154ns  ((TSJ^2 + TIJ^2)^1/2 + DJ) / 2 + PE
+    Total System Jitter     (TSJ):    0.071ns
+    Total Input Jitter      (TIJ):    0.300ns
+    Discrete Jitter          (DJ):    0.000ns
+    Phase Error              (PE):    0.000ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock clk_fpga_0 rise edge)
+                                                      0.000     0.000 r  
+    PS7_X0Y0             PS7                          0.000     0.000 r  processing_i/processing_system7_0/inst/PS7_i/FCLKCLK[0]
+                         net (fo=1, routed)           1.193     1.193    processing_i/processing_system7_0/inst/FCLK_CLK_unbuffered[0]
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.101     1.294 r  processing_i/processing_system7_0/inst/buffer_fclk_clk_0.FCLK_CLK_0_BUFG/O
+                         net (fo=12564, routed)       1.681     2.975    processing_i/rst_ps7_0_100M/U0/slowest_sync_clk
+    SLICE_X29Y73         FDRE                                         r  processing_i/rst_ps7_0_100M/U0/ACTIVE_LOW_PR_OUT_DFF[0].FDRE_PER_N/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X29Y73         FDRE (Prop_fdre_C_Q)         0.456     3.431 f  processing_i/rst_ps7_0_100M/U0/ACTIVE_LOW_PR_OUT_DFF[0].FDRE_PER_N/Q
+                         net (fo=14, routed)          3.177     6.608    processing_i/KetchupPeripheralPar_1/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/s00_axi_aresetn
+    SLICE_X60Y78         LUT1 (Prop_lut1_I0_O)        0.124     6.732 r  processing_i/KetchupPeripheralPar_1/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/axi_awready_i_1/O
+                         net (fo=116, routed)         3.821    10.554    processing_i/KetchupPeripheralPar_1/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/axi_awready_i_1_n_0
+    SLICE_X71Y49         FDRE                                         r  processing_i/KetchupPeripheralPar_1/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/axi_rdata_reg[20]/R
+  -------------------------------------------------------------------    -------------------
+
+                         (clock clk_fpga_0 rise edge)
+                                                     10.000    10.000 r  
+    PS7_X0Y0             PS7                          0.000    10.000 r  processing_i/processing_system7_0/inst/PS7_i/FCLKCLK[0]
+                         net (fo=1, routed)           1.088    11.088    processing_i/processing_system7_0/inst/FCLK_CLK_unbuffered[0]
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.091    11.179 r  processing_i/processing_system7_0/inst/buffer_fclk_clk_0.FCLK_CLK_0_BUFG/O
+                         net (fo=12564, routed)       1.559    12.738    processing_i/KetchupPeripheralPar_1/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/s00_axi_aclk
+    SLICE_X71Y49         FDRE                                         r  processing_i/KetchupPeripheralPar_1/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/axi_rdata_reg[20]/C
+                         clock pessimism              0.115    12.853    
+                         clock uncertainty           -0.154    12.699    
+    SLICE_X71Y49         FDRE (Setup_fdre_C_R)       -0.429    12.270    processing_i/KetchupPeripheralPar_1/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/axi_rdata_reg[20]
+  -------------------------------------------------------------------
+                         required time                         12.270    
+                         arrival time                         -10.554    
+  -------------------------------------------------------------------
+                         slack                                  1.717    
+
+Slack (MET) :             1.717ns  (required time - arrival time)
+  Source:                 processing_i/rst_ps7_0_100M/U0/ACTIVE_LOW_PR_OUT_DFF[0].FDRE_PER_N/C
+                            (rising edge-triggered cell FDRE clocked by clk_fpga_0  {rise@0.000ns fall@5.000ns period=10.000ns})
+  Destination:            processing_i/KetchupPeripheralPar_1/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/axi_rdata_reg[7]/R
+                            (rising edge-triggered cell FDRE clocked by clk_fpga_0  {rise@0.000ns fall@5.000ns period=10.000ns})
+  Path Group:             clk_fpga_0
+  Path Type:              Setup (Max at Slow Process Corner)
+  Requirement:            10.000ns  (clk_fpga_0 rise@10.000ns - clk_fpga_0 rise@0.000ns)
+  Data Path Delay:        7.579ns  (logic 0.580ns (7.653%)  route 6.999ns (92.347%))
+  Logic Levels:           1  (LUT1=1)
+  Clock Path Skew:        -0.122ns (DCD - SCD + CPR)
+    Destination Clock Delay (DCD):    2.738ns = ( 12.738 - 10.000 ) 
+    Source Clock Delay      (SCD):    2.975ns
+    Clock Pessimism Removal (CPR):    0.115ns
+  Clock Uncertainty:      0.154ns  ((TSJ^2 + TIJ^2)^1/2 + DJ) / 2 + PE
+    Total System Jitter     (TSJ):    0.071ns
+    Total Input Jitter      (TIJ):    0.300ns
+    Discrete Jitter          (DJ):    0.000ns
+    Phase Error              (PE):    0.000ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock clk_fpga_0 rise edge)
+                                                      0.000     0.000 r  
+    PS7_X0Y0             PS7                          0.000     0.000 r  processing_i/processing_system7_0/inst/PS7_i/FCLKCLK[0]
+                         net (fo=1, routed)           1.193     1.193    processing_i/processing_system7_0/inst/FCLK_CLK_unbuffered[0]
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.101     1.294 r  processing_i/processing_system7_0/inst/buffer_fclk_clk_0.FCLK_CLK_0_BUFG/O
+                         net (fo=12564, routed)       1.681     2.975    processing_i/rst_ps7_0_100M/U0/slowest_sync_clk
+    SLICE_X29Y73         FDRE                                         r  processing_i/rst_ps7_0_100M/U0/ACTIVE_LOW_PR_OUT_DFF[0].FDRE_PER_N/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X29Y73         FDRE (Prop_fdre_C_Q)         0.456     3.431 f  processing_i/rst_ps7_0_100M/U0/ACTIVE_LOW_PR_OUT_DFF[0].FDRE_PER_N/Q
+                         net (fo=14, routed)          3.177     6.608    processing_i/KetchupPeripheralPar_1/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/s00_axi_aresetn
+    SLICE_X60Y78         LUT1 (Prop_lut1_I0_O)        0.124     6.732 r  processing_i/KetchupPeripheralPar_1/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/axi_awready_i_1/O
+                         net (fo=116, routed)         3.821    10.554    processing_i/KetchupPeripheralPar_1/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/axi_awready_i_1_n_0
+    SLICE_X71Y49         FDRE                                         r  processing_i/KetchupPeripheralPar_1/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/axi_rdata_reg[7]/R
+  -------------------------------------------------------------------    -------------------
+
+                         (clock clk_fpga_0 rise edge)
+                                                     10.000    10.000 r  
+    PS7_X0Y0             PS7                          0.000    10.000 r  processing_i/processing_system7_0/inst/PS7_i/FCLKCLK[0]
+                         net (fo=1, routed)           1.088    11.088    processing_i/processing_system7_0/inst/FCLK_CLK_unbuffered[0]
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.091    11.179 r  processing_i/processing_system7_0/inst/buffer_fclk_clk_0.FCLK_CLK_0_BUFG/O
+                         net (fo=12564, routed)       1.559    12.738    processing_i/KetchupPeripheralPar_1/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/s00_axi_aclk
+    SLICE_X71Y49         FDRE                                         r  processing_i/KetchupPeripheralPar_1/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/axi_rdata_reg[7]/C
+                         clock pessimism              0.115    12.853    
+                         clock uncertainty           -0.154    12.699    
+    SLICE_X71Y49         FDRE (Setup_fdre_C_R)       -0.429    12.270    processing_i/KetchupPeripheralPar_1/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/axi_rdata_reg[7]
+  -------------------------------------------------------------------
+                         required time                         12.270    
+                         arrival time                         -10.554    
+  -------------------------------------------------------------------
+                         slack                                  1.717    
+
+Slack (MET) :             1.717ns  (required time - arrival time)
+  Source:                 processing_i/rst_ps7_0_100M/U0/ACTIVE_LOW_PR_OUT_DFF[0].FDRE_PER_N/C
+                            (rising edge-triggered cell FDRE clocked by clk_fpga_0  {rise@0.000ns fall@5.000ns period=10.000ns})
+  Destination:            processing_i/KetchupPeripheralPar_3/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/reg_control_reg[29]/R
+                            (rising edge-triggered cell FDRE clocked by clk_fpga_0  {rise@0.000ns fall@5.000ns period=10.000ns})
+  Path Group:             clk_fpga_0
+  Path Type:              Setup (Max at Slow Process Corner)
+  Requirement:            10.000ns  (clk_fpga_0 rise@10.000ns - clk_fpga_0 rise@0.000ns)
+  Data Path Delay:        7.590ns  (logic 0.580ns (7.642%)  route 7.010ns (92.358%))
+  Logic Levels:           1  (LUT1=1)
+  Clock Path Skew:        -0.015ns (DCD - SCD + CPR)
+    Destination Clock Delay (DCD):    2.831ns = ( 12.831 - 10.000 ) 
+    Source Clock Delay      (SCD):    2.975ns
     Clock Pessimism Removal (CPR):    0.129ns
   Clock Uncertainty:      0.154ns  ((TSJ^2 + TIJ^2)^1/2 + DJ) / 2 + PE
     Total System Jitter     (TSJ):    0.071ns
@@ -246,12 +515,14 @@ Slack (MET) :             0.608ns  (required time - arrival time)
     PS7_X0Y0             PS7                          0.000     0.000 r  processing_i/processing_system7_0/inst/PS7_i/FCLKCLK[0]
                          net (fo=1, routed)           1.193     1.193    processing_i/processing_system7_0/inst/FCLK_CLK_unbuffered[0]
     BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.101     1.294 r  processing_i/processing_system7_0/inst/buffer_fclk_clk_0.FCLK_CLK_0_BUFG/O
-                         net (fo=11320, routed)       1.666     2.960    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/s00_axi_aclk
-    SLICE_X36Y38         FDRE                                         r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha3_reset_reg[0]/C
+                         net (fo=12564, routed)       1.681     2.975    processing_i/rst_ps7_0_100M/U0/slowest_sync_clk
+    SLICE_X29Y73         FDRE                                         r  processing_i/rst_ps7_0_100M/U0/ACTIVE_LOW_PR_OUT_DFF[0].FDRE_PER_N/C
   -------------------------------------------------------------------    -------------------
-    SLICE_X36Y38         FDRE (Prop_fdre_C_Q)         0.518     3.478 r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha3_reset_reg[0]/Q
-                         net (fo=2224, routed)        8.187    11.665    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha512_core/f_permutation_/calc_reg_rep__3_0
-    SLICE_X84Y26         FDRE                                         r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha512_core/f_permutation_/out_reg[291]/R
+    SLICE_X29Y73         FDRE (Prop_fdre_C_Q)         0.456     3.431 f  processing_i/rst_ps7_0_100M/U0/ACTIVE_LOW_PR_OUT_DFF[0].FDRE_PER_N/Q
+                         net (fo=14, routed)          3.523     6.954    processing_i/KetchupPeripheralPar_3/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/s00_axi_aresetn
+    SLICE_X83Y84         LUT1 (Prop_lut1_I0_O)        0.124     7.078 r  processing_i/KetchupPeripheralPar_3/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/axi_awready_i_1/O
+                         net (fo=116, routed)         3.487    10.565    processing_i/KetchupPeripheralPar_3/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/axi_awready_i_1_n_0
+    SLICE_X46Y105        FDRE                                         r  processing_i/KetchupPeripheralPar_3/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/reg_control_reg[29]/R
   -------------------------------------------------------------------    -------------------
 
                          (clock clk_fpga_0 rise edge)
@@ -259,30 +530,30 @@ Slack (MET) :             0.608ns  (required time - arrival time)
     PS7_X0Y0             PS7                          0.000    10.000 r  processing_i/processing_system7_0/inst/PS7_i/FCLKCLK[0]
                          net (fo=1, routed)           1.088    11.088    processing_i/processing_system7_0/inst/FCLK_CLK_unbuffered[0]
     BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.091    11.179 r  processing_i/processing_system7_0/inst/buffer_fclk_clk_0.FCLK_CLK_0_BUFG/O
-                         net (fo=11320, routed)       1.547    12.726    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha512_core/f_permutation_/s00_axi_aclk
-    SLICE_X84Y26         FDRE                                         r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha512_core/f_permutation_/out_reg[291]/C
-                         clock pessimism              0.129    12.855    
-                         clock uncertainty           -0.154    12.701    
-    SLICE_X84Y26         FDRE (Setup_fdre_C_R)       -0.429    12.272    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha512_core/f_permutation_/out_reg[291]
+                         net (fo=12564, routed)       1.652    12.831    processing_i/KetchupPeripheralPar_3/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/s00_axi_aclk
+    SLICE_X46Y105        FDRE                                         r  processing_i/KetchupPeripheralPar_3/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/reg_control_reg[29]/C
+                         clock pessimism              0.129    12.960    
+                         clock uncertainty           -0.154    12.806    
+    SLICE_X46Y105        FDRE (Setup_fdre_C_R)       -0.524    12.282    processing_i/KetchupPeripheralPar_3/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/reg_control_reg[29]
   -------------------------------------------------------------------
-                         required time                         12.272    
-                         arrival time                         -11.665    
+                         required time                         12.282    
+                         arrival time                         -10.565    
   -------------------------------------------------------------------
-                         slack                                  0.608    
+                         slack                                  1.717    
 
-Slack (MET) :             0.617ns  (required time - arrival time)
-  Source:                 processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha3_reset_reg[0]/C
+Slack (MET) :             1.729ns  (required time - arrival time)
+  Source:                 processing_i/rst_ps7_0_100M/U0/ACTIVE_LOW_PR_OUT_DFF[0].FDRE_PER_N/C
                             (rising edge-triggered cell FDRE clocked by clk_fpga_0  {rise@0.000ns fall@5.000ns period=10.000ns})
-  Destination:            processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha512_core/f_permutation_/out_reg[381]/R
+  Destination:            processing_i/KetchupPeripheralPar_3/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/reg_input_reg[12]/R
                             (rising edge-triggered cell FDRE clocked by clk_fpga_0  {rise@0.000ns fall@5.000ns period=10.000ns})
   Path Group:             clk_fpga_0
   Path Type:              Setup (Max at Slow Process Corner)
   Requirement:            10.000ns  (clk_fpga_0 rise@10.000ns - clk_fpga_0 rise@0.000ns)
-  Data Path Delay:        8.697ns  (logic 0.518ns (5.956%)  route 8.179ns (94.044%))
-  Logic Levels:           0  
-  Clock Path Skew:        -0.103ns (DCD - SCD + CPR)
-    Destination Clock Delay (DCD):    2.728ns = ( 12.729 - 10.000 ) 
-    Source Clock Delay      (SCD):    2.960ns
+  Data Path Delay:        7.673ns  (logic 0.580ns (7.559%)  route 7.093ns (92.441%))
+  Logic Levels:           1  (LUT1=1)
+  Clock Path Skew:        -0.015ns (DCD - SCD + CPR)
+    Destination Clock Delay (DCD):    2.831ns = ( 12.831 - 10.000 ) 
+    Source Clock Delay      (SCD):    2.975ns
     Clock Pessimism Removal (CPR):    0.129ns
   Clock Uncertainty:      0.154ns  ((TSJ^2 + TIJ^2)^1/2 + DJ) / 2 + PE
     Total System Jitter     (TSJ):    0.071ns
@@ -297,12 +568,14 @@ Slack (MET) :             0.617ns  (required time - arrival time)
     PS7_X0Y0             PS7                          0.000     0.000 r  processing_i/processing_system7_0/inst/PS7_i/FCLKCLK[0]
                          net (fo=1, routed)           1.193     1.193    processing_i/processing_system7_0/inst/FCLK_CLK_unbuffered[0]
     BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.101     1.294 r  processing_i/processing_system7_0/inst/buffer_fclk_clk_0.FCLK_CLK_0_BUFG/O
-                         net (fo=11320, routed)       1.666     2.960    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/s00_axi_aclk
-    SLICE_X36Y38         FDRE                                         r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha3_reset_reg[0]/C
+                         net (fo=12564, routed)       1.681     2.975    processing_i/rst_ps7_0_100M/U0/slowest_sync_clk
+    SLICE_X29Y73         FDRE                                         r  processing_i/rst_ps7_0_100M/U0/ACTIVE_LOW_PR_OUT_DFF[0].FDRE_PER_N/C
   -------------------------------------------------------------------    -------------------
-    SLICE_X36Y38         FDRE (Prop_fdre_C_Q)         0.518     3.478 r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha3_reset_reg[0]/Q
-                         net (fo=2224, routed)        8.179    11.657    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha512_core/f_permutation_/calc_reg_rep__3_0
-    SLICE_X87Y27         FDRE                                         r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha512_core/f_permutation_/out_reg[381]/R
+    SLICE_X29Y73         FDRE (Prop_fdre_C_Q)         0.456     3.431 f  processing_i/rst_ps7_0_100M/U0/ACTIVE_LOW_PR_OUT_DFF[0].FDRE_PER_N/Q
+                         net (fo=14, routed)          3.523     6.954    processing_i/KetchupPeripheralPar_3/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/s00_axi_aresetn
+    SLICE_X83Y84         LUT1 (Prop_lut1_I0_O)        0.124     7.078 r  processing_i/KetchupPeripheralPar_3/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/axi_awready_i_1/O
+                         net (fo=116, routed)         3.571    10.648    processing_i/KetchupPeripheralPar_3/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/axi_awready_i_1_n_0
+    SLICE_X39Y107        FDRE                                         r  processing_i/KetchupPeripheralPar_3/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/reg_input_reg[12]/R
   -------------------------------------------------------------------    -------------------
 
                          (clock clk_fpga_0 rise edge)
@@ -310,30 +583,30 @@ Slack (MET) :             0.617ns  (required time - arrival time)
     PS7_X0Y0             PS7                          0.000    10.000 r  processing_i/processing_system7_0/inst/PS7_i/FCLKCLK[0]
                          net (fo=1, routed)           1.088    11.088    processing_i/processing_system7_0/inst/FCLK_CLK_unbuffered[0]
     BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.091    11.179 r  processing_i/processing_system7_0/inst/buffer_fclk_clk_0.FCLK_CLK_0_BUFG/O
-                         net (fo=11320, routed)       1.549    12.729    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha512_core/f_permutation_/s00_axi_aclk
-    SLICE_X87Y27         FDRE                                         r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha512_core/f_permutation_/out_reg[381]/C
-                         clock pessimism              0.129    12.857    
-                         clock uncertainty           -0.154    12.703    
-    SLICE_X87Y27         FDRE (Setup_fdre_C_R)       -0.429    12.274    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha512_core/f_permutation_/out_reg[381]
+                         net (fo=12564, routed)       1.652    12.831    processing_i/KetchupPeripheralPar_3/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/s00_axi_aclk
+    SLICE_X39Y107        FDRE                                         r  processing_i/KetchupPeripheralPar_3/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/reg_input_reg[12]/C
+                         clock pessimism              0.129    12.960    
+                         clock uncertainty           -0.154    12.806    
+    SLICE_X39Y107        FDRE (Setup_fdre_C_R)       -0.429    12.377    processing_i/KetchupPeripheralPar_3/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/reg_input_reg[12]
   -------------------------------------------------------------------
-                         required time                         12.274    
-                         arrival time                         -11.657    
+                         required time                         12.377    
+                         arrival time                         -10.648    
   -------------------------------------------------------------------
-                         slack                                  0.617    
+                         slack                                  1.729    
 
-Slack (MET) :             0.617ns  (required time - arrival time)
-  Source:                 processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha3_reset_reg[0]/C
+Slack (MET) :             1.729ns  (required time - arrival time)
+  Source:                 processing_i/rst_ps7_0_100M/U0/ACTIVE_LOW_PR_OUT_DFF[0].FDRE_PER_N/C
                             (rising edge-triggered cell FDRE clocked by clk_fpga_0  {rise@0.000ns fall@5.000ns period=10.000ns})
-  Destination:            processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha512_core/f_permutation_/out_reg[509]/R
+  Destination:            processing_i/KetchupPeripheralPar_3/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/reg_input_reg[13]/R
                             (rising edge-triggered cell FDRE clocked by clk_fpga_0  {rise@0.000ns fall@5.000ns period=10.000ns})
   Path Group:             clk_fpga_0
   Path Type:              Setup (Max at Slow Process Corner)
   Requirement:            10.000ns  (clk_fpga_0 rise@10.000ns - clk_fpga_0 rise@0.000ns)
-  Data Path Delay:        8.697ns  (logic 0.518ns (5.956%)  route 8.179ns (94.044%))
-  Logic Levels:           0  
-  Clock Path Skew:        -0.103ns (DCD - SCD + CPR)
-    Destination Clock Delay (DCD):    2.728ns = ( 12.729 - 10.000 ) 
-    Source Clock Delay      (SCD):    2.960ns
+  Data Path Delay:        7.673ns  (logic 0.580ns (7.559%)  route 7.093ns (92.441%))
+  Logic Levels:           1  (LUT1=1)
+  Clock Path Skew:        -0.015ns (DCD - SCD + CPR)
+    Destination Clock Delay (DCD):    2.831ns = ( 12.831 - 10.000 ) 
+    Source Clock Delay      (SCD):    2.975ns
     Clock Pessimism Removal (CPR):    0.129ns
   Clock Uncertainty:      0.154ns  ((TSJ^2 + TIJ^2)^1/2 + DJ) / 2 + PE
     Total System Jitter     (TSJ):    0.071ns
@@ -348,12 +621,14 @@ Slack (MET) :             0.617ns  (required time - arrival time)
     PS7_X0Y0             PS7                          0.000     0.000 r  processing_i/processing_system7_0/inst/PS7_i/FCLKCLK[0]
                          net (fo=1, routed)           1.193     1.193    processing_i/processing_system7_0/inst/FCLK_CLK_unbuffered[0]
     BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.101     1.294 r  processing_i/processing_system7_0/inst/buffer_fclk_clk_0.FCLK_CLK_0_BUFG/O
-                         net (fo=11320, routed)       1.666     2.960    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/s00_axi_aclk
-    SLICE_X36Y38         FDRE                                         r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha3_reset_reg[0]/C
+                         net (fo=12564, routed)       1.681     2.975    processing_i/rst_ps7_0_100M/U0/slowest_sync_clk
+    SLICE_X29Y73         FDRE                                         r  processing_i/rst_ps7_0_100M/U0/ACTIVE_LOW_PR_OUT_DFF[0].FDRE_PER_N/C
   -------------------------------------------------------------------    -------------------
-    SLICE_X36Y38         FDRE (Prop_fdre_C_Q)         0.518     3.478 r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha3_reset_reg[0]/Q
-                         net (fo=2224, routed)        8.179    11.657    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha512_core/f_permutation_/calc_reg_rep__3_0
-    SLICE_X87Y27         FDRE                                         r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha512_core/f_permutation_/out_reg[509]/R
+    SLICE_X29Y73         FDRE (Prop_fdre_C_Q)         0.456     3.431 f  processing_i/rst_ps7_0_100M/U0/ACTIVE_LOW_PR_OUT_DFF[0].FDRE_PER_N/Q
+                         net (fo=14, routed)          3.523     6.954    processing_i/KetchupPeripheralPar_3/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/s00_axi_aresetn
+    SLICE_X83Y84         LUT1 (Prop_lut1_I0_O)        0.124     7.078 r  processing_i/KetchupPeripheralPar_3/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/axi_awready_i_1/O
+                         net (fo=116, routed)         3.571    10.648    processing_i/KetchupPeripheralPar_3/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/axi_awready_i_1_n_0
+    SLICE_X39Y107        FDRE                                         r  processing_i/KetchupPeripheralPar_3/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/reg_input_reg[13]/R
   -------------------------------------------------------------------    -------------------
 
                          (clock clk_fpga_0 rise edge)
@@ -361,30 +636,30 @@ Slack (MET) :             0.617ns  (required time - arrival time)
     PS7_X0Y0             PS7                          0.000    10.000 r  processing_i/processing_system7_0/inst/PS7_i/FCLKCLK[0]
                          net (fo=1, routed)           1.088    11.088    processing_i/processing_system7_0/inst/FCLK_CLK_unbuffered[0]
     BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.091    11.179 r  processing_i/processing_system7_0/inst/buffer_fclk_clk_0.FCLK_CLK_0_BUFG/O
-                         net (fo=11320, routed)       1.549    12.729    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha512_core/f_permutation_/s00_axi_aclk
-    SLICE_X87Y27         FDRE                                         r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha512_core/f_permutation_/out_reg[509]/C
-                         clock pessimism              0.129    12.857    
-                         clock uncertainty           -0.154    12.703    
-    SLICE_X87Y27         FDRE (Setup_fdre_C_R)       -0.429    12.274    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha512_core/f_permutation_/out_reg[509]
+                         net (fo=12564, routed)       1.652    12.831    processing_i/KetchupPeripheralPar_3/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/s00_axi_aclk
+    SLICE_X39Y107        FDRE                                         r  processing_i/KetchupPeripheralPar_3/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/reg_input_reg[13]/C
+                         clock pessimism              0.129    12.960    
+                         clock uncertainty           -0.154    12.806    
+    SLICE_X39Y107        FDRE (Setup_fdre_C_R)       -0.429    12.377    processing_i/KetchupPeripheralPar_3/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/reg_input_reg[13]
   -------------------------------------------------------------------
-                         required time                         12.274    
-                         arrival time                         -11.657    
+                         required time                         12.377    
+                         arrival time                         -10.648    
   -------------------------------------------------------------------
-                         slack                                  0.617    
+                         slack                                  1.729    
 
-Slack (MET) :             0.617ns  (required time - arrival time)
-  Source:                 processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha3_reset_reg[0]/C
+Slack (MET) :             1.750ns  (required time - arrival time)
+  Source:                 processing_i/rst_ps7_0_100M/U0/ACTIVE_LOW_PR_OUT_DFF[0].FDRE_PER_N/C
                             (rising edge-triggered cell FDRE clocked by clk_fpga_0  {rise@0.000ns fall@5.000ns period=10.000ns})
-  Destination:            processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha512_core/f_permutation_/out_reg[573]/R
+  Destination:            processing_i/KetchupPeripheralPar_3/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/axi_rdata_reg[3]/R
                             (rising edge-triggered cell FDRE clocked by clk_fpga_0  {rise@0.000ns fall@5.000ns period=10.000ns})
   Path Group:             clk_fpga_0
   Path Type:              Setup (Max at Slow Process Corner)
   Requirement:            10.000ns  (clk_fpga_0 rise@10.000ns - clk_fpga_0 rise@0.000ns)
-  Data Path Delay:        8.697ns  (logic 0.518ns (5.956%)  route 8.179ns (94.044%))
-  Logic Levels:           0  
-  Clock Path Skew:        -0.103ns (DCD - SCD + CPR)
-    Destination Clock Delay (DCD):    2.728ns = ( 12.729 - 10.000 ) 
-    Source Clock Delay      (SCD):    2.960ns
+  Data Path Delay:        7.556ns  (logic 0.580ns (7.676%)  route 6.976ns (92.324%))
+  Logic Levels:           1  (LUT1=1)
+  Clock Path Skew:        -0.016ns (DCD - SCD + CPR)
+    Destination Clock Delay (DCD):    2.830ns = ( 12.830 - 10.000 ) 
+    Source Clock Delay      (SCD):    2.975ns
     Clock Pessimism Removal (CPR):    0.129ns
   Clock Uncertainty:      0.154ns  ((TSJ^2 + TIJ^2)^1/2 + DJ) / 2 + PE
     Total System Jitter     (TSJ):    0.071ns
@@ -399,12 +674,14 @@ Slack (MET) :             0.617ns  (required time - arrival time)
     PS7_X0Y0             PS7                          0.000     0.000 r  processing_i/processing_system7_0/inst/PS7_i/FCLKCLK[0]
                          net (fo=1, routed)           1.193     1.193    processing_i/processing_system7_0/inst/FCLK_CLK_unbuffered[0]
     BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.101     1.294 r  processing_i/processing_system7_0/inst/buffer_fclk_clk_0.FCLK_CLK_0_BUFG/O
-                         net (fo=11320, routed)       1.666     2.960    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/s00_axi_aclk
-    SLICE_X36Y38         FDRE                                         r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha3_reset_reg[0]/C
+                         net (fo=12564, routed)       1.681     2.975    processing_i/rst_ps7_0_100M/U0/slowest_sync_clk
+    SLICE_X29Y73         FDRE                                         r  processing_i/rst_ps7_0_100M/U0/ACTIVE_LOW_PR_OUT_DFF[0].FDRE_PER_N/C
   -------------------------------------------------------------------    -------------------
-    SLICE_X36Y38         FDRE (Prop_fdre_C_Q)         0.518     3.478 r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha3_reset_reg[0]/Q
-                         net (fo=2224, routed)        8.179    11.657    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha512_core/f_permutation_/calc_reg_rep__3_0
-    SLICE_X87Y27         FDRE                                         r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha512_core/f_permutation_/out_reg[573]/R
+    SLICE_X29Y73         FDRE (Prop_fdre_C_Q)         0.456     3.431 f  processing_i/rst_ps7_0_100M/U0/ACTIVE_LOW_PR_OUT_DFF[0].FDRE_PER_N/Q
+                         net (fo=14, routed)          3.523     6.954    processing_i/KetchupPeripheralPar_3/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/s00_axi_aresetn
+    SLICE_X83Y84         LUT1 (Prop_lut1_I0_O)        0.124     7.078 r  processing_i/KetchupPeripheralPar_3/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/axi_awready_i_1/O
+                         net (fo=116, routed)         3.453    10.531    processing_i/KetchupPeripheralPar_3/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/axi_awready_i_1_n_0
+    SLICE_X38Y109        FDRE                                         r  processing_i/KetchupPeripheralPar_3/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/axi_rdata_reg[3]/R
   -------------------------------------------------------------------    -------------------
 
                          (clock clk_fpga_0 rise edge)
@@ -412,30 +689,30 @@ Slack (MET) :             0.617ns  (required time - arrival time)
     PS7_X0Y0             PS7                          0.000    10.000 r  processing_i/processing_system7_0/inst/PS7_i/FCLKCLK[0]
                          net (fo=1, routed)           1.088    11.088    processing_i/processing_system7_0/inst/FCLK_CLK_unbuffered[0]
     BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.091    11.179 r  processing_i/processing_system7_0/inst/buffer_fclk_clk_0.FCLK_CLK_0_BUFG/O
-                         net (fo=11320, routed)       1.549    12.729    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha512_core/f_permutation_/s00_axi_aclk
-    SLICE_X87Y27         FDRE                                         r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha512_core/f_permutation_/out_reg[573]/C
-                         clock pessimism              0.129    12.857    
-                         clock uncertainty           -0.154    12.703    
-    SLICE_X87Y27         FDRE (Setup_fdre_C_R)       -0.429    12.274    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha512_core/f_permutation_/out_reg[573]
+                         net (fo=12564, routed)       1.651    12.830    processing_i/KetchupPeripheralPar_3/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/s00_axi_aclk
+    SLICE_X38Y109        FDRE                                         r  processing_i/KetchupPeripheralPar_3/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/axi_rdata_reg[3]/C
+                         clock pessimism              0.129    12.959    
+                         clock uncertainty           -0.154    12.805    
+    SLICE_X38Y109        FDRE (Setup_fdre_C_R)       -0.524    12.281    processing_i/KetchupPeripheralPar_3/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/axi_rdata_reg[3]
   -------------------------------------------------------------------
-                         required time                         12.274    
-                         arrival time                         -11.657    
+                         required time                         12.281    
+                         arrival time                         -10.531    
   -------------------------------------------------------------------
-                         slack                                  0.617    
+                         slack                                  1.750    
 
-Slack (MET) :             0.617ns  (required time - arrival time)
-  Source:                 processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha3_reset_reg[0]/C
-                            (rising edge-triggered cell FDRE clocked by clk_fpga_0  {rise@0.000ns fall@5.000ns period=10.000ns})
-  Destination:            processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha512_core/f_permutation_/out_reg[637]/R
+Slack (MET) :             1.912ns  (required time - arrival time)
+  Source:                 processing_i/processing_system7_0/inst/PS7_i/MAXIGP0ACLK
+                            (rising edge-triggered cell PS7 clocked by clk_fpga_0  {rise@0.000ns fall@5.000ns period=10.000ns})
+  Destination:            processing_i/KetchupPeripheralPar_1/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/reg_input_reg[19]/D
                             (rising edge-triggered cell FDRE clocked by clk_fpga_0  {rise@0.000ns fall@5.000ns period=10.000ns})
   Path Group:             clk_fpga_0
   Path Type:              Setup (Max at Slow Process Corner)
   Requirement:            10.000ns  (clk_fpga_0 rise@10.000ns - clk_fpga_0 rise@0.000ns)
-  Data Path Delay:        8.697ns  (logic 0.518ns (5.956%)  route 8.179ns (94.044%))
+  Data Path Delay:        7.707ns  (logic 1.450ns (18.813%)  route 6.257ns (81.187%))
   Logic Levels:           0  
-  Clock Path Skew:        -0.103ns (DCD - SCD + CPR)
-    Destination Clock Delay (DCD):    2.728ns = ( 12.729 - 10.000 ) 
-    Source Clock Delay      (SCD):    2.960ns
+  Clock Path Skew:        -0.181ns (DCD - SCD + CPR)
+    Destination Clock Delay (DCD):    2.721ns = ( 12.721 - 10.000 ) 
+    Source Clock Delay      (SCD):    3.031ns
     Clock Pessimism Removal (CPR):    0.129ns
   Clock Uncertainty:      0.154ns  ((TSJ^2 + TIJ^2)^1/2 + DJ) / 2 + PE
     Total System Jitter     (TSJ):    0.071ns
@@ -450,63 +727,13 @@ Slack (MET) :             0.617ns  (required time - arrival time)
     PS7_X0Y0             PS7                          0.000     0.000 r  processing_i/processing_system7_0/inst/PS7_i/FCLKCLK[0]
                          net (fo=1, routed)           1.193     1.193    processing_i/processing_system7_0/inst/FCLK_CLK_unbuffered[0]
     BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.101     1.294 r  processing_i/processing_system7_0/inst/buffer_fclk_clk_0.FCLK_CLK_0_BUFG/O
-                         net (fo=11320, routed)       1.666     2.960    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/s00_axi_aclk
-    SLICE_X36Y38         FDRE                                         r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha3_reset_reg[0]/C
+                         net (fo=12564, routed)       1.737     3.031    processing_i/processing_system7_0/inst/M_AXI_GP0_ACLK
+    PS7_X0Y0             PS7                                          r  processing_i/processing_system7_0/inst/PS7_i/MAXIGP0ACLK
   -------------------------------------------------------------------    -------------------
-    SLICE_X36Y38         FDRE (Prop_fdre_C_Q)         0.518     3.478 r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha3_reset_reg[0]/Q
-                         net (fo=2224, routed)        8.179    11.657    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha512_core/f_permutation_/calc_reg_rep__3_0
-    SLICE_X87Y27         FDRE                                         r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha512_core/f_permutation_/out_reg[637]/R
-  -------------------------------------------------------------------    -------------------
-
-                         (clock clk_fpga_0 rise edge)
-                                                     10.000    10.000 r  
-    PS7_X0Y0             PS7                          0.000    10.000 r  processing_i/processing_system7_0/inst/PS7_i/FCLKCLK[0]
-                         net (fo=1, routed)           1.088    11.088    processing_i/processing_system7_0/inst/FCLK_CLK_unbuffered[0]
-    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.091    11.179 r  processing_i/processing_system7_0/inst/buffer_fclk_clk_0.FCLK_CLK_0_BUFG/O
-                         net (fo=11320, routed)       1.549    12.729    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha512_core/f_permutation_/s00_axi_aclk
-    SLICE_X87Y27         FDRE                                         r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha512_core/f_permutation_/out_reg[637]/C
-                         clock pessimism              0.129    12.857    
-                         clock uncertainty           -0.154    12.703    
-    SLICE_X87Y27         FDRE (Setup_fdre_C_R)       -0.429    12.274    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha512_core/f_permutation_/out_reg[637]
-  -------------------------------------------------------------------
-                         required time                         12.274    
-                         arrival time                         -11.657    
-  -------------------------------------------------------------------
-                         slack                                  0.617    
-
-Slack (MET) :             0.668ns  (required time - arrival time)
-  Source:                 processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha3_reset_reg[0]/C
-                            (rising edge-triggered cell FDRE clocked by clk_fpga_0  {rise@0.000ns fall@5.000ns period=10.000ns})
-  Destination:            processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha512_core/f_permutation_/out_reg[701]/R
-                            (rising edge-triggered cell FDRE clocked by clk_fpga_0  {rise@0.000ns fall@5.000ns period=10.000ns})
-  Path Group:             clk_fpga_0
-  Path Type:              Setup (Max at Slow Process Corner)
-  Requirement:            10.000ns  (clk_fpga_0 rise@10.000ns - clk_fpga_0 rise@0.000ns)
-  Data Path Delay:        8.649ns  (logic 0.518ns (5.989%)  route 8.131ns (94.011%))
-  Logic Levels:           0  
-  Clock Path Skew:        -0.101ns (DCD - SCD + CPR)
-    Destination Clock Delay (DCD):    2.730ns = ( 12.730 - 10.000 ) 
-    Source Clock Delay      (SCD):    2.960ns
-    Clock Pessimism Removal (CPR):    0.129ns
-  Clock Uncertainty:      0.154ns  ((TSJ^2 + TIJ^2)^1/2 + DJ) / 2 + PE
-    Total System Jitter     (TSJ):    0.071ns
-    Total Input Jitter      (TIJ):    0.300ns
-    Discrete Jitter          (DJ):    0.000ns
-    Phase Error              (PE):    0.000ns
-
-    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
-  -------------------------------------------------------------------    -------------------
-                         (clock clk_fpga_0 rise edge)
-                                                      0.000     0.000 r  
-    PS7_X0Y0             PS7                          0.000     0.000 r  processing_i/processing_system7_0/inst/PS7_i/FCLKCLK[0]
-                         net (fo=1, routed)           1.193     1.193    processing_i/processing_system7_0/inst/FCLK_CLK_unbuffered[0]
-    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.101     1.294 r  processing_i/processing_system7_0/inst/buffer_fclk_clk_0.FCLK_CLK_0_BUFG/O
-                         net (fo=11320, routed)       1.666     2.960    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/s00_axi_aclk
-    SLICE_X36Y38         FDRE                                         r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha3_reset_reg[0]/C
-  -------------------------------------------------------------------    -------------------
-    SLICE_X36Y38         FDRE (Prop_fdre_C_Q)         0.518     3.478 r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha3_reset_reg[0]/Q
-                         net (fo=2224, routed)        8.131    11.609    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha512_core/f_permutation_/calc_reg_rep__3_0
-    SLICE_X88Y28         FDRE                                         r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha512_core/f_permutation_/out_reg[701]/R
+    PS7_X0Y0             PS7 (Prop_ps7_MAXIGP0ACLK_MAXIGP0WDATA[19])
+                                                      1.450     4.481 r  processing_i/processing_system7_0/inst/PS7_i/MAXIGP0WDATA[19]
+                         net (fo=10, routed)          6.257    10.738    processing_i/KetchupPeripheralPar_1/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/s00_axi_wdata[19]
+    SLICE_X66Y52         FDRE                                         r  processing_i/KetchupPeripheralPar_1/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/reg_input_reg[19]/D
   -------------------------------------------------------------------    -------------------
 
                          (clock clk_fpga_0 rise edge)
@@ -514,220 +741,16 @@ Slack (MET) :             0.668ns  (required time - arrival time)
     PS7_X0Y0             PS7                          0.000    10.000 r  processing_i/processing_system7_0/inst/PS7_i/FCLKCLK[0]
                          net (fo=1, routed)           1.088    11.088    processing_i/processing_system7_0/inst/FCLK_CLK_unbuffered[0]
     BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.091    11.179 r  processing_i/processing_system7_0/inst/buffer_fclk_clk_0.FCLK_CLK_0_BUFG/O
-                         net (fo=11320, routed)       1.551    12.731    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha512_core/f_permutation_/s00_axi_aclk
-    SLICE_X88Y28         FDRE                                         r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha512_core/f_permutation_/out_reg[701]/C
-                         clock pessimism              0.129    12.859    
-                         clock uncertainty           -0.154    12.705    
-    SLICE_X88Y28         FDRE (Setup_fdre_C_R)       -0.429    12.276    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha512_core/f_permutation_/out_reg[701]
+                         net (fo=12564, routed)       1.542    12.721    processing_i/KetchupPeripheralPar_1/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/s00_axi_aclk
+    SLICE_X66Y52         FDRE                                         r  processing_i/KetchupPeripheralPar_1/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/reg_input_reg[19]/C
+                         clock pessimism              0.129    12.850    
+                         clock uncertainty           -0.154    12.696    
+    SLICE_X66Y52         FDRE (Setup_fdre_C_D)       -0.045    12.651    processing_i/KetchupPeripheralPar_1/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/reg_input_reg[19]
   -------------------------------------------------------------------
-                         required time                         12.276    
-                         arrival time                         -11.609    
+                         required time                         12.651    
+                         arrival time                         -10.738    
   -------------------------------------------------------------------
-                         slack                                  0.668    
-
-Slack (MET) :             0.668ns  (required time - arrival time)
-  Source:                 processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha3_reset_reg[0]/C
-                            (rising edge-triggered cell FDRE clocked by clk_fpga_0  {rise@0.000ns fall@5.000ns period=10.000ns})
-  Destination:            processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha512_core/f_permutation_/out_reg[765]/R
-                            (rising edge-triggered cell FDRE clocked by clk_fpga_0  {rise@0.000ns fall@5.000ns period=10.000ns})
-  Path Group:             clk_fpga_0
-  Path Type:              Setup (Max at Slow Process Corner)
-  Requirement:            10.000ns  (clk_fpga_0 rise@10.000ns - clk_fpga_0 rise@0.000ns)
-  Data Path Delay:        8.649ns  (logic 0.518ns (5.989%)  route 8.131ns (94.011%))
-  Logic Levels:           0  
-  Clock Path Skew:        -0.101ns (DCD - SCD + CPR)
-    Destination Clock Delay (DCD):    2.730ns = ( 12.730 - 10.000 ) 
-    Source Clock Delay      (SCD):    2.960ns
-    Clock Pessimism Removal (CPR):    0.129ns
-  Clock Uncertainty:      0.154ns  ((TSJ^2 + TIJ^2)^1/2 + DJ) / 2 + PE
-    Total System Jitter     (TSJ):    0.071ns
-    Total Input Jitter      (TIJ):    0.300ns
-    Discrete Jitter          (DJ):    0.000ns
-    Phase Error              (PE):    0.000ns
-
-    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
-  -------------------------------------------------------------------    -------------------
-                         (clock clk_fpga_0 rise edge)
-                                                      0.000     0.000 r  
-    PS7_X0Y0             PS7                          0.000     0.000 r  processing_i/processing_system7_0/inst/PS7_i/FCLKCLK[0]
-                         net (fo=1, routed)           1.193     1.193    processing_i/processing_system7_0/inst/FCLK_CLK_unbuffered[0]
-    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.101     1.294 r  processing_i/processing_system7_0/inst/buffer_fclk_clk_0.FCLK_CLK_0_BUFG/O
-                         net (fo=11320, routed)       1.666     2.960    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/s00_axi_aclk
-    SLICE_X36Y38         FDRE                                         r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha3_reset_reg[0]/C
-  -------------------------------------------------------------------    -------------------
-    SLICE_X36Y38         FDRE (Prop_fdre_C_Q)         0.518     3.478 r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha3_reset_reg[0]/Q
-                         net (fo=2224, routed)        8.131    11.609    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha512_core/f_permutation_/calc_reg_rep__3_0
-    SLICE_X88Y28         FDRE                                         r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha512_core/f_permutation_/out_reg[765]/R
-  -------------------------------------------------------------------    -------------------
-
-                         (clock clk_fpga_0 rise edge)
-                                                     10.000    10.000 r  
-    PS7_X0Y0             PS7                          0.000    10.000 r  processing_i/processing_system7_0/inst/PS7_i/FCLKCLK[0]
-                         net (fo=1, routed)           1.088    11.088    processing_i/processing_system7_0/inst/FCLK_CLK_unbuffered[0]
-    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.091    11.179 r  processing_i/processing_system7_0/inst/buffer_fclk_clk_0.FCLK_CLK_0_BUFG/O
-                         net (fo=11320, routed)       1.551    12.731    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha512_core/f_permutation_/s00_axi_aclk
-    SLICE_X88Y28         FDRE                                         r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha512_core/f_permutation_/out_reg[765]/C
-                         clock pessimism              0.129    12.859    
-                         clock uncertainty           -0.154    12.705    
-    SLICE_X88Y28         FDRE (Setup_fdre_C_R)       -0.429    12.276    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha512_core/f_permutation_/out_reg[765]
-  -------------------------------------------------------------------
-                         required time                         12.276    
-                         arrival time                         -11.609    
-  -------------------------------------------------------------------
-                         slack                                  0.668    
-
-Slack (MET) :             0.668ns  (required time - arrival time)
-  Source:                 processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha3_reset_reg[0]/C
-                            (rising edge-triggered cell FDRE clocked by clk_fpga_0  {rise@0.000ns fall@5.000ns period=10.000ns})
-  Destination:            processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha512_core/f_permutation_/out_reg[893]/R
-                            (rising edge-triggered cell FDRE clocked by clk_fpga_0  {rise@0.000ns fall@5.000ns period=10.000ns})
-  Path Group:             clk_fpga_0
-  Path Type:              Setup (Max at Slow Process Corner)
-  Requirement:            10.000ns  (clk_fpga_0 rise@10.000ns - clk_fpga_0 rise@0.000ns)
-  Data Path Delay:        8.649ns  (logic 0.518ns (5.989%)  route 8.131ns (94.011%))
-  Logic Levels:           0  
-  Clock Path Skew:        -0.101ns (DCD - SCD + CPR)
-    Destination Clock Delay (DCD):    2.730ns = ( 12.730 - 10.000 ) 
-    Source Clock Delay      (SCD):    2.960ns
-    Clock Pessimism Removal (CPR):    0.129ns
-  Clock Uncertainty:      0.154ns  ((TSJ^2 + TIJ^2)^1/2 + DJ) / 2 + PE
-    Total System Jitter     (TSJ):    0.071ns
-    Total Input Jitter      (TIJ):    0.300ns
-    Discrete Jitter          (DJ):    0.000ns
-    Phase Error              (PE):    0.000ns
-
-    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
-  -------------------------------------------------------------------    -------------------
-                         (clock clk_fpga_0 rise edge)
-                                                      0.000     0.000 r  
-    PS7_X0Y0             PS7                          0.000     0.000 r  processing_i/processing_system7_0/inst/PS7_i/FCLKCLK[0]
-                         net (fo=1, routed)           1.193     1.193    processing_i/processing_system7_0/inst/FCLK_CLK_unbuffered[0]
-    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.101     1.294 r  processing_i/processing_system7_0/inst/buffer_fclk_clk_0.FCLK_CLK_0_BUFG/O
-                         net (fo=11320, routed)       1.666     2.960    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/s00_axi_aclk
-    SLICE_X36Y38         FDRE                                         r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha3_reset_reg[0]/C
-  -------------------------------------------------------------------    -------------------
-    SLICE_X36Y38         FDRE (Prop_fdre_C_Q)         0.518     3.478 r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha3_reset_reg[0]/Q
-                         net (fo=2224, routed)        8.131    11.609    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha512_core/f_permutation_/calc_reg_rep__3_0
-    SLICE_X88Y28         FDRE                                         r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha512_core/f_permutation_/out_reg[893]/R
-  -------------------------------------------------------------------    -------------------
-
-                         (clock clk_fpga_0 rise edge)
-                                                     10.000    10.000 r  
-    PS7_X0Y0             PS7                          0.000    10.000 r  processing_i/processing_system7_0/inst/PS7_i/FCLKCLK[0]
-                         net (fo=1, routed)           1.088    11.088    processing_i/processing_system7_0/inst/FCLK_CLK_unbuffered[0]
-    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.091    11.179 r  processing_i/processing_system7_0/inst/buffer_fclk_clk_0.FCLK_CLK_0_BUFG/O
-                         net (fo=11320, routed)       1.551    12.731    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha512_core/f_permutation_/s00_axi_aclk
-    SLICE_X88Y28         FDRE                                         r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha512_core/f_permutation_/out_reg[893]/C
-                         clock pessimism              0.129    12.859    
-                         clock uncertainty           -0.154    12.705    
-    SLICE_X88Y28         FDRE (Setup_fdre_C_R)       -0.429    12.276    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha512_core/f_permutation_/out_reg[893]
-  -------------------------------------------------------------------
-                         required time                         12.276    
-                         arrival time                         -11.609    
-  -------------------------------------------------------------------
-                         slack                                  0.668    
-
-Slack (MET) :             0.668ns  (required time - arrival time)
-  Source:                 processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha3_reset_reg[0]/C
-                            (rising edge-triggered cell FDRE clocked by clk_fpga_0  {rise@0.000ns fall@5.000ns period=10.000ns})
-  Destination:            processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha512_core/f_permutation_/out_reg[957]/R
-                            (rising edge-triggered cell FDRE clocked by clk_fpga_0  {rise@0.000ns fall@5.000ns period=10.000ns})
-  Path Group:             clk_fpga_0
-  Path Type:              Setup (Max at Slow Process Corner)
-  Requirement:            10.000ns  (clk_fpga_0 rise@10.000ns - clk_fpga_0 rise@0.000ns)
-  Data Path Delay:        8.649ns  (logic 0.518ns (5.989%)  route 8.131ns (94.011%))
-  Logic Levels:           0  
-  Clock Path Skew:        -0.101ns (DCD - SCD + CPR)
-    Destination Clock Delay (DCD):    2.730ns = ( 12.730 - 10.000 ) 
-    Source Clock Delay      (SCD):    2.960ns
-    Clock Pessimism Removal (CPR):    0.129ns
-  Clock Uncertainty:      0.154ns  ((TSJ^2 + TIJ^2)^1/2 + DJ) / 2 + PE
-    Total System Jitter     (TSJ):    0.071ns
-    Total Input Jitter      (TIJ):    0.300ns
-    Discrete Jitter          (DJ):    0.000ns
-    Phase Error              (PE):    0.000ns
-
-    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
-  -------------------------------------------------------------------    -------------------
-                         (clock clk_fpga_0 rise edge)
-                                                      0.000     0.000 r  
-    PS7_X0Y0             PS7                          0.000     0.000 r  processing_i/processing_system7_0/inst/PS7_i/FCLKCLK[0]
-                         net (fo=1, routed)           1.193     1.193    processing_i/processing_system7_0/inst/FCLK_CLK_unbuffered[0]
-    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.101     1.294 r  processing_i/processing_system7_0/inst/buffer_fclk_clk_0.FCLK_CLK_0_BUFG/O
-                         net (fo=11320, routed)       1.666     2.960    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/s00_axi_aclk
-    SLICE_X36Y38         FDRE                                         r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha3_reset_reg[0]/C
-  -------------------------------------------------------------------    -------------------
-    SLICE_X36Y38         FDRE (Prop_fdre_C_Q)         0.518     3.478 r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha3_reset_reg[0]/Q
-                         net (fo=2224, routed)        8.131    11.609    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha512_core/f_permutation_/calc_reg_rep__3_0
-    SLICE_X88Y28         FDRE                                         r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha512_core/f_permutation_/out_reg[957]/R
-  -------------------------------------------------------------------    -------------------
-
-                         (clock clk_fpga_0 rise edge)
-                                                     10.000    10.000 r  
-    PS7_X0Y0             PS7                          0.000    10.000 r  processing_i/processing_system7_0/inst/PS7_i/FCLKCLK[0]
-                         net (fo=1, routed)           1.088    11.088    processing_i/processing_system7_0/inst/FCLK_CLK_unbuffered[0]
-    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.091    11.179 r  processing_i/processing_system7_0/inst/buffer_fclk_clk_0.FCLK_CLK_0_BUFG/O
-                         net (fo=11320, routed)       1.551    12.731    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha512_core/f_permutation_/s00_axi_aclk
-    SLICE_X88Y28         FDRE                                         r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha512_core/f_permutation_/out_reg[957]/C
-                         clock pessimism              0.129    12.859    
-                         clock uncertainty           -0.154    12.705    
-    SLICE_X88Y28         FDRE (Setup_fdre_C_R)       -0.429    12.276    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha512_core/f_permutation_/out_reg[957]
-  -------------------------------------------------------------------
-                         required time                         12.276    
-                         arrival time                         -11.609    
-  -------------------------------------------------------------------
-                         slack                                  0.668    
-
-Slack (MET) :             0.672ns  (required time - arrival time)
-  Source:                 processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha3_reset_reg[0]/C
-                            (rising edge-triggered cell FDRE clocked by clk_fpga_0  {rise@0.000ns fall@5.000ns period=10.000ns})
-  Destination:            processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha512_core/f_permutation_/out_reg[325]/R
-                            (rising edge-triggered cell FDRE clocked by clk_fpga_0  {rise@0.000ns fall@5.000ns period=10.000ns})
-  Path Group:             clk_fpga_0
-  Path Type:              Setup (Max at Slow Process Corner)
-  Requirement:            10.000ns  (clk_fpga_0 rise@10.000ns - clk_fpga_0 rise@0.000ns)
-  Data Path Delay:        8.644ns  (logic 0.518ns (5.992%)  route 8.126ns (94.008%))
-  Logic Levels:           0  
-  Clock Path Skew:        -0.101ns (DCD - SCD + CPR)
-    Destination Clock Delay (DCD):    2.730ns = ( 12.730 - 10.000 ) 
-    Source Clock Delay      (SCD):    2.960ns
-    Clock Pessimism Removal (CPR):    0.129ns
-  Clock Uncertainty:      0.154ns  ((TSJ^2 + TIJ^2)^1/2 + DJ) / 2 + PE
-    Total System Jitter     (TSJ):    0.071ns
-    Total Input Jitter      (TIJ):    0.300ns
-    Discrete Jitter          (DJ):    0.000ns
-    Phase Error              (PE):    0.000ns
-
-    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
-  -------------------------------------------------------------------    -------------------
-                         (clock clk_fpga_0 rise edge)
-                                                      0.000     0.000 r  
-    PS7_X0Y0             PS7                          0.000     0.000 r  processing_i/processing_system7_0/inst/PS7_i/FCLKCLK[0]
-                         net (fo=1, routed)           1.193     1.193    processing_i/processing_system7_0/inst/FCLK_CLK_unbuffered[0]
-    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.101     1.294 r  processing_i/processing_system7_0/inst/buffer_fclk_clk_0.FCLK_CLK_0_BUFG/O
-                         net (fo=11320, routed)       1.666     2.960    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/s00_axi_aclk
-    SLICE_X36Y38         FDRE                                         r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha3_reset_reg[0]/C
-  -------------------------------------------------------------------    -------------------
-    SLICE_X36Y38         FDRE (Prop_fdre_C_Q)         0.518     3.478 r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha3_reset_reg[0]/Q
-                         net (fo=2224, routed)        8.126    11.604    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha512_core/f_permutation_/calc_reg_rep__3_0
-    SLICE_X89Y28         FDRE                                         r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha512_core/f_permutation_/out_reg[325]/R
-  -------------------------------------------------------------------    -------------------
-
-                         (clock clk_fpga_0 rise edge)
-                                                     10.000    10.000 r  
-    PS7_X0Y0             PS7                          0.000    10.000 r  processing_i/processing_system7_0/inst/PS7_i/FCLKCLK[0]
-                         net (fo=1, routed)           1.088    11.088    processing_i/processing_system7_0/inst/FCLK_CLK_unbuffered[0]
-    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.091    11.179 r  processing_i/processing_system7_0/inst/buffer_fclk_clk_0.FCLK_CLK_0_BUFG/O
-                         net (fo=11320, routed)       1.551    12.731    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha512_core/f_permutation_/s00_axi_aclk
-    SLICE_X89Y28         FDRE                                         r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha512_core/f_permutation_/out_reg[325]/C
-                         clock pessimism              0.129    12.859    
-                         clock uncertainty           -0.154    12.705    
-    SLICE_X89Y28         FDRE (Setup_fdre_C_R)       -0.429    12.276    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha512_core/f_permutation_/out_reg[325]
-  -------------------------------------------------------------------
-                         required time                         12.276    
-                         arrival time                         -11.604    
-  -------------------------------------------------------------------
-                         slack                                  0.672    
+                         slack                                  1.912    
 
 
 
@@ -735,20 +758,20 @@ Slack (MET) :             0.672ns  (required time - arrival time)
 
 Min Delay Paths
 --------------------------------------------------------------------------------------
-Slack (MET) :             0.037ns  (arrival time - required time)
-  Source:                 processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/f_permutation_/out_reg[453]/C
+Slack (MET) :             0.018ns  (arrival time - required time)
+  Source:                 processing_i/KetchupPeripheralPar_3/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/padder_/out_reg[276]/C
                             (rising edge-triggered cell FDRE clocked by clk_fpga_0  {rise@0.000ns fall@5.000ns period=10.000ns})
-  Destination:            processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/f_permutation_/out_reg[468]/D
+  Destination:            processing_i/KetchupPeripheralPar_3/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/padder_/out_reg[308]/D
                             (rising edge-triggered cell FDRE clocked by clk_fpga_0  {rise@0.000ns fall@5.000ns period=10.000ns})
   Path Group:             clk_fpga_0
   Path Type:              Hold (Min at Fast Process Corner)
   Requirement:            0.000ns  (clk_fpga_0 rise@0.000ns - clk_fpga_0 rise@0.000ns)
-  Data Path Delay:        0.390ns  (logic 0.186ns (47.733%)  route 0.204ns (52.267%))
-  Logic Levels:           1  (LUT6=1)
-  Clock Path Skew:        0.260ns (DCD - SCD - CPR)
-    Destination Clock Delay (DCD):    1.187ns
-    Source Clock Delay      (SCD):    0.892ns
-    Clock Pessimism Removal (CPR):    0.035ns
+  Data Path Delay:        0.351ns  (logic 0.141ns (40.192%)  route 0.210ns (59.808%))
+  Logic Levels:           0  
+  Clock Path Skew:        0.267ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    1.275ns
+    Source Clock Delay      (SCD):    0.969ns
+    Clock Pessimism Removal (CPR):    0.039ns
 
     Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
   -------------------------------------------------------------------    -------------------
@@ -757,14 +780,12 @@ Slack (MET) :             0.037ns  (arrival time - required time)
     PS7_X0Y0             PS7                          0.000     0.000 r  processing_i/processing_system7_0/inst/PS7_i/FCLKCLK[0]
                          net (fo=1, routed)           0.310     0.310    processing_i/processing_system7_0/inst/FCLK_CLK_unbuffered[0]
     BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.026     0.336 r  processing_i/processing_system7_0/inst/buffer_fclk_clk_0.FCLK_CLK_0_BUFG/O
-                         net (fo=11320, routed)       0.556     0.892    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/f_permutation_/s00_axi_aclk
-    SLICE_X48Y50         FDRE                                         r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/f_permutation_/out_reg[453]/C
+                         net (fo=12564, routed)       0.633     0.969    processing_i/KetchupPeripheralPar_3/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/padder_/s00_axi_aclk
+    SLICE_X52Y108        FDRE                                         r  processing_i/KetchupPeripheralPar_3/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/padder_/out_reg[276]/C
   -------------------------------------------------------------------    -------------------
-    SLICE_X48Y50         FDRE (Prop_fdre_C_Q)         0.141     1.033 r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/f_permutation_/out_reg[453]/Q
-                         net (fo=5, routed)           0.204     1.236    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/f_permutation_/round_in[453]
-    SLICE_X51Y52         LUT6 (Prop_lut6_I3_O)        0.045     1.281 r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/f_permutation_/out[468]_i_1__0/O
-                         net (fo=1, routed)           0.000     1.281    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/f_permutation_/round_out[468]
-    SLICE_X51Y52         FDRE                                         r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/f_permutation_/out_reg[468]/D
+    SLICE_X52Y108        FDRE (Prop_fdre_C_Q)         0.141     1.110 r  processing_i/KetchupPeripheralPar_3/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/padder_/out_reg[276]/Q
+                         net (fo=2, routed)           0.210     1.320    processing_i/KetchupPeripheralPar_3/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/padder_/out_reg[575]_0[276]
+    SLICE_X48Y107        FDRE                                         r  processing_i/KetchupPeripheralPar_3/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/padder_/out_reg[308]/D
   -------------------------------------------------------------------    -------------------
 
                          (clock clk_fpga_0 rise edge)
@@ -772,75 +793,30 @@ Slack (MET) :             0.037ns  (arrival time - required time)
     PS7_X0Y0             PS7                          0.000     0.000 r  processing_i/processing_system7_0/inst/PS7_i/FCLKCLK[0]
                          net (fo=1, routed)           0.337     0.337    processing_i/processing_system7_0/inst/FCLK_CLK_unbuffered[0]
     BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.029     0.366 r  processing_i/processing_system7_0/inst/buffer_fclk_clk_0.FCLK_CLK_0_BUFG/O
-                         net (fo=11320, routed)       0.821     1.187    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/f_permutation_/s00_axi_aclk
-    SLICE_X51Y52         FDRE                                         r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/f_permutation_/out_reg[468]/C
-                         clock pessimism             -0.035     1.152    
-    SLICE_X51Y52         FDRE (Hold_fdre_C_D)         0.092     1.244    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/f_permutation_/out_reg[468]
+                         net (fo=12564, routed)       0.909     1.275    processing_i/KetchupPeripheralPar_3/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/padder_/s00_axi_aclk
+    SLICE_X48Y107        FDRE                                         r  processing_i/KetchupPeripheralPar_3/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/padder_/out_reg[308]/C
+                         clock pessimism             -0.039     1.236    
+    SLICE_X48Y107        FDRE (Hold_fdre_C_D)         0.066     1.302    processing_i/KetchupPeripheralPar_3/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/padder_/out_reg[308]
   -------------------------------------------------------------------
-                         required time                         -1.244    
-                         arrival time                           1.281    
+                         required time                         -1.302    
+                         arrival time                           1.320    
   -------------------------------------------------------------------
-                         slack                                  0.037    
+                         slack                                  0.018    
 
-Slack (MET) :             0.053ns  (arrival time - required time)
-  Source:                 processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/padder_/out_reg[712]/C
+Slack (MET) :             0.033ns  (arrival time - required time)
+  Source:                 processing_i/KetchupPeripheralPar_4/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/padder_/out_reg[459]/C
                             (rising edge-triggered cell FDRE clocked by clk_fpga_0  {rise@0.000ns fall@5.000ns period=10.000ns})
-  Destination:            processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/padder_/out_reg[744]/D
-                            (rising edge-triggered cell FDRE clocked by clk_fpga_0  {rise@0.000ns fall@5.000ns period=10.000ns})
-  Path Group:             clk_fpga_0
-  Path Type:              Hold (Min at Fast Process Corner)
-  Requirement:            0.000ns  (clk_fpga_0 rise@0.000ns - clk_fpga_0 rise@0.000ns)
-  Data Path Delay:        0.382ns  (logic 0.141ns (36.952%)  route 0.241ns (63.048%))
-  Logic Levels:           0  
-  Clock Path Skew:        0.258ns (DCD - SCD - CPR)
-    Destination Clock Delay (DCD):    1.191ns
-    Source Clock Delay      (SCD):    0.898ns
-    Clock Pessimism Removal (CPR):    0.035ns
-
-    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
-  -------------------------------------------------------------------    -------------------
-                         (clock clk_fpga_0 rise edge)
-                                                      0.000     0.000 r  
-    PS7_X0Y0             PS7                          0.000     0.000 r  processing_i/processing_system7_0/inst/PS7_i/FCLKCLK[0]
-                         net (fo=1, routed)           0.310     0.310    processing_i/processing_system7_0/inst/FCLK_CLK_unbuffered[0]
-    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.026     0.336 r  processing_i/processing_system7_0/inst/buffer_fclk_clk_0.FCLK_CLK_0_BUFG/O
-                         net (fo=11320, routed)       0.562     0.898    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/padder_/s00_axi_aclk
-    SLICE_X40Y45         FDRE                                         r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/padder_/out_reg[712]/C
-  -------------------------------------------------------------------    -------------------
-    SLICE_X40Y45         FDRE (Prop_fdre_C_Q)         0.141     1.039 r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/padder_/out_reg[712]/Q
-                         net (fo=2, routed)           0.241     1.279    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/padder_/Q[712]
-    SLICE_X51Y45         FDRE                                         r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/padder_/out_reg[744]/D
-  -------------------------------------------------------------------    -------------------
-
-                         (clock clk_fpga_0 rise edge)
-                                                      0.000     0.000 r  
-    PS7_X0Y0             PS7                          0.000     0.000 r  processing_i/processing_system7_0/inst/PS7_i/FCLKCLK[0]
-                         net (fo=1, routed)           0.337     0.337    processing_i/processing_system7_0/inst/FCLK_CLK_unbuffered[0]
-    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.029     0.366 r  processing_i/processing_system7_0/inst/buffer_fclk_clk_0.FCLK_CLK_0_BUFG/O
-                         net (fo=11320, routed)       0.825     1.191    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/padder_/s00_axi_aclk
-    SLICE_X51Y45         FDRE                                         r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/padder_/out_reg[744]/C
-                         clock pessimism             -0.035     1.156    
-    SLICE_X51Y45         FDRE (Hold_fdre_C_D)         0.070     1.226    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/padder_/out_reg[744]
-  -------------------------------------------------------------------
-                         required time                         -1.226    
-                         arrival time                           1.279    
-  -------------------------------------------------------------------
-                         slack                                  0.053    
-
-Slack (MET) :             0.055ns  (arrival time - required time)
-  Source:                 processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/padder_/out_reg[598]/C
-                            (rising edge-triggered cell FDRE clocked by clk_fpga_0  {rise@0.000ns fall@5.000ns period=10.000ns})
-  Destination:            processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/padder_/out_reg[630]/D
+  Destination:            processing_i/KetchupPeripheralPar_4/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/padder_/out_reg[491]/D
                             (rising edge-triggered cell FDRE clocked by clk_fpga_0  {rise@0.000ns fall@5.000ns period=10.000ns})
   Path Group:             clk_fpga_0
   Path Type:              Hold (Min at Fast Process Corner)
   Requirement:            0.000ns  (clk_fpga_0 rise@0.000ns - clk_fpga_0 rise@0.000ns)
-  Data Path Delay:        0.387ns  (logic 0.141ns (36.402%)  route 0.246ns (63.598%))
+  Data Path Delay:        0.369ns  (logic 0.141ns (38.201%)  route 0.228ns (61.799%))
   Logic Levels:           0  
-  Clock Path Skew:        0.273ns (DCD - SCD - CPR)
-    Destination Clock Delay (DCD):    1.197ns
+  Clock Path Skew:        0.266ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    1.195ns
     Source Clock Delay      (SCD):    0.894ns
-    Clock Pessimism Removal (CPR):    0.030ns
+    Clock Pessimism Removal (CPR):    0.035ns
 
     Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
   -------------------------------------------------------------------    -------------------
@@ -849,59 +825,12 @@ Slack (MET) :             0.055ns  (arrival time - required time)
     PS7_X0Y0             PS7                          0.000     0.000 r  processing_i/processing_system7_0/inst/PS7_i/FCLKCLK[0]
                          net (fo=1, routed)           0.310     0.310    processing_i/processing_system7_0/inst/FCLK_CLK_unbuffered[0]
     BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.026     0.336 r  processing_i/processing_system7_0/inst/buffer_fclk_clk_0.FCLK_CLK_0_BUFG/O
-                         net (fo=11320, routed)       0.558     0.894    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/padder_/s00_axi_aclk
-    SLICE_X33Y53         FDRE                                         r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/padder_/out_reg[598]/C
+                         net (fo=12564, routed)       0.558     0.894    processing_i/KetchupPeripheralPar_4/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/padder_/s00_axi_aclk
+    SLICE_X51Y46         FDRE                                         r  processing_i/KetchupPeripheralPar_4/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/padder_/out_reg[459]/C
   -------------------------------------------------------------------    -------------------
-    SLICE_X33Y53         FDRE (Prop_fdre_C_Q)         0.141     1.035 r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/padder_/out_reg[598]/Q
-                         net (fo=2, routed)           0.246     1.281    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/padder_/Q[598]
-    SLICE_X34Y48         FDRE                                         r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/padder_/out_reg[630]/D
-  -------------------------------------------------------------------    -------------------
-
-                         (clock clk_fpga_0 rise edge)
-                                                      0.000     0.000 r  
-    PS7_X0Y0             PS7                          0.000     0.000 r  processing_i/processing_system7_0/inst/PS7_i/FCLKCLK[0]
-                         net (fo=1, routed)           0.337     0.337    processing_i/processing_system7_0/inst/FCLK_CLK_unbuffered[0]
-    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.029     0.366 r  processing_i/processing_system7_0/inst/buffer_fclk_clk_0.FCLK_CLK_0_BUFG/O
-                         net (fo=11320, routed)       0.831     1.197    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/padder_/s00_axi_aclk
-    SLICE_X34Y48         FDRE                                         r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/padder_/out_reg[630]/C
-                         clock pessimism             -0.030     1.167    
-    SLICE_X34Y48         FDRE (Hold_fdre_C_D)         0.059     1.226    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/padder_/out_reg[630]
-  -------------------------------------------------------------------
-                         required time                         -1.226    
-                         arrival time                           1.281    
-  -------------------------------------------------------------------
-                         slack                                  0.055    
-
-Slack (MET) :             0.060ns  (arrival time - required time)
-  Source:                 processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/f_permutation_/out_reg[702]/C
-                            (rising edge-triggered cell FDRE clocked by clk_fpga_0  {rise@0.000ns fall@5.000ns period=10.000ns})
-  Destination:            processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/f_permutation_/out_reg[229]/D
-                            (rising edge-triggered cell FDRE clocked by clk_fpga_0  {rise@0.000ns fall@5.000ns period=10.000ns})
-  Path Group:             clk_fpga_0
-  Path Type:              Hold (Min at Fast Process Corner)
-  Requirement:            0.000ns  (clk_fpga_0 rise@0.000ns - clk_fpga_0 rise@0.000ns)
-  Data Path Delay:        0.414ns  (logic 0.186ns (44.929%)  route 0.228ns (55.071%))
-  Logic Levels:           1  (LUT6=1)
-  Clock Path Skew:        0.262ns (DCD - SCD - CPR)
-    Destination Clock Delay (DCD):    1.212ns
-    Source Clock Delay      (SCD):    0.920ns
-    Clock Pessimism Removal (CPR):    0.030ns
-
-    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
-  -------------------------------------------------------------------    -------------------
-                         (clock clk_fpga_0 rise edge)
-                                                      0.000     0.000 r  
-    PS7_X0Y0             PS7                          0.000     0.000 r  processing_i/processing_system7_0/inst/PS7_i/FCLKCLK[0]
-                         net (fo=1, routed)           0.310     0.310    processing_i/processing_system7_0/inst/FCLK_CLK_unbuffered[0]
-    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.026     0.336 r  processing_i/processing_system7_0/inst/buffer_fclk_clk_0.FCLK_CLK_0_BUFG/O
-                         net (fo=11320, routed)       0.584     0.920    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/f_permutation_/s00_axi_aclk
-    SLICE_X59Y49         FDRE                                         r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/f_permutation_/out_reg[702]/C
-  -------------------------------------------------------------------    -------------------
-    SLICE_X59Y49         FDRE (Prop_fdre_C_Q)         0.141     1.061 r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/f_permutation_/out_reg[702]/Q
-                         net (fo=5, routed)           0.228     1.288    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/f_permutation_/round_in[702]
-    SLICE_X55Y51         LUT6 (Prop_lut6_I3_O)        0.045     1.333 r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/f_permutation_/out[229]_i_1__0/O
-                         net (fo=1, routed)           0.000     1.333    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/f_permutation_/round_out[229]
-    SLICE_X55Y51         FDRE                                         r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/f_permutation_/out_reg[229]/D
+    SLICE_X51Y46         FDRE (Prop_fdre_C_Q)         0.141     1.035 r  processing_i/KetchupPeripheralPar_4/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/padder_/out_reg[459]/Q
+                         net (fo=2, routed)           0.228     1.263    processing_i/KetchupPeripheralPar_4/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/padder_/out_reg[575]_0[459]
+    SLICE_X47Y46         FDRE                                         r  processing_i/KetchupPeripheralPar_4/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/padder_/out_reg[491]/D
   -------------------------------------------------------------------    -------------------
 
                          (clock clk_fpga_0 rise edge)
@@ -909,30 +838,30 @@ Slack (MET) :             0.060ns  (arrival time - required time)
     PS7_X0Y0             PS7                          0.000     0.000 r  processing_i/processing_system7_0/inst/PS7_i/FCLKCLK[0]
                          net (fo=1, routed)           0.337     0.337    processing_i/processing_system7_0/inst/FCLK_CLK_unbuffered[0]
     BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.029     0.366 r  processing_i/processing_system7_0/inst/buffer_fclk_clk_0.FCLK_CLK_0_BUFG/O
-                         net (fo=11320, routed)       0.846     1.212    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/f_permutation_/s00_axi_aclk
-    SLICE_X55Y51         FDRE                                         r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/f_permutation_/out_reg[229]/C
-                         clock pessimism             -0.030     1.182    
-    SLICE_X55Y51         FDRE (Hold_fdre_C_D)         0.092     1.274    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/f_permutation_/out_reg[229]
+                         net (fo=12564, routed)       0.829     1.195    processing_i/KetchupPeripheralPar_4/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/padder_/s00_axi_aclk
+    SLICE_X47Y46         FDRE                                         r  processing_i/KetchupPeripheralPar_4/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/padder_/out_reg[491]/C
+                         clock pessimism             -0.035     1.160    
+    SLICE_X47Y46         FDRE (Hold_fdre_C_D)         0.070     1.230    processing_i/KetchupPeripheralPar_4/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/padder_/out_reg[491]
   -------------------------------------------------------------------
-                         required time                         -1.274    
-                         arrival time                           1.333    
+                         required time                         -1.230    
+                         arrival time                           1.263    
   -------------------------------------------------------------------
-                         slack                                  0.060    
+                         slack                                  0.033    
 
-Slack (MET) :             0.063ns  (arrival time - required time)
-  Source:                 processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/padder_/out_reg[20]/C
+Slack (MET) :             0.034ns  (arrival time - required time)
+  Source:                 processing_i/KetchupPeripheralPar_4/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/padder_/out_reg[80]/C
                             (rising edge-triggered cell FDRE clocked by clk_fpga_0  {rise@0.000ns fall@5.000ns period=10.000ns})
-  Destination:            processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/padder_/out_reg[52]/D
+  Destination:            processing_i/KetchupPeripheralPar_4/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/padder_/out_reg[112]/D
                             (rising edge-triggered cell FDRE clocked by clk_fpga_0  {rise@0.000ns fall@5.000ns period=10.000ns})
   Path Group:             clk_fpga_0
   Path Type:              Hold (Min at Fast Process Corner)
   Requirement:            0.000ns  (clk_fpga_0 rise@0.000ns - clk_fpga_0 rise@0.000ns)
-  Data Path Delay:        0.390ns  (logic 0.141ns (36.123%)  route 0.249ns (63.877%))
+  Data Path Delay:        0.368ns  (logic 0.141ns (38.291%)  route 0.227ns (61.709%))
   Logic Levels:           0  
-  Clock Path Skew:        0.261ns (DCD - SCD - CPR)
-    Destination Clock Delay (DCD):    1.215ns
-    Source Clock Delay      (SCD):    0.924ns
-    Clock Pessimism Removal (CPR):    0.030ns
+  Clock Path Skew:        0.264ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    1.177ns
+    Source Clock Delay      (SCD):    0.878ns
+    Clock Pessimism Removal (CPR):    0.035ns
 
     Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
   -------------------------------------------------------------------    -------------------
@@ -941,12 +870,12 @@ Slack (MET) :             0.063ns  (arrival time - required time)
     PS7_X0Y0             PS7                          0.000     0.000 r  processing_i/processing_system7_0/inst/PS7_i/FCLKCLK[0]
                          net (fo=1, routed)           0.310     0.310    processing_i/processing_system7_0/inst/FCLK_CLK_unbuffered[0]
     BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.026     0.336 r  processing_i/processing_system7_0/inst/buffer_fclk_clk_0.FCLK_CLK_0_BUFG/O
-                         net (fo=11320, routed)       0.588     0.924    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/padder_/s00_axi_aclk
-    SLICE_X69Y47         FDRE                                         r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/padder_/out_reg[20]/C
+                         net (fo=12564, routed)       0.542     0.878    processing_i/KetchupPeripheralPar_4/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/padder_/s00_axi_aclk
+    SLICE_X51Y72         FDRE                                         r  processing_i/KetchupPeripheralPar_4/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/padder_/out_reg[80]/C
   -------------------------------------------------------------------    -------------------
-    SLICE_X69Y47         FDRE (Prop_fdre_C_Q)         0.141     1.065 r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/padder_/out_reg[20]/Q
-                         net (fo=2, routed)           0.249     1.314    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/padder_/Q[20]
-    SLICE_X67Y51         FDRE                                         r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/padder_/out_reg[52]/D
+    SLICE_X51Y72         FDRE (Prop_fdre_C_Q)         0.141     1.019 r  processing_i/KetchupPeripheralPar_4/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/padder_/out_reg[80]/Q
+                         net (fo=2, routed)           0.227     1.246    processing_i/KetchupPeripheralPar_4/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/padder_/out_reg[575]_0[80]
+    SLICE_X47Y72         FDRE                                         r  processing_i/KetchupPeripheralPar_4/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/padder_/out_reg[112]/D
   -------------------------------------------------------------------    -------------------
 
                          (clock clk_fpga_0 rise edge)
@@ -954,29 +883,211 @@ Slack (MET) :             0.063ns  (arrival time - required time)
     PS7_X0Y0             PS7                          0.000     0.000 r  processing_i/processing_system7_0/inst/PS7_i/FCLKCLK[0]
                          net (fo=1, routed)           0.337     0.337    processing_i/processing_system7_0/inst/FCLK_CLK_unbuffered[0]
     BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.029     0.366 r  processing_i/processing_system7_0/inst/buffer_fclk_clk_0.FCLK_CLK_0_BUFG/O
-                         net (fo=11320, routed)       0.849     1.215    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/padder_/s00_axi_aclk
-    SLICE_X67Y51         FDRE                                         r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/padder_/out_reg[52]/C
-                         clock pessimism             -0.030     1.185    
-    SLICE_X67Y51         FDRE (Hold_fdre_C_D)         0.066     1.251    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/padder_/out_reg[52]
+                         net (fo=12564, routed)       0.811     1.177    processing_i/KetchupPeripheralPar_4/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/padder_/s00_axi_aclk
+    SLICE_X47Y72         FDRE                                         r  processing_i/KetchupPeripheralPar_4/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/padder_/out_reg[112]/C
+                         clock pessimism             -0.035     1.142    
+    SLICE_X47Y72         FDRE (Hold_fdre_C_D)         0.070     1.212    processing_i/KetchupPeripheralPar_4/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/padder_/out_reg[112]
+  -------------------------------------------------------------------
+                         required time                         -1.212    
+                         arrival time                           1.246    
+  -------------------------------------------------------------------
+                         slack                                  0.034    
+
+Slack (MET) :             0.038ns  (arrival time - required time)
+  Source:                 processing_i/KetchupPeripheralPar_2/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/padder_/out_reg[368]/C
+                            (rising edge-triggered cell FDRE clocked by clk_fpga_0  {rise@0.000ns fall@5.000ns period=10.000ns})
+  Destination:            processing_i/KetchupPeripheralPar_2/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/padder_/out_reg[400]/D
+                            (rising edge-triggered cell FDRE clocked by clk_fpga_0  {rise@0.000ns fall@5.000ns period=10.000ns})
+  Path Group:             clk_fpga_0
+  Path Type:              Hold (Min at Fast Process Corner)
+  Requirement:            0.000ns  (clk_fpga_0 rise@0.000ns - clk_fpga_0 rise@0.000ns)
+  Data Path Delay:        0.315ns  (logic 0.128ns (40.614%)  route 0.187ns (59.386%))
+  Logic Levels:           0  
+  Clock Path Skew:        0.260ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    1.273ns
+    Source Clock Delay      (SCD):    0.974ns
+    Clock Pessimism Removal (CPR):    0.039ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock clk_fpga_0 rise edge)
+                                                      0.000     0.000 r  
+    PS7_X0Y0             PS7                          0.000     0.000 r  processing_i/processing_system7_0/inst/PS7_i/FCLKCLK[0]
+                         net (fo=1, routed)           0.310     0.310    processing_i/processing_system7_0/inst/FCLK_CLK_unbuffered[0]
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.026     0.336 r  processing_i/processing_system7_0/inst/buffer_fclk_clk_0.FCLK_CLK_0_BUFG/O
+                         net (fo=12564, routed)       0.638     0.974    processing_i/KetchupPeripheralPar_2/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/padder_/s00_axi_aclk
+    SLICE_X48Y148        FDRE                                         r  processing_i/KetchupPeripheralPar_2/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/padder_/out_reg[368]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X48Y148        FDRE (Prop_fdre_C_Q)         0.128     1.102 r  processing_i/KetchupPeripheralPar_2/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/padder_/out_reg[368]/Q
+                         net (fo=2, routed)           0.187     1.289    processing_i/KetchupPeripheralPar_2/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/padder_/out_reg[575]_0[368]
+    SLICE_X52Y149        FDRE                                         r  processing_i/KetchupPeripheralPar_2/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/padder_/out_reg[400]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock clk_fpga_0 rise edge)
+                                                      0.000     0.000 r  
+    PS7_X0Y0             PS7                          0.000     0.000 r  processing_i/processing_system7_0/inst/PS7_i/FCLKCLK[0]
+                         net (fo=1, routed)           0.337     0.337    processing_i/processing_system7_0/inst/FCLK_CLK_unbuffered[0]
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.029     0.366 r  processing_i/processing_system7_0/inst/buffer_fclk_clk_0.FCLK_CLK_0_BUFG/O
+                         net (fo=12564, routed)       0.907     1.273    processing_i/KetchupPeripheralPar_2/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/padder_/s00_axi_aclk
+    SLICE_X52Y149        FDRE                                         r  processing_i/KetchupPeripheralPar_2/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/padder_/out_reg[400]/C
+                         clock pessimism             -0.039     1.234    
+    SLICE_X52Y149        FDRE (Hold_fdre_C_D)         0.017     1.251    processing_i/KetchupPeripheralPar_2/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/padder_/out_reg[400]
   -------------------------------------------------------------------
                          required time                         -1.251    
-                         arrival time                           1.314    
+                         arrival time                           1.289    
+  -------------------------------------------------------------------
+                         slack                                  0.038    
+
+Slack (MET) :             0.041ns  (arrival time - required time)
+  Source:                 processing_i/KetchupPeripheralPar_4/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/padder_/out_reg[168]/C
+                            (rising edge-triggered cell FDRE clocked by clk_fpga_0  {rise@0.000ns fall@5.000ns period=10.000ns})
+  Destination:            processing_i/KetchupPeripheralPar_4/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/padder_/out_reg[200]/D
+                            (rising edge-triggered cell FDRE clocked by clk_fpga_0  {rise@0.000ns fall@5.000ns period=10.000ns})
+  Path Group:             clk_fpga_0
+  Path Type:              Hold (Min at Fast Process Corner)
+  Requirement:            0.000ns  (clk_fpga_0 rise@0.000ns - clk_fpga_0 rise@0.000ns)
+  Data Path Delay:        0.369ns  (logic 0.141ns (38.206%)  route 0.228ns (61.794%))
+  Logic Levels:           0  
+  Clock Path Skew:        0.258ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    1.192ns
+    Source Clock Delay      (SCD):    0.899ns
+    Clock Pessimism Removal (CPR):    0.035ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock clk_fpga_0 rise edge)
+                                                      0.000     0.000 r  
+    PS7_X0Y0             PS7                          0.000     0.000 r  processing_i/processing_system7_0/inst/PS7_i/FCLKCLK[0]
+                         net (fo=1, routed)           0.310     0.310    processing_i/processing_system7_0/inst/FCLK_CLK_unbuffered[0]
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.026     0.336 r  processing_i/processing_system7_0/inst/buffer_fclk_clk_0.FCLK_CLK_0_BUFG/O
+                         net (fo=12564, routed)       0.563     0.899    processing_i/KetchupPeripheralPar_4/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/padder_/s00_axi_aclk
+    SLICE_X45Y47         FDRE                                         r  processing_i/KetchupPeripheralPar_4/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/padder_/out_reg[168]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X45Y47         FDRE (Prop_fdre_C_Q)         0.141     1.040 r  processing_i/KetchupPeripheralPar_4/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/padder_/out_reg[168]/Q
+                         net (fo=2, routed)           0.228     1.268    processing_i/KetchupPeripheralPar_4/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/padder_/out_reg[575]_0[168]
+    SLICE_X51Y47         FDRE                                         r  processing_i/KetchupPeripheralPar_4/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/padder_/out_reg[200]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock clk_fpga_0 rise edge)
+                                                      0.000     0.000 r  
+    PS7_X0Y0             PS7                          0.000     0.000 r  processing_i/processing_system7_0/inst/PS7_i/FCLKCLK[0]
+                         net (fo=1, routed)           0.337     0.337    processing_i/processing_system7_0/inst/FCLK_CLK_unbuffered[0]
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.029     0.366 r  processing_i/processing_system7_0/inst/buffer_fclk_clk_0.FCLK_CLK_0_BUFG/O
+                         net (fo=12564, routed)       0.826     1.192    processing_i/KetchupPeripheralPar_4/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/padder_/s00_axi_aclk
+    SLICE_X51Y47         FDRE                                         r  processing_i/KetchupPeripheralPar_4/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/padder_/out_reg[200]/C
+                         clock pessimism             -0.035     1.157    
+    SLICE_X51Y47         FDRE (Hold_fdre_C_D)         0.070     1.227    processing_i/KetchupPeripheralPar_4/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/padder_/out_reg[200]
+  -------------------------------------------------------------------
+                         required time                         -1.227    
+                         arrival time                           1.268    
+  -------------------------------------------------------------------
+                         slack                                  0.041    
+
+Slack (MET) :             0.052ns  (arrival time - required time)
+  Source:                 processing_i/KetchupPeripheralPar_0/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/f_permutation_/out_reg[120]/C
+                            (rising edge-triggered cell FDRE clocked by clk_fpga_0  {rise@0.000ns fall@5.000ns period=10.000ns})
+  Destination:            processing_i/KetchupPeripheralPar_0/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/f_permutation_/out_reg[432]/D
+                            (rising edge-triggered cell FDRE clocked by clk_fpga_0  {rise@0.000ns fall@5.000ns period=10.000ns})
+  Path Group:             clk_fpga_0
+  Path Type:              Hold (Min at Fast Process Corner)
+  Requirement:            0.000ns  (clk_fpga_0 rise@0.000ns - clk_fpga_0 rise@0.000ns)
+  Data Path Delay:        0.498ns  (logic 0.209ns (41.947%)  route 0.289ns (58.053%))
+  Logic Levels:           1  (LUT6=1)
+  Clock Path Skew:        0.355ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    1.305ns
+    Source Clock Delay      (SCD):    0.915ns
+    Clock Pessimism Removal (CPR):    0.035ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock clk_fpga_0 rise edge)
+                                                      0.000     0.000 r  
+    PS7_X0Y0             PS7                          0.000     0.000 r  processing_i/processing_system7_0/inst/PS7_i/FCLKCLK[0]
+                         net (fo=1, routed)           0.310     0.310    processing_i/processing_system7_0/inst/FCLK_CLK_unbuffered[0]
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.026     0.336 r  processing_i/processing_system7_0/inst/buffer_fclk_clk_0.FCLK_CLK_0_BUFG/O
+                         net (fo=12564, routed)       0.579     0.915    processing_i/KetchupPeripheralPar_0/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/f_permutation_/s00_axi_aclk
+    SLICE_X66Y96         FDRE                                         r  processing_i/KetchupPeripheralPar_0/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/f_permutation_/out_reg[120]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X66Y96         FDRE (Prop_fdre_C_Q)         0.164     1.079 r  processing_i/KetchupPeripheralPar_0/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/f_permutation_/out_reg[120]/Q
+                         net (fo=4, routed)           0.289     1.368    processing_i/KetchupPeripheralPar_0/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/f_permutation_/round_in[120]
+    SLICE_X80Y102        LUT6 (Prop_lut6_I3_O)        0.045     1.413 r  processing_i/KetchupPeripheralPar_0/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/f_permutation_/out[432]_i_1/O
+                         net (fo=1, routed)           0.000     1.413    processing_i/KetchupPeripheralPar_0/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/f_permutation_/round_out[432]
+    SLICE_X80Y102        FDRE                                         r  processing_i/KetchupPeripheralPar_0/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/f_permutation_/out_reg[432]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock clk_fpga_0 rise edge)
+                                                      0.000     0.000 r  
+    PS7_X0Y0             PS7                          0.000     0.000 r  processing_i/processing_system7_0/inst/PS7_i/FCLKCLK[0]
+                         net (fo=1, routed)           0.337     0.337    processing_i/processing_system7_0/inst/FCLK_CLK_unbuffered[0]
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.029     0.366 r  processing_i/processing_system7_0/inst/buffer_fclk_clk_0.FCLK_CLK_0_BUFG/O
+                         net (fo=12564, routed)       0.939     1.305    processing_i/KetchupPeripheralPar_0/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/f_permutation_/s00_axi_aclk
+    SLICE_X80Y102        FDRE                                         r  processing_i/KetchupPeripheralPar_0/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/f_permutation_/out_reg[432]/C
+                         clock pessimism             -0.035     1.270    
+    SLICE_X80Y102        FDRE (Hold_fdre_C_D)         0.091     1.361    processing_i/KetchupPeripheralPar_0/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/f_permutation_/out_reg[432]
+  -------------------------------------------------------------------
+                         required time                         -1.361    
+                         arrival time                           1.413    
+  -------------------------------------------------------------------
+                         slack                                  0.052    
+
+Slack (MET) :             0.063ns  (arrival time - required time)
+  Source:                 processing_i/KetchupPeripheralPar_4/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/padder_/out_reg[473]/C
+                            (rising edge-triggered cell FDRE clocked by clk_fpga_0  {rise@0.000ns fall@5.000ns period=10.000ns})
+  Destination:            processing_i/KetchupPeripheralPar_4/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/padder_/out_reg[505]/D
+                            (rising edge-triggered cell FDRE clocked by clk_fpga_0  {rise@0.000ns fall@5.000ns period=10.000ns})
+  Path Group:             clk_fpga_0
+  Path Type:              Hold (Min at Fast Process Corner)
+  Requirement:            0.000ns  (clk_fpga_0 rise@0.000ns - clk_fpga_0 rise@0.000ns)
+  Data Path Delay:        0.344ns  (logic 0.128ns (37.209%)  route 0.216ns (62.791%))
+  Logic Levels:           0  
+  Clock Path Skew:        0.264ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    1.177ns
+    Source Clock Delay      (SCD):    0.878ns
+    Clock Pessimism Removal (CPR):    0.035ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock clk_fpga_0 rise edge)
+                                                      0.000     0.000 r  
+    PS7_X0Y0             PS7                          0.000     0.000 r  processing_i/processing_system7_0/inst/PS7_i/FCLKCLK[0]
+                         net (fo=1, routed)           0.310     0.310    processing_i/processing_system7_0/inst/FCLK_CLK_unbuffered[0]
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.026     0.336 r  processing_i/processing_system7_0/inst/buffer_fclk_clk_0.FCLK_CLK_0_BUFG/O
+                         net (fo=12564, routed)       0.542     0.878    processing_i/KetchupPeripheralPar_4/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/padder_/s00_axi_aclk
+    SLICE_X53Y71         FDRE                                         r  processing_i/KetchupPeripheralPar_4/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/padder_/out_reg[473]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X53Y71         FDRE (Prop_fdre_C_Q)         0.128     1.006 r  processing_i/KetchupPeripheralPar_4/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/padder_/out_reg[473]/Q
+                         net (fo=2, routed)           0.216     1.222    processing_i/KetchupPeripheralPar_4/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/padder_/out_reg[575]_0[473]
+    SLICE_X48Y72         FDRE                                         r  processing_i/KetchupPeripheralPar_4/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/padder_/out_reg[505]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock clk_fpga_0 rise edge)
+                                                      0.000     0.000 r  
+    PS7_X0Y0             PS7                          0.000     0.000 r  processing_i/processing_system7_0/inst/PS7_i/FCLKCLK[0]
+                         net (fo=1, routed)           0.337     0.337    processing_i/processing_system7_0/inst/FCLK_CLK_unbuffered[0]
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.029     0.366 r  processing_i/processing_system7_0/inst/buffer_fclk_clk_0.FCLK_CLK_0_BUFG/O
+                         net (fo=12564, routed)       0.811     1.177    processing_i/KetchupPeripheralPar_4/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/padder_/s00_axi_aclk
+    SLICE_X48Y72         FDRE                                         r  processing_i/KetchupPeripheralPar_4/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/padder_/out_reg[505]/C
+                         clock pessimism             -0.035     1.142    
+    SLICE_X48Y72         FDRE (Hold_fdre_C_D)         0.017     1.159    processing_i/KetchupPeripheralPar_4/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/padder_/out_reg[505]
+  -------------------------------------------------------------------
+                         required time                         -1.159    
+                         arrival time                           1.222    
   -------------------------------------------------------------------
                          slack                                  0.063    
 
-Slack (MET) :             0.071ns  (arrival time - required time)
-  Source:                 processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/padder_/out_reg[364]/C
+Slack (MET) :             0.072ns  (arrival time - required time)
+  Source:                 processing_i/KetchupPeripheralPar_0/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/axi_rdata_reg[0]/C
                             (rising edge-triggered cell FDRE clocked by clk_fpga_0  {rise@0.000ns fall@5.000ns period=10.000ns})
-  Destination:            processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/padder_/out_reg[396]/D
+  Destination:            processing_i/ps7_0_axi_periph/xbar/inst/gen_sasd.crossbar_sasd_0/reg_slice_r/skid_buffer_reg[3]/D
                             (rising edge-triggered cell FDRE clocked by clk_fpga_0  {rise@0.000ns fall@5.000ns period=10.000ns})
   Path Group:             clk_fpga_0
   Path Type:              Hold (Min at Fast Process Corner)
   Requirement:            0.000ns  (clk_fpga_0 rise@0.000ns - clk_fpga_0 rise@0.000ns)
-  Data Path Delay:        0.398ns  (logic 0.141ns (35.419%)  route 0.257ns (64.581%))
-  Logic Levels:           0  
-  Clock Path Skew:        0.264ns (DCD - SCD - CPR)
-    Destination Clock Delay (DCD):    1.182ns
-    Source Clock Delay      (SCD):    0.883ns
+  Data Path Delay:        0.421ns  (logic 0.186ns (44.218%)  route 0.235ns (55.782%))
+  Logic Levels:           1  (LUT6=1)
+  Clock Path Skew:        0.257ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    1.181ns
+    Source Clock Delay      (SCD):    0.889ns
     Clock Pessimism Removal (CPR):    0.035ns
 
     Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
@@ -986,12 +1097,14 @@ Slack (MET) :             0.071ns  (arrival time - required time)
     PS7_X0Y0             PS7                          0.000     0.000 r  processing_i/processing_system7_0/inst/PS7_i/FCLKCLK[0]
                          net (fo=1, routed)           0.310     0.310    processing_i/processing_system7_0/inst/FCLK_CLK_unbuffered[0]
     BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.026     0.336 r  processing_i/processing_system7_0/inst/buffer_fclk_clk_0.FCLK_CLK_0_BUFG/O
-                         net (fo=11320, routed)       0.547     0.883    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/padder_/s00_axi_aclk
-    SLICE_X53Y66         FDRE                                         r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/padder_/out_reg[364]/C
+                         net (fo=12564, routed)       0.553     0.889    processing_i/KetchupPeripheralPar_0/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/s00_axi_aclk
+    SLICE_X44Y87         FDRE                                         r  processing_i/KetchupPeripheralPar_0/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/axi_rdata_reg[0]/C
   -------------------------------------------------------------------    -------------------
-    SLICE_X53Y66         FDRE (Prop_fdre_C_Q)         0.141     1.024 r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/padder_/out_reg[364]/Q
-                         net (fo=3, routed)           0.257     1.281    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/padder_/Q[364]
-    SLICE_X46Y67         FDRE                                         r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/padder_/out_reg[396]/D
+    SLICE_X44Y87         FDRE (Prop_fdre_C_Q)         0.141     1.030 r  processing_i/KetchupPeripheralPar_0/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/axi_rdata_reg[0]/Q
+                         net (fo=1, routed)           0.235     1.264    processing_i/ps7_0_axi_periph/xbar/inst/gen_sasd.crossbar_sasd_0/reg_slice_r/m_axi_rdata[0]
+    SLICE_X52Y85         LUT6 (Prop_lut6_I3_O)        0.045     1.309 r  processing_i/ps7_0_axi_periph/xbar/inst/gen_sasd.crossbar_sasd_0/reg_slice_r/m_payload_i[3]_i_1/O
+                         net (fo=2, routed)           0.000     1.309    processing_i/ps7_0_axi_periph/xbar/inst/gen_sasd.crossbar_sasd_0/reg_slice_r/skid_buffer[3]
+    SLICE_X52Y85         FDRE                                         r  processing_i/ps7_0_axi_periph/xbar/inst/gen_sasd.crossbar_sasd_0/reg_slice_r/skid_buffer_reg[3]/D
   -------------------------------------------------------------------    -------------------
 
                          (clock clk_fpga_0 rise edge)
@@ -999,30 +1112,30 @@ Slack (MET) :             0.071ns  (arrival time - required time)
     PS7_X0Y0             PS7                          0.000     0.000 r  processing_i/processing_system7_0/inst/PS7_i/FCLKCLK[0]
                          net (fo=1, routed)           0.337     0.337    processing_i/processing_system7_0/inst/FCLK_CLK_unbuffered[0]
     BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.029     0.366 r  processing_i/processing_system7_0/inst/buffer_fclk_clk_0.FCLK_CLK_0_BUFG/O
-                         net (fo=11320, routed)       0.816     1.182    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/padder_/s00_axi_aclk
-    SLICE_X46Y67         FDRE                                         r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/padder_/out_reg[396]/C
-                         clock pessimism             -0.035     1.147    
-    SLICE_X46Y67         FDRE (Hold_fdre_C_D)         0.063     1.210    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/padder_/out_reg[396]
+                         net (fo=12564, routed)       0.815     1.181    processing_i/ps7_0_axi_periph/xbar/inst/gen_sasd.crossbar_sasd_0/reg_slice_r/aclk
+    SLICE_X52Y85         FDRE                                         r  processing_i/ps7_0_axi_periph/xbar/inst/gen_sasd.crossbar_sasd_0/reg_slice_r/skid_buffer_reg[3]/C
+                         clock pessimism             -0.035     1.146    
+    SLICE_X52Y85         FDRE (Hold_fdre_C_D)         0.091     1.237    processing_i/ps7_0_axi_periph/xbar/inst/gen_sasd.crossbar_sasd_0/reg_slice_r/skid_buffer_reg[3]
   -------------------------------------------------------------------
-                         required time                         -1.210    
-                         arrival time                           1.281    
+                         required time                         -1.237    
+                         arrival time                           1.309    
   -------------------------------------------------------------------
-                         slack                                  0.071    
+                         slack                                  0.072    
 
 Slack (MET) :             0.073ns  (arrival time - required time)
-  Source:                 processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/padder_/out_reg[528]/C
+  Source:                 processing_i/KetchupPeripheralPar_4/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/padder_/out_reg[36]/C
                             (rising edge-triggered cell FDRE clocked by clk_fpga_0  {rise@0.000ns fall@5.000ns period=10.000ns})
-  Destination:            processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/padder_/out_reg[560]/D
+  Destination:            processing_i/KetchupPeripheralPar_4/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/padder_/out_reg[68]/D
                             (rising edge-triggered cell FDRE clocked by clk_fpga_0  {rise@0.000ns fall@5.000ns period=10.000ns})
   Path Group:             clk_fpga_0
   Path Type:              Hold (Min at Fast Process Corner)
   Requirement:            0.000ns  (clk_fpga_0 rise@0.000ns - clk_fpga_0 rise@0.000ns)
-  Data Path Delay:        0.414ns  (logic 0.141ns (34.068%)  route 0.273ns (65.933%))
+  Data Path Delay:        0.400ns  (logic 0.141ns (35.254%)  route 0.259ns (64.746%))
   Logic Levels:           0  
-  Clock Path Skew:        0.271ns (DCD - SCD - CPR)
-    Destination Clock Delay (DCD):    1.196ns
-    Source Clock Delay      (SCD):    0.895ns
-    Clock Pessimism Removal (CPR):    0.030ns
+  Clock Path Skew:        0.264ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    1.177ns
+    Source Clock Delay      (SCD):    0.878ns
+    Clock Pessimism Removal (CPR):    0.035ns
 
     Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
   -------------------------------------------------------------------    -------------------
@@ -1031,12 +1144,12 @@ Slack (MET) :             0.073ns  (arrival time - required time)
     PS7_X0Y0             PS7                          0.000     0.000 r  processing_i/processing_system7_0/inst/PS7_i/FCLKCLK[0]
                          net (fo=1, routed)           0.310     0.310    processing_i/processing_system7_0/inst/FCLK_CLK_unbuffered[0]
     BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.026     0.336 r  processing_i/processing_system7_0/inst/buffer_fclk_clk_0.FCLK_CLK_0_BUFG/O
-                         net (fo=11320, routed)       0.559     0.895    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/padder_/s00_axi_aclk
-    SLICE_X35Y50         FDRE                                         r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/padder_/out_reg[528]/C
+                         net (fo=12564, routed)       0.542     0.878    processing_i/KetchupPeripheralPar_4/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/padder_/s00_axi_aclk
+    SLICE_X53Y71         FDRE                                         r  processing_i/KetchupPeripheralPar_4/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/padder_/out_reg[36]/C
   -------------------------------------------------------------------    -------------------
-    SLICE_X35Y50         FDRE (Prop_fdre_C_Q)         0.141     1.036 r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/padder_/out_reg[528]/Q
-                         net (fo=2, routed)           0.273     1.308    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/padder_/Q[528]
-    SLICE_X41Y47         FDRE                                         r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/padder_/out_reg[560]/D
+    SLICE_X53Y71         FDRE (Prop_fdre_C_Q)         0.141     1.019 r  processing_i/KetchupPeripheralPar_4/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/padder_/out_reg[36]/Q
+                         net (fo=2, routed)           0.259     1.278    processing_i/KetchupPeripheralPar_4/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/padder_/out_reg[575]_0[36]
+    SLICE_X42Y72         FDRE                                         r  processing_i/KetchupPeripheralPar_4/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/padder_/out_reg[68]/D
   -------------------------------------------------------------------    -------------------
 
                          (clock clk_fpga_0 rise edge)
@@ -1044,29 +1157,29 @@ Slack (MET) :             0.073ns  (arrival time - required time)
     PS7_X0Y0             PS7                          0.000     0.000 r  processing_i/processing_system7_0/inst/PS7_i/FCLKCLK[0]
                          net (fo=1, routed)           0.337     0.337    processing_i/processing_system7_0/inst/FCLK_CLK_unbuffered[0]
     BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.029     0.366 r  processing_i/processing_system7_0/inst/buffer_fclk_clk_0.FCLK_CLK_0_BUFG/O
-                         net (fo=11320, routed)       0.830     1.196    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/padder_/s00_axi_aclk
-    SLICE_X41Y47         FDRE                                         r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/padder_/out_reg[560]/C
-                         clock pessimism             -0.030     1.166    
-    SLICE_X41Y47         FDRE (Hold_fdre_C_D)         0.070     1.236    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/padder_/out_reg[560]
+                         net (fo=12564, routed)       0.811     1.177    processing_i/KetchupPeripheralPar_4/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/padder_/s00_axi_aclk
+    SLICE_X42Y72         FDRE                                         r  processing_i/KetchupPeripheralPar_4/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/padder_/out_reg[68]/C
+                         clock pessimism             -0.035     1.142    
+    SLICE_X42Y72         FDRE (Hold_fdre_C_D)         0.063     1.205    processing_i/KetchupPeripheralPar_4/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/padder_/out_reg[68]
   -------------------------------------------------------------------
-                         required time                         -1.236    
-                         arrival time                           1.308    
+                         required time                         -1.205    
+                         arrival time                           1.278    
   -------------------------------------------------------------------
                          slack                                  0.073    
 
-Slack (MET) :             0.077ns  (arrival time - required time)
-  Source:                 processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/padder_/out_reg[509]/C
+Slack (MET) :             0.075ns  (arrival time - required time)
+  Source:                 processing_i/KetchupPeripheralPar_1/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/reg_input_reg[0]/C
                             (rising edge-triggered cell FDRE clocked by clk_fpga_0  {rise@0.000ns fall@5.000ns period=10.000ns})
-  Destination:            processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/padder_/out_reg[541]/D
+  Destination:            processing_i/KetchupPeripheralPar_1/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/padder_/out_reg[0]/D
                             (rising edge-triggered cell FDRE clocked by clk_fpga_0  {rise@0.000ns fall@5.000ns period=10.000ns})
   Path Group:             clk_fpga_0
   Path Type:              Hold (Min at Fast Process Corner)
   Requirement:            0.000ns  (clk_fpga_0 rise@0.000ns - clk_fpga_0 rise@0.000ns)
-  Data Path Delay:        0.416ns  (logic 0.141ns (33.861%)  route 0.275ns (66.139%))
-  Logic Levels:           0  
-  Clock Path Skew:        0.273ns (DCD - SCD - CPR)
-    Destination Clock Delay (DCD):    1.197ns
-    Source Clock Delay      (SCD):    0.894ns
+  Data Path Delay:        0.443ns  (logic 0.186ns (42.019%)  route 0.257ns (57.981%))
+  Logic Levels:           1  (LUT3=1)
+  Clock Path Skew:        0.276ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    1.221ns
+    Source Clock Delay      (SCD):    0.915ns
     Clock Pessimism Removal (CPR):    0.030ns
 
     Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
@@ -1076,57 +1189,14 @@ Slack (MET) :             0.077ns  (arrival time - required time)
     PS7_X0Y0             PS7                          0.000     0.000 r  processing_i/processing_system7_0/inst/PS7_i/FCLKCLK[0]
                          net (fo=1, routed)           0.310     0.310    processing_i/processing_system7_0/inst/FCLK_CLK_unbuffered[0]
     BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.026     0.336 r  processing_i/processing_system7_0/inst/buffer_fclk_clk_0.FCLK_CLK_0_BUFG/O
-                         net (fo=11320, routed)       0.558     0.894    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/padder_/s00_axi_aclk
-    SLICE_X35Y55         FDRE                                         r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/padder_/out_reg[509]/C
+                         net (fo=12564, routed)       0.579     0.915    processing_i/KetchupPeripheralPar_1/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/s00_axi_aclk
+    SLICE_X65Y53         FDRE                                         r  processing_i/KetchupPeripheralPar_1/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/reg_input_reg[0]/C
   -------------------------------------------------------------------    -------------------
-    SLICE_X35Y55         FDRE (Prop_fdre_C_Q)         0.141     1.035 r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/padder_/out_reg[509]/Q
-                         net (fo=2, routed)           0.275     1.310    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/padder_/Q[509]
-    SLICE_X35Y49         FDRE                                         r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/padder_/out_reg[541]/D
-  -------------------------------------------------------------------    -------------------
-
-                         (clock clk_fpga_0 rise edge)
-                                                      0.000     0.000 r  
-    PS7_X0Y0             PS7                          0.000     0.000 r  processing_i/processing_system7_0/inst/PS7_i/FCLKCLK[0]
-                         net (fo=1, routed)           0.337     0.337    processing_i/processing_system7_0/inst/FCLK_CLK_unbuffered[0]
-    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.029     0.366 r  processing_i/processing_system7_0/inst/buffer_fclk_clk_0.FCLK_CLK_0_BUFG/O
-                         net (fo=11320, routed)       0.831     1.197    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/padder_/s00_axi_aclk
-    SLICE_X35Y49         FDRE                                         r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/padder_/out_reg[541]/C
-                         clock pessimism             -0.030     1.167    
-    SLICE_X35Y49         FDRE (Hold_fdre_C_D)         0.066     1.233    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha384_core/padder_/out_reg[541]
-  -------------------------------------------------------------------
-                         required time                         -1.233    
-                         arrival time                           1.310    
-  -------------------------------------------------------------------
-                         slack                                  0.077    
-
-Slack (MET) :             0.091ns  (arrival time - required time)
-  Source:                 processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha256_core/padder_/out_reg[785]/C
-                            (rising edge-triggered cell FDRE clocked by clk_fpga_0  {rise@0.000ns fall@5.000ns period=10.000ns})
-  Destination:            processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha256_core/padder_/out_reg[817]/D
-                            (rising edge-triggered cell FDRE clocked by clk_fpga_0  {rise@0.000ns fall@5.000ns period=10.000ns})
-  Path Group:             clk_fpga_0
-  Path Type:              Hold (Min at Fast Process Corner)
-  Requirement:            0.000ns  (clk_fpga_0 rise@0.000ns - clk_fpga_0 rise@0.000ns)
-  Data Path Delay:        0.422ns  (logic 0.141ns (33.390%)  route 0.281ns (66.610%))
-  Logic Levels:           0  
-  Clock Path Skew:        0.259ns (DCD - SCD - CPR)
-    Destination Clock Delay (DCD):    1.191ns
-    Source Clock Delay      (SCD):    0.897ns
-    Clock Pessimism Removal (CPR):    0.035ns
-
-    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
-  -------------------------------------------------------------------    -------------------
-                         (clock clk_fpga_0 rise edge)
-                                                      0.000     0.000 r  
-    PS7_X0Y0             PS7                          0.000     0.000 r  processing_i/processing_system7_0/inst/PS7_i/FCLKCLK[0]
-                         net (fo=1, routed)           0.310     0.310    processing_i/processing_system7_0/inst/FCLK_CLK_unbuffered[0]
-    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.026     0.336 r  processing_i/processing_system7_0/inst/buffer_fclk_clk_0.FCLK_CLK_0_BUFG/O
-                         net (fo=11320, routed)       0.561     0.896    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha256_core/padder_/s00_axi_aclk
-    SLICE_X48Y3          FDRE                                         r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha256_core/padder_/out_reg[785]/C
-  -------------------------------------------------------------------    -------------------
-    SLICE_X48Y3          FDRE (Prop_fdre_C_Q)         0.141     1.038 r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha256_core/padder_/out_reg[785]/Q
-                         net (fo=2, routed)           0.281     1.319    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha256_core/padder_/out_reg[1087]_0[785]
-    SLICE_X51Y5          FDRE                                         r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha256_core/padder_/out_reg[817]/D
+    SLICE_X65Y53         FDRE (Prop_fdre_C_Q)         0.141     1.056 r  processing_i/KetchupPeripheralPar_1/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/reg_input_reg[0]/Q
+                         net (fo=2, routed)           0.257     1.312    processing_i/KetchupPeripheralPar_1/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/padder_/out_reg[31]_0[0]
+    SLICE_X68Y47         LUT3 (Prop_lut3_I1_O)        0.045     1.357 r  processing_i/KetchupPeripheralPar_1/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/padder_/out[0]_i_1__0/O
+                         net (fo=1, routed)           0.000     1.357    processing_i/KetchupPeripheralPar_1/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/padder_/out[0]_i_1__0_n_0
+    SLICE_X68Y47         FDRE                                         r  processing_i/KetchupPeripheralPar_1/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/padder_/out_reg[0]/D
   -------------------------------------------------------------------    -------------------
 
                          (clock clk_fpga_0 rise edge)
@@ -1134,60 +1204,15 @@ Slack (MET) :             0.091ns  (arrival time - required time)
     PS7_X0Y0             PS7                          0.000     0.000 r  processing_i/processing_system7_0/inst/PS7_i/FCLKCLK[0]
                          net (fo=1, routed)           0.337     0.337    processing_i/processing_system7_0/inst/FCLK_CLK_unbuffered[0]
     BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.029     0.366 r  processing_i/processing_system7_0/inst/buffer_fclk_clk_0.FCLK_CLK_0_BUFG/O
-                         net (fo=11320, routed)       0.825     1.191    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha256_core/padder_/s00_axi_aclk
-    SLICE_X51Y5          FDRE                                         r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha256_core/padder_/out_reg[817]/C
-                         clock pessimism             -0.035     1.156    
-    SLICE_X51Y5          FDRE (Hold_fdre_C_D)         0.072     1.228    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha256_core/padder_/out_reg[817]
+                         net (fo=12564, routed)       0.855     1.221    processing_i/KetchupPeripheralPar_1/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/padder_/s00_axi_aclk
+    SLICE_X68Y47         FDRE                                         r  processing_i/KetchupPeripheralPar_1/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/padder_/out_reg[0]/C
+                         clock pessimism             -0.030     1.191    
+    SLICE_X68Y47         FDRE (Hold_fdre_C_D)         0.091     1.282    processing_i/KetchupPeripheralPar_1/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/sha512_core/padder_/out_reg[0]
   -------------------------------------------------------------------
-                         required time                         -1.228    
-                         arrival time                           1.319    
+                         required time                         -1.282    
+                         arrival time                           1.357    
   -------------------------------------------------------------------
-                         slack                                  0.091    
-
-Slack (MET) :             0.092ns  (arrival time - required time)
-  Source:                 processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha224_core/i_reg[15]/C
-                            (rising edge-triggered cell FDRE clocked by clk_fpga_0  {rise@0.000ns fall@5.000ns period=10.000ns})
-  Destination:            processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha224_core/i_reg[16]/D
-                            (rising edge-triggered cell FDRE clocked by clk_fpga_0  {rise@0.000ns fall@5.000ns period=10.000ns})
-  Path Group:             clk_fpga_0
-  Path Type:              Hold (Min at Fast Process Corner)
-  Requirement:            0.000ns  (clk_fpga_0 rise@0.000ns - clk_fpga_0 rise@0.000ns)
-  Data Path Delay:        0.435ns  (logic 0.164ns (37.722%)  route 0.271ns (62.278%))
-  Logic Levels:           0  
-  Clock Path Skew:        0.267ns (DCD - SCD - CPR)
-    Destination Clock Delay (DCD):    1.183ns
-    Source Clock Delay      (SCD):    0.881ns
-    Clock Pessimism Removal (CPR):    0.035ns
-
-    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
-  -------------------------------------------------------------------    -------------------
-                         (clock clk_fpga_0 rise edge)
-                                                      0.000     0.000 r  
-    PS7_X0Y0             PS7                          0.000     0.000 r  processing_i/processing_system7_0/inst/PS7_i/FCLKCLK[0]
-                         net (fo=1, routed)           0.310     0.310    processing_i/processing_system7_0/inst/FCLK_CLK_unbuffered[0]
-    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.026     0.336 r  processing_i/processing_system7_0/inst/buffer_fclk_clk_0.FCLK_CLK_0_BUFG/O
-                         net (fo=11320, routed)       0.545     0.881    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha224_core/s00_axi_aclk
-    SLICE_X50Y25         FDRE                                         r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha224_core/i_reg[15]/C
-  -------------------------------------------------------------------    -------------------
-    SLICE_X50Y25         FDRE (Prop_fdre_C_Q)         0.164     1.044 r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha224_core/i_reg[15]/Q
-                         net (fo=1, routed)           0.271     1.315    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha224_core/i[15]
-    SLICE_X38Y28         FDRE                                         r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha224_core/i_reg[16]/D
-  -------------------------------------------------------------------    -------------------
-
-                         (clock clk_fpga_0 rise edge)
-                                                      0.000     0.000 r  
-    PS7_X0Y0             PS7                          0.000     0.000 r  processing_i/processing_system7_0/inst/PS7_i/FCLKCLK[0]
-                         net (fo=1, routed)           0.337     0.337    processing_i/processing_system7_0/inst/FCLK_CLK_unbuffered[0]
-    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.029     0.366 r  processing_i/processing_system7_0/inst/buffer_fclk_clk_0.FCLK_CLK_0_BUFG/O
-                         net (fo=11320, routed)       0.817     1.183    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha224_core/s00_axi_aclk
-    SLICE_X38Y28         FDRE                                         r  processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha224_core/i_reg[16]/C
-                         clock pessimism             -0.035     1.148    
-    SLICE_X38Y28         FDRE (Hold_fdre_C_D)         0.075     1.223    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/sha224_core/i_reg[16]
-  -------------------------------------------------------------------
-                         required time                         -1.223    
-                         arrival time                           1.315    
-  -------------------------------------------------------------------
-                         slack                                  0.092    
+                         slack                                  0.075    
 
 
 
@@ -1202,35 +1227,35 @@ Sources:            { processing_i/processing_system7_0/inst/PS7_i/FCLKCLK[0] }
 
 Check Type        Corner  Lib Pin      Reference Pin  Required(ns)  Actual(ns)  Slack(ns)  Location        Pin
 Min Period        n/a     BUFG/I       n/a            2.155         10.000      7.845      BUFGCTRL_X0Y16  processing_i/processing_system7_0/inst/buffer_fclk_clk_0.FCLK_CLK_0_BUFG/I
-Min Period        n/a     FDSE/C       n/a            1.000         10.000      9.000      SLICE_X36Y95    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/aw_en_reg/C
-Min Period        n/a     FDRE/C       n/a            1.000         10.000      9.000      SLICE_X33Y77    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/axi_araddr_reg[2]/C
-Min Period        n/a     FDRE/C       n/a            1.000         10.000      9.000      SLICE_X30Y84    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/axi_araddr_reg[3]/C
-Min Period        n/a     FDRE/C       n/a            1.000         10.000      9.000      SLICE_X30Y84    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/axi_araddr_reg[4]/C
-Min Period        n/a     FDRE/C       n/a            1.000         10.000      9.000      SLICE_X30Y84    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/axi_araddr_reg[5]/C
-Min Period        n/a     FDRE/C       n/a            1.000         10.000      9.000      SLICE_X30Y84    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/axi_araddr_reg[6]/C
-Min Period        n/a     FDRE/C       n/a            1.000         10.000      9.000      SLICE_X33Y71    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/axi_araddr_reg[7]/C
-Min Period        n/a     FDRE/C       n/a            1.000         10.000      9.000      SLICE_X33Y71    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/axi_araddr_reg[7]_rep/C
-Min Period        n/a     FDRE/C       n/a            1.000         10.000      9.000      SLICE_X33Y71    processing_i/KetchupPeripheral_0/inst/KetchupPeripheral_v1_0_S00_AXI_inst/axi_araddr_reg[7]_rep__0/C
-Low Pulse Width   Slow    SRLC32E/CLK  n/a            0.980         5.000       4.020      SLICE_X30Y75    processing_i/ps7_0_axi_periph/s00_couplers/auto_pc/inst/gen_axilite.gen_b2s_conv.axilite_b2s/RD.r_channel_0/rd_data_fifo_0/memory_reg[31][0]_srl32/CLK
-Low Pulse Width   Fast    SRLC32E/CLK  n/a            0.980         5.000       4.020      SLICE_X30Y75    processing_i/ps7_0_axi_periph/s00_couplers/auto_pc/inst/gen_axilite.gen_b2s_conv.axilite_b2s/RD.r_channel_0/rd_data_fifo_0/memory_reg[31][0]_srl32/CLK
-Low Pulse Width   Slow    SRLC32E/CLK  n/a            0.980         5.000       4.020      SLICE_X34Y75    processing_i/ps7_0_axi_periph/s00_couplers/auto_pc/inst/gen_axilite.gen_b2s_conv.axilite_b2s/RD.r_channel_0/rd_data_fifo_0/memory_reg[31][10]_srl32/CLK
-Low Pulse Width   Fast    SRLC32E/CLK  n/a            0.980         5.000       4.020      SLICE_X34Y75    processing_i/ps7_0_axi_periph/s00_couplers/auto_pc/inst/gen_axilite.gen_b2s_conv.axilite_b2s/RD.r_channel_0/rd_data_fifo_0/memory_reg[31][10]_srl32/CLK
-Low Pulse Width   Slow    SRLC32E/CLK  n/a            0.980         5.000       4.020      SLICE_X30Y75    processing_i/ps7_0_axi_periph/s00_couplers/auto_pc/inst/gen_axilite.gen_b2s_conv.axilite_b2s/RD.r_channel_0/rd_data_fifo_0/memory_reg[31][11]_srl32/CLK
-Low Pulse Width   Fast    SRLC32E/CLK  n/a            0.980         5.000       4.020      SLICE_X30Y75    processing_i/ps7_0_axi_periph/s00_couplers/auto_pc/inst/gen_axilite.gen_b2s_conv.axilite_b2s/RD.r_channel_0/rd_data_fifo_0/memory_reg[31][11]_srl32/CLK
-Low Pulse Width   Slow    SRLC32E/CLK  n/a            0.980         5.000       4.020      SLICE_X34Y75    processing_i/ps7_0_axi_periph/s00_couplers/auto_pc/inst/gen_axilite.gen_b2s_conv.axilite_b2s/RD.r_channel_0/rd_data_fifo_0/memory_reg[31][12]_srl32/CLK
-Low Pulse Width   Fast    SRLC32E/CLK  n/a            0.980         5.000       4.020      SLICE_X34Y75    processing_i/ps7_0_axi_periph/s00_couplers/auto_pc/inst/gen_axilite.gen_b2s_conv.axilite_b2s/RD.r_channel_0/rd_data_fifo_0/memory_reg[31][12]_srl32/CLK
-Low Pulse Width   Slow    SRLC32E/CLK  n/a            0.980         5.000       4.020      SLICE_X30Y77    processing_i/ps7_0_axi_periph/s00_couplers/auto_pc/inst/gen_axilite.gen_b2s_conv.axilite_b2s/RD.r_channel_0/rd_data_fifo_0/memory_reg[31][13]_srl32/CLK
-Low Pulse Width   Fast    SRLC32E/CLK  n/a            0.980         5.000       4.020      SLICE_X30Y77    processing_i/ps7_0_axi_periph/s00_couplers/auto_pc/inst/gen_axilite.gen_b2s_conv.axilite_b2s/RD.r_channel_0/rd_data_fifo_0/memory_reg[31][13]_srl32/CLK
-High Pulse Width  Slow    SRLC32E/CLK  n/a            0.980         5.000       4.020      SLICE_X30Y75    processing_i/ps7_0_axi_periph/s00_couplers/auto_pc/inst/gen_axilite.gen_b2s_conv.axilite_b2s/RD.r_channel_0/rd_data_fifo_0/memory_reg[31][0]_srl32/CLK
-High Pulse Width  Fast    SRLC32E/CLK  n/a            0.980         5.000       4.020      SLICE_X30Y75    processing_i/ps7_0_axi_periph/s00_couplers/auto_pc/inst/gen_axilite.gen_b2s_conv.axilite_b2s/RD.r_channel_0/rd_data_fifo_0/memory_reg[31][0]_srl32/CLK
-High Pulse Width  Slow    SRLC32E/CLK  n/a            0.980         5.000       4.020      SLICE_X34Y75    processing_i/ps7_0_axi_periph/s00_couplers/auto_pc/inst/gen_axilite.gen_b2s_conv.axilite_b2s/RD.r_channel_0/rd_data_fifo_0/memory_reg[31][10]_srl32/CLK
-High Pulse Width  Fast    SRLC32E/CLK  n/a            0.980         5.000       4.020      SLICE_X34Y75    processing_i/ps7_0_axi_periph/s00_couplers/auto_pc/inst/gen_axilite.gen_b2s_conv.axilite_b2s/RD.r_channel_0/rd_data_fifo_0/memory_reg[31][10]_srl32/CLK
-High Pulse Width  Slow    SRLC32E/CLK  n/a            0.980         5.000       4.020      SLICE_X30Y75    processing_i/ps7_0_axi_periph/s00_couplers/auto_pc/inst/gen_axilite.gen_b2s_conv.axilite_b2s/RD.r_channel_0/rd_data_fifo_0/memory_reg[31][11]_srl32/CLK
-High Pulse Width  Fast    SRLC32E/CLK  n/a            0.980         5.000       4.020      SLICE_X30Y75    processing_i/ps7_0_axi_periph/s00_couplers/auto_pc/inst/gen_axilite.gen_b2s_conv.axilite_b2s/RD.r_channel_0/rd_data_fifo_0/memory_reg[31][11]_srl32/CLK
-High Pulse Width  Slow    SRLC32E/CLK  n/a            0.980         5.000       4.020      SLICE_X34Y75    processing_i/ps7_0_axi_periph/s00_couplers/auto_pc/inst/gen_axilite.gen_b2s_conv.axilite_b2s/RD.r_channel_0/rd_data_fifo_0/memory_reg[31][12]_srl32/CLK
-High Pulse Width  Fast    SRLC32E/CLK  n/a            0.980         5.000       4.020      SLICE_X34Y75    processing_i/ps7_0_axi_periph/s00_couplers/auto_pc/inst/gen_axilite.gen_b2s_conv.axilite_b2s/RD.r_channel_0/rd_data_fifo_0/memory_reg[31][12]_srl32/CLK
-High Pulse Width  Slow    SRLC32E/CLK  n/a            0.980         5.000       4.020      SLICE_X30Y77    processing_i/ps7_0_axi_periph/s00_couplers/auto_pc/inst/gen_axilite.gen_b2s_conv.axilite_b2s/RD.r_channel_0/rd_data_fifo_0/memory_reg[31][13]_srl32/CLK
-High Pulse Width  Fast    SRLC32E/CLK  n/a            0.980         5.000       4.020      SLICE_X30Y77    processing_i/ps7_0_axi_periph/s00_couplers/auto_pc/inst/gen_axilite.gen_b2s_conv.axilite_b2s/RD.r_channel_0/rd_data_fifo_0/memory_reg[31][13]_srl32/CLK
+Min Period        n/a     FDSE/C       n/a            1.000         10.000      9.000      SLICE_X81Y81    processing_i/KetchupPeripheralPar_0/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/aw_en_reg/C
+Min Period        n/a     FDRE/C       n/a            1.000         10.000      9.000      SLICE_X61Y84    processing_i/KetchupPeripheralPar_0/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/axi_araddr_reg[2]/C
+Min Period        n/a     FDRE/C       n/a            1.000         10.000      9.000      SLICE_X61Y84    processing_i/KetchupPeripheralPar_0/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/axi_araddr_reg[3]/C
+Min Period        n/a     FDRE/C       n/a            1.000         10.000      9.000      SLICE_X61Y84    processing_i/KetchupPeripheralPar_0/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/axi_araddr_reg[4]/C
+Min Period        n/a     FDRE/C       n/a            1.000         10.000      9.000      SLICE_X61Y84    processing_i/KetchupPeripheralPar_0/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/axi_araddr_reg[5]/C
+Min Period        n/a     FDRE/C       n/a            1.000         10.000      9.000      SLICE_X61Y84    processing_i/KetchupPeripheralPar_0/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/axi_araddr_reg[6]/C
+Min Period        n/a     FDRE/C       n/a            1.000         10.000      9.000      SLICE_X61Y83    processing_i/KetchupPeripheralPar_0/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/axi_arready_reg/C
+Min Period        n/a     FDRE/C       n/a            1.000         10.000      9.000      SLICE_X82Y81    processing_i/KetchupPeripheralPar_0/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/axi_awaddr_reg[2]/C
+Min Period        n/a     FDRE/C       n/a            1.000         10.000      9.000      SLICE_X82Y81    processing_i/KetchupPeripheralPar_0/inst/KetchupPeripheralParametrized_v1_0_S00_AXI_inst/axi_awaddr_reg[3]/C
+Low Pulse Width   Slow    SRLC32E/CLK  n/a            0.980         5.000       4.020      SLICE_X34Y87    processing_i/ps7_0_axi_periph/s00_couplers/auto_pc/inst/gen_axilite.gen_b2s_conv.axilite_b2s/RD.r_channel_0/rd_data_fifo_0/memory_reg[31][0]_srl32/CLK
+Low Pulse Width   Fast    SRLC32E/CLK  n/a            0.980         5.000       4.020      SLICE_X34Y87    processing_i/ps7_0_axi_periph/s00_couplers/auto_pc/inst/gen_axilite.gen_b2s_conv.axilite_b2s/RD.r_channel_0/rd_data_fifo_0/memory_reg[31][0]_srl32/CLK
+Low Pulse Width   Slow    SRLC32E/CLK  n/a            0.980         5.000       4.020      SLICE_X38Y86    processing_i/ps7_0_axi_periph/s00_couplers/auto_pc/inst/gen_axilite.gen_b2s_conv.axilite_b2s/RD.r_channel_0/rd_data_fifo_0/memory_reg[31][10]_srl32/CLK
+Low Pulse Width   Fast    SRLC32E/CLK  n/a            0.980         5.000       4.020      SLICE_X38Y86    processing_i/ps7_0_axi_periph/s00_couplers/auto_pc/inst/gen_axilite.gen_b2s_conv.axilite_b2s/RD.r_channel_0/rd_data_fifo_0/memory_reg[31][10]_srl32/CLK
+Low Pulse Width   Slow    SRLC32E/CLK  n/a            0.980         5.000       4.020      SLICE_X34Y86    processing_i/ps7_0_axi_periph/s00_couplers/auto_pc/inst/gen_axilite.gen_b2s_conv.axilite_b2s/RD.r_channel_0/rd_data_fifo_0/memory_reg[31][11]_srl32/CLK
+Low Pulse Width   Fast    SRLC32E/CLK  n/a            0.980         5.000       4.020      SLICE_X34Y86    processing_i/ps7_0_axi_periph/s00_couplers/auto_pc/inst/gen_axilite.gen_b2s_conv.axilite_b2s/RD.r_channel_0/rd_data_fifo_0/memory_reg[31][11]_srl32/CLK
+Low Pulse Width   Slow    SRLC32E/CLK  n/a            0.980         5.000       4.020      SLICE_X34Y86    processing_i/ps7_0_axi_periph/s00_couplers/auto_pc/inst/gen_axilite.gen_b2s_conv.axilite_b2s/RD.r_channel_0/rd_data_fifo_0/memory_reg[31][12]_srl32/CLK
+Low Pulse Width   Fast    SRLC32E/CLK  n/a            0.980         5.000       4.020      SLICE_X34Y86    processing_i/ps7_0_axi_periph/s00_couplers/auto_pc/inst/gen_axilite.gen_b2s_conv.axilite_b2s/RD.r_channel_0/rd_data_fifo_0/memory_reg[31][12]_srl32/CLK
+Low Pulse Width   Slow    SRLC32E/CLK  n/a            0.980         5.000       4.020      SLICE_X34Y90    processing_i/ps7_0_axi_periph/s00_couplers/auto_pc/inst/gen_axilite.gen_b2s_conv.axilite_b2s/RD.r_channel_0/rd_data_fifo_0/memory_reg[31][13]_srl32/CLK
+Low Pulse Width   Fast    SRLC32E/CLK  n/a            0.980         5.000       4.020      SLICE_X34Y90    processing_i/ps7_0_axi_periph/s00_couplers/auto_pc/inst/gen_axilite.gen_b2s_conv.axilite_b2s/RD.r_channel_0/rd_data_fifo_0/memory_reg[31][13]_srl32/CLK
+High Pulse Width  Slow    SRLC32E/CLK  n/a            0.980         5.000       4.020      SLICE_X34Y87    processing_i/ps7_0_axi_periph/s00_couplers/auto_pc/inst/gen_axilite.gen_b2s_conv.axilite_b2s/RD.r_channel_0/rd_data_fifo_0/memory_reg[31][0]_srl32/CLK
+High Pulse Width  Fast    SRLC32E/CLK  n/a            0.980         5.000       4.020      SLICE_X34Y87    processing_i/ps7_0_axi_periph/s00_couplers/auto_pc/inst/gen_axilite.gen_b2s_conv.axilite_b2s/RD.r_channel_0/rd_data_fifo_0/memory_reg[31][0]_srl32/CLK
+High Pulse Width  Slow    SRLC32E/CLK  n/a            0.980         5.000       4.020      SLICE_X38Y86    processing_i/ps7_0_axi_periph/s00_couplers/auto_pc/inst/gen_axilite.gen_b2s_conv.axilite_b2s/RD.r_channel_0/rd_data_fifo_0/memory_reg[31][10]_srl32/CLK
+High Pulse Width  Fast    SRLC32E/CLK  n/a            0.980         5.000       4.020      SLICE_X38Y86    processing_i/ps7_0_axi_periph/s00_couplers/auto_pc/inst/gen_axilite.gen_b2s_conv.axilite_b2s/RD.r_channel_0/rd_data_fifo_0/memory_reg[31][10]_srl32/CLK
+High Pulse Width  Slow    SRLC32E/CLK  n/a            0.980         5.000       4.020      SLICE_X34Y86    processing_i/ps7_0_axi_periph/s00_couplers/auto_pc/inst/gen_axilite.gen_b2s_conv.axilite_b2s/RD.r_channel_0/rd_data_fifo_0/memory_reg[31][11]_srl32/CLK
+High Pulse Width  Fast    SRLC32E/CLK  n/a            0.980         5.000       4.020      SLICE_X34Y86    processing_i/ps7_0_axi_periph/s00_couplers/auto_pc/inst/gen_axilite.gen_b2s_conv.axilite_b2s/RD.r_channel_0/rd_data_fifo_0/memory_reg[31][11]_srl32/CLK
+High Pulse Width  Slow    SRLC32E/CLK  n/a            0.980         5.000       4.020      SLICE_X34Y86    processing_i/ps7_0_axi_periph/s00_couplers/auto_pc/inst/gen_axilite.gen_b2s_conv.axilite_b2s/RD.r_channel_0/rd_data_fifo_0/memory_reg[31][12]_srl32/CLK
+High Pulse Width  Fast    SRLC32E/CLK  n/a            0.980         5.000       4.020      SLICE_X34Y86    processing_i/ps7_0_axi_periph/s00_couplers/auto_pc/inst/gen_axilite.gen_b2s_conv.axilite_b2s/RD.r_channel_0/rd_data_fifo_0/memory_reg[31][12]_srl32/CLK
+High Pulse Width  Slow    SRLC32E/CLK  n/a            0.980         5.000       4.020      SLICE_X34Y90    processing_i/ps7_0_axi_periph/s00_couplers/auto_pc/inst/gen_axilite.gen_b2s_conv.axilite_b2s/RD.r_channel_0/rd_data_fifo_0/memory_reg[31][13]_srl32/CLK
+High Pulse Width  Fast    SRLC32E/CLK  n/a            0.980         5.000       4.020      SLICE_X34Y90    processing_i/ps7_0_axi_periph/s00_couplers/auto_pc/inst/gen_axilite.gen_b2s_conv.axilite_b2s/RD.r_channel_0/rd_data_fifo_0/memory_reg[31][13]_srl32/CLK
 
 
 
@@ -1253,7 +1278,7 @@ Slack:                    inf
                             (rising edge-triggered cell FDRE clocked by clk_fpga_0  {rise@0.000ns fall@5.000ns period=10.000ns})
   Path Group:             (none)
   Path Type:              Setup (Max at Slow Process Corner)
-  Data Path Delay:        1.519ns  (logic 0.124ns (8.164%)  route 1.395ns (91.836%))
+  Data Path Delay:        1.669ns  (logic 0.124ns (7.430%)  route 1.545ns (92.570%))
   Logic Levels:           1  (LUT1=1)
   Clock Uncertainty:      0.152ns  ((TSJ^2 + TIJ^2)^1/2 + DJ) / 2 + PE
     Total System Jitter     (TSJ):    0.050ns
@@ -1265,10 +1290,10 @@ Slack:                    inf
     Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
   -------------------------------------------------------------------    -------------------
     PS7_X0Y0             PS7                          0.000     0.000 f  processing_i/processing_system7_0/inst/PS7_i/FCLKRESETN[0]
-                         net (fo=1, routed)           1.097     1.097    processing_i/rst_ps7_0_100M/U0/EXT_LPF/ACTIVE_LOW_EXT.ACT_LO_EXT/ext_reset_in
-    SLICE_X37Y84         LUT1 (Prop_lut1_I0_O)        0.124     1.221 r  processing_i/rst_ps7_0_100M/U0/EXT_LPF/ACTIVE_LOW_EXT.ACT_LO_EXT/GENERATE_LEVEL_P_S_CDC.SINGLE_BIT.CROSS_PLEVEL_IN2SCNDRY_IN_cdc_to_i_1/O
-                         net (fo=1, routed)           0.298     1.519    processing_i/rst_ps7_0_100M/U0/EXT_LPF/ACTIVE_LOW_EXT.ACT_LO_EXT/exr_d1
-    SLICE_X38Y84         FDRE                                         r  processing_i/rst_ps7_0_100M/U0/EXT_LPF/ACTIVE_LOW_EXT.ACT_LO_EXT/GENERATE_LEVEL_P_S_CDC.SINGLE_BIT.CROSS_PLEVEL_IN2SCNDRY_IN_cdc_to/D
+                         net (fo=1, routed)           1.545     1.545    processing_i/rst_ps7_0_100M/U0/EXT_LPF/ACTIVE_LOW_EXT.ACT_LO_EXT/ext_reset_in
+    SLICE_X29Y75         LUT1 (Prop_lut1_I0_O)        0.124     1.669 r  processing_i/rst_ps7_0_100M/U0/EXT_LPF/ACTIVE_LOW_EXT.ACT_LO_EXT/GENERATE_LEVEL_P_S_CDC.SINGLE_BIT.CROSS_PLEVEL_IN2SCNDRY_IN_cdc_to_i_1/O
+                         net (fo=1, routed)           0.000     1.669    processing_i/rst_ps7_0_100M/U0/EXT_LPF/ACTIVE_LOW_EXT.ACT_LO_EXT/exr_d1
+    SLICE_X29Y75         FDRE                                         r  processing_i/rst_ps7_0_100M/U0/EXT_LPF/ACTIVE_LOW_EXT.ACT_LO_EXT/GENERATE_LEVEL_P_S_CDC.SINGLE_BIT.CROSS_PLEVEL_IN2SCNDRY_IN_cdc_to/D
   -------------------------------------------------------------------    -------------------
 
                          (clock clk_fpga_0 rise edge)
@@ -1276,8 +1301,8 @@ Slack:                    inf
     PS7_X0Y0             PS7                          0.000     0.000 r  processing_i/processing_system7_0/inst/PS7_i/FCLKCLK[0]
                          net (fo=1, routed)           1.088     1.088    processing_i/processing_system7_0/inst/FCLK_CLK_unbuffered[0]
     BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.091     1.179 r  processing_i/processing_system7_0/inst/buffer_fclk_clk_0.FCLK_CLK_0_BUFG/O
-                         net (fo=11320, routed)       1.473     2.652    processing_i/rst_ps7_0_100M/U0/EXT_LPF/ACTIVE_LOW_EXT.ACT_LO_EXT/slowest_sync_clk
-    SLICE_X38Y84         FDRE                                         r  processing_i/rst_ps7_0_100M/U0/EXT_LPF/ACTIVE_LOW_EXT.ACT_LO_EXT/GENERATE_LEVEL_P_S_CDC.SINGLE_BIT.CROSS_PLEVEL_IN2SCNDRY_IN_cdc_to/C
+                         net (fo=12564, routed)       1.508     2.687    processing_i/rst_ps7_0_100M/U0/EXT_LPF/ACTIVE_LOW_EXT.ACT_LO_EXT/slowest_sync_clk
+    SLICE_X29Y75         FDRE                                         r  processing_i/rst_ps7_0_100M/U0/EXT_LPF/ACTIVE_LOW_EXT.ACT_LO_EXT/GENERATE_LEVEL_P_S_CDC.SINGLE_BIT.CROSS_PLEVEL_IN2SCNDRY_IN_cdc_to/C
 
 
 
@@ -1292,7 +1317,7 @@ Slack:                    inf
                             (rising edge-triggered cell FDRE clocked by clk_fpga_0  {rise@0.000ns fall@5.000ns period=10.000ns})
   Path Group:             (none)
   Path Type:              Hold (Min at Fast Process Corner)
-  Data Path Delay:        0.596ns  (logic 0.045ns (7.551%)  route 0.551ns (92.449%))
+  Data Path Delay:        0.615ns  (logic 0.045ns (7.318%)  route 0.570ns (92.682%))
   Logic Levels:           1  (LUT1=1)
   Clock Uncertainty:      0.152ns  ((TSJ^2 + TIJ^2)^1/2 + DJ) / 2 + PE
     Total System Jitter     (TSJ):    0.050ns
@@ -1304,10 +1329,10 @@ Slack:                    inf
     Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
   -------------------------------------------------------------------    -------------------
     PS7_X0Y0             PS7                          0.000     0.000 f  processing_i/processing_system7_0/inst/PS7_i/FCLKRESETN[0]
-                         net (fo=1, routed)           0.450     0.450    processing_i/rst_ps7_0_100M/U0/EXT_LPF/ACTIVE_LOW_EXT.ACT_LO_EXT/ext_reset_in
-    SLICE_X37Y84         LUT1 (Prop_lut1_I0_O)        0.045     0.495 r  processing_i/rst_ps7_0_100M/U0/EXT_LPF/ACTIVE_LOW_EXT.ACT_LO_EXT/GENERATE_LEVEL_P_S_CDC.SINGLE_BIT.CROSS_PLEVEL_IN2SCNDRY_IN_cdc_to_i_1/O
-                         net (fo=1, routed)           0.101     0.596    processing_i/rst_ps7_0_100M/U0/EXT_LPF/ACTIVE_LOW_EXT.ACT_LO_EXT/exr_d1
-    SLICE_X38Y84         FDRE                                         r  processing_i/rst_ps7_0_100M/U0/EXT_LPF/ACTIVE_LOW_EXT.ACT_LO_EXT/GENERATE_LEVEL_P_S_CDC.SINGLE_BIT.CROSS_PLEVEL_IN2SCNDRY_IN_cdc_to/D
+                         net (fo=1, routed)           0.570     0.570    processing_i/rst_ps7_0_100M/U0/EXT_LPF/ACTIVE_LOW_EXT.ACT_LO_EXT/ext_reset_in
+    SLICE_X29Y75         LUT1 (Prop_lut1_I0_O)        0.045     0.615 r  processing_i/rst_ps7_0_100M/U0/EXT_LPF/ACTIVE_LOW_EXT.ACT_LO_EXT/GENERATE_LEVEL_P_S_CDC.SINGLE_BIT.CROSS_PLEVEL_IN2SCNDRY_IN_cdc_to_i_1/O
+                         net (fo=1, routed)           0.000     0.615    processing_i/rst_ps7_0_100M/U0/EXT_LPF/ACTIVE_LOW_EXT.ACT_LO_EXT/exr_d1
+    SLICE_X29Y75         FDRE                                         r  processing_i/rst_ps7_0_100M/U0/EXT_LPF/ACTIVE_LOW_EXT.ACT_LO_EXT/GENERATE_LEVEL_P_S_CDC.SINGLE_BIT.CROSS_PLEVEL_IN2SCNDRY_IN_cdc_to/D
   -------------------------------------------------------------------    -------------------
 
                          (clock clk_fpga_0 rise edge)
@@ -1315,8 +1340,8 @@ Slack:                    inf
     PS7_X0Y0             PS7                          0.000     0.000 r  processing_i/processing_system7_0/inst/PS7_i/FCLKCLK[0]
                          net (fo=1, routed)           0.337     0.337    processing_i/processing_system7_0/inst/FCLK_CLK_unbuffered[0]
     BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.029     0.366 r  processing_i/processing_system7_0/inst/buffer_fclk_clk_0.FCLK_CLK_0_BUFG/O
-                         net (fo=11320, routed)       0.818     1.184    processing_i/rst_ps7_0_100M/U0/EXT_LPF/ACTIVE_LOW_EXT.ACT_LO_EXT/slowest_sync_clk
-    SLICE_X38Y84         FDRE                                         r  processing_i/rst_ps7_0_100M/U0/EXT_LPF/ACTIVE_LOW_EXT.ACT_LO_EXT/GENERATE_LEVEL_P_S_CDC.SINGLE_BIT.CROSS_PLEVEL_IN2SCNDRY_IN_cdc_to/C
+                         net (fo=12564, routed)       0.828     1.194    processing_i/rst_ps7_0_100M/U0/EXT_LPF/ACTIVE_LOW_EXT.ACT_LO_EXT/slowest_sync_clk
+    SLICE_X29Y75         FDRE                                         r  processing_i/rst_ps7_0_100M/U0/EXT_LPF/ACTIVE_LOW_EXT.ACT_LO_EXT/GENERATE_LEVEL_P_S_CDC.SINGLE_BIT.CROSS_PLEVEL_IN2SCNDRY_IN_cdc_to/C
 
 
 

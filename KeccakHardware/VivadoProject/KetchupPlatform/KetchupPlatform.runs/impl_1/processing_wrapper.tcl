@@ -115,6 +115,7 @@ proc step_failed { step } {
 OPTRACE "impl_1" END { }
 }
 
+set_msg_config -id {HDL-1065} -limit 10000
 set_msg_config -id {Synth 8-256} -limit 10000
 set_msg_config -id {Synth 8-638} -limit 10000
 set_msg_config  -id {17-179}  -suppress 
@@ -138,7 +139,10 @@ OPTRACE "create in-memory project" END { }
 OPTRACE "set parameters" START { }
   set_property webtalk.parent_dir /home/daem/Desktop/group9/KeccakHardware/VivadoProject/KetchupPlatform/KetchupPlatform.cache/wt [current_project]
   set_property parent.project_path /home/daem/Desktop/group9/KeccakHardware/VivadoProject/KetchupPlatform/KetchupPlatform.xpr [current_project]
-  set_property ip_repo_paths /home/daem/Desktop/group9/KeccakHardware/VivadoProject/ip_repo/KetchupPeripheral_1_0 [current_project]
+  set_property ip_repo_paths {
+  /home/daem/Desktop/group9/KeccakHardware/VivadoProject/ip_repo/KetchupPeripheralParametrized_1_0
+  /home/daem/Desktop/group9/KeccakHardware/VivadoProject/ip_repo/KetchupPeripheral_1_0
+} [current_project]
   update_ip_catalog
   set_property ip_output_repo /home/daem/Desktop/group9/KeccakHardware/VivadoProject/KetchupPlatform/KetchupPlatform.cache/ip [current_project]
   set_property ip_cache_permissions {read write} [current_project]

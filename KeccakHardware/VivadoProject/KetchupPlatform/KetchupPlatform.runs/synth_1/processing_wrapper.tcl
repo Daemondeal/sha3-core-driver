@@ -71,6 +71,7 @@ proc create_report { reportName command } {
 }
 OPTRACE "synth_1" START { ROLLUP_AUTO }
 set_param checkpoint.writeSynthRtdsInDcp 1
+set_msg_config -id {HDL-1065} -limit 10000
 set_msg_config -id {Synth 8-256} -limit 10000
 set_msg_config -id {Synth 8-638} -limit 10000
 set_msg_config  -id {17-179}  -suppress 
@@ -88,7 +89,10 @@ set_property default_lib xil_defaultlib [current_project]
 set_property target_language Verilog [current_project]
 set_property board_part_repo_paths {/home/daem/.Xilinx/Vivado/2023.2/xhub/board_store/xilinx_board_store} [current_project]
 set_property board_part tul.com.tw:pynq-z2:part0:1.0 [current_project]
-set_property ip_repo_paths /home/daem/Desktop/group9/KeccakHardware/VivadoProject/ip_repo/KetchupPeripheral_1_0 [current_project]
+set_property ip_repo_paths {
+  /home/daem/Desktop/group9/KeccakHardware/VivadoProject/ip_repo/KetchupPeripheralParametrized_1_0
+  /home/daem/Desktop/group9/KeccakHardware/VivadoProject/ip_repo/KetchupPeripheral_1_0
+} [current_project]
 update_ip_catalog
 set_property ip_output_repo /home/daem/Desktop/group9/KeccakHardware/VivadoProject/KetchupPlatform/KetchupPlatform.cache/ip [current_project]
 set_property ip_cache_permissions {read write} [current_project]
@@ -96,11 +100,12 @@ OPTRACE "Creating in-memory project" END { }
 OPTRACE "Adding files" START { }
 read_verilog -library xil_defaultlib /home/daem/Desktop/group9/KeccakHardware/VivadoProject/KetchupPlatform/KetchupPlatform.gen/sources_1/bd/processing/hdl/processing_wrapper.v
 add_files /home/daem/Desktop/group9/KeccakHardware/VivadoProject/KetchupPlatform/KetchupPlatform.srcs/sources_1/bd/processing/processing.bd
-set_property used_in_implementation false [get_files -all /home/daem/Desktop/group9/KeccakHardware/VivadoProject/KetchupPlatform/KetchupPlatform.gen/sources_1/bd/processing/ip/processing_processing_system7_0_0/processing_processing_system7_0_0.xdc]
-set_property used_in_implementation false [get_files -all /home/daem/Desktop/group9/KeccakHardware/VivadoProject/KetchupPlatform/KetchupPlatform.gen/sources_1/bd/processing/ip/processing_rst_ps7_0_100M_0/processing_rst_ps7_0_100M_0_board.xdc]
-set_property used_in_implementation false [get_files -all /home/daem/Desktop/group9/KeccakHardware/VivadoProject/KetchupPlatform/KetchupPlatform.gen/sources_1/bd/processing/ip/processing_rst_ps7_0_100M_0/processing_rst_ps7_0_100M_0.xdc]
-set_property used_in_implementation false [get_files -all /home/daem/Desktop/group9/KeccakHardware/VivadoProject/KetchupPlatform/KetchupPlatform.gen/sources_1/bd/processing/ip/processing_rst_ps7_0_100M_0/processing_rst_ps7_0_100M_0_ooc.xdc]
-set_property used_in_implementation false [get_files -all /home/daem/Desktop/group9/KeccakHardware/VivadoProject/KetchupPlatform/KetchupPlatform.gen/sources_1/bd/processing/ip/processing_auto_pc_0/processing_auto_pc_0_ooc.xdc]
+set_property used_in_implementation false [get_files -all /home/daem/Desktop/group9/KeccakHardware/VivadoProject/KetchupPlatform/KetchupPlatform.gen/sources_1/bd/processing/ip/processing_processing_system7_0_1/processing_processing_system7_0_1.xdc]
+set_property used_in_implementation false [get_files -all /home/daem/Desktop/group9/KeccakHardware/VivadoProject/KetchupPlatform/KetchupPlatform.gen/sources_1/bd/processing/ip/processing_xbar_0/processing_xbar_0_ooc.xdc]
+set_property used_in_implementation false [get_files -all /home/daem/Desktop/group9/KeccakHardware/VivadoProject/KetchupPlatform/KetchupPlatform.gen/sources_1/bd/processing/ip/processing_rst_ps7_0_100M_1/processing_rst_ps7_0_100M_1_board.xdc]
+set_property used_in_implementation false [get_files -all /home/daem/Desktop/group9/KeccakHardware/VivadoProject/KetchupPlatform/KetchupPlatform.gen/sources_1/bd/processing/ip/processing_rst_ps7_0_100M_1/processing_rst_ps7_0_100M_1.xdc]
+set_property used_in_implementation false [get_files -all /home/daem/Desktop/group9/KeccakHardware/VivadoProject/KetchupPlatform/KetchupPlatform.gen/sources_1/bd/processing/ip/processing_rst_ps7_0_100M_1/processing_rst_ps7_0_100M_1_ooc.xdc]
+set_property used_in_implementation false [get_files -all /home/daem/Desktop/group9/KeccakHardware/VivadoProject/KetchupPlatform/KetchupPlatform.gen/sources_1/bd/processing/ip/processing_auto_pc_1/processing_auto_pc_1_ooc.xdc]
 set_property used_in_implementation false [get_files -all /home/daem/Desktop/group9/KeccakHardware/VivadoProject/KetchupPlatform/KetchupPlatform.gen/sources_1/bd/processing/processing_ooc.xdc]
 
 OPTRACE "Adding files" END { }
@@ -115,6 +120,8 @@ foreach dcp [get_files -quiet -all -filter file_type=="Design\ Checkpoint"] {
 read_xdc dont_touch.xdc
 set_property used_in_implementation false [get_files dont_touch.xdc]
 set_param ips.enableIPCacheLiteLoad 1
+
+read_checkpoint -auto_incremental -incremental /home/daem/Desktop/group9/KeccakHardware/VivadoProject/KetchupPlatform/KetchupPlatform.srcs/utils_1/imports/synth_1/processing_wrapper.dcp
 close [open __synthesis_is_running__ w]
 
 OPTRACE "synth_design" START { }
