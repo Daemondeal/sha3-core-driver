@@ -24,7 +24,7 @@
 module peripheral_tb;
     reg axi_clock;
     reg axi_aresetn;
-    reg [8:0] axi_awaddr;
+    reg [6:0] axi_awaddr;
     reg [2:0] axi_awprot;
     reg axi_awvalid;
     wire axi_awready;
@@ -35,7 +35,7 @@ module peripheral_tb;
     wire [1:0] axi_bresp;
     wire axi_bvalid;
     reg axi_bready; 
-    reg [8:0] axi_araddr;
+    reg [6:0] axi_araddr;
     reg [2:0] axi_arprot;
     reg axi_arvalid;
     wire axi_arready;
@@ -48,7 +48,7 @@ module peripheral_tb;
 
     integer i;
 
-    SHA3Keccak_v1_0_S00_AXI keccak_instance (
+    KetchupPeripheral_v1_0_S00_AXI keccak_instance (
         // Global Clock Signal
         .S_AXI_ACLK(axi_clock),
         // Global Reset Signal. This Signal is Active LOW
@@ -149,28 +149,25 @@ module peripheral_tb;
         // Bit 2   - is this the last bit
 
         
-        for (core_idx = 0; core_idx < 4; core_idx = core_idx + 1) begin
-            // Hello World
-            write_procedure({core_idx[1:0], `REG_COMMAND}, 32'h1);
+        // Hello World
+        write_procedure(`REG_COMMAND, 32'h1);
 
-            write_procedure({core_idx[1:0], `REG_CONTROL}, 32'h0);
-            write_procedure({core_idx[1:0], `REG_INPUT}, "Hell");
-            write_procedure({core_idx[1:0], `REG_INPUT}, "o Wo");
+        write_procedure(`REG_CONTROL, 32'h0);
+        write_procedure(`REG_INPUT, "Hell");
+        write_procedure(`REG_INPUT, "o Wo");
 
-            write_procedure({core_idx[1:0], `REG_CONTROL}, 32'h7);
-            write_procedure({core_idx[1:0], `REG_INPUT}, "rld ");
+        write_procedure(`REG_CONTROL, 32'h7);
+        write_procedure(`REG_INPUT, "rld ");
 
-            read_procedure({core_idx[1:0], `REG_STATUS});
-            while ((read_value & 2'b1) == 0) begin
-                read_procedure({core_idx[1:0], `REG_STATUS});
-            end
-
-            read_procedure({core_idx[1:0], `REG_OUTPUT});
-
-            // Hash finished! Retrieve value
-            $display("Core idx = %d", core_idx);
-            $display("Keccak(\"Hello World\") = %08h...", read_value);
+        read_procedure(`REG_STATUS);
+        while ((read_value & 2'b1) == 0) begin
+            read_procedure(`REG_STATUS);
         end
+
+        read_procedure(`REG_OUTPUT);
+
+        // Hash finished! Retrieve value
+        $display("Keccak(\"Hello World\") = %08h...", read_value);
         #200;
 
         $finish;

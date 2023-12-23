@@ -1,12 +1,15 @@
-
 `timescale 1 ns / 1 ps
+
+`define SHA_BITRATE(size) (1600 - 2 * size)
 
 	module  KetchupPeripheral_v1_0_S00_AXI #
     (
 		// Width of S_AXI data bus
 		parameter integer C_S_AXI_DATA_WIDTH	= 32,
 		// Width of S_AXI address bus
-		parameter integer C_S_AXI_ADDR_WIDTH	= 9
+		parameter integer C_S_AXI_ADDR_WIDTH	= 7,
+		// Size of the output SHA hash, in bits
+		parameter integer C_SHA3_SIZE           = 512
 	)
 	(
 		// Global Clock Signal
@@ -89,20 +92,19 @@
 	localparam integer ADDR_LSB = (C_S_AXI_DATA_WIDTH/32) + 1;
 
 	// 32 bits needed to address each core = 7 bits addressing
-	localparam integer CORE_ADDR_BITS = 2;
 	localparam integer REG_ADDR_BITS  = 5;
 
 	// Slave registers
-	reg  [C_S_AXI_DATA_WIDTH-1:0] reg_control [3:0];
-	reg  [C_S_AXI_DATA_WIDTH-1:0] reg_input   [3:0];
-	wire [C_S_AXI_DATA_WIDTH-1:0] reg_status  [3:0];
+	reg  [C_S_AXI_DATA_WIDTH-1:0] reg_control;
+	reg  [C_S_AXI_DATA_WIDTH-1:0] reg_input;
+	wire [C_S_AXI_DATA_WIDTH-1:0] reg_status;
 	
 	
 	// Used to implement WSTRB signal
-	wire [C_S_AXI_DATA_WIDTH-1:0]   wrdata_control [3:0];
-	wire [C_S_AXI_DATA_WIDTH-1:0]   wrdata_status  [3:0];
-	wire [C_S_AXI_DATA_WIDTH-1:0]   wrdata_input   [3:0];
-	wire [C_S_AXI_DATA_WIDTH-1:0]   wrdata_command [3:0];
+	wire [C_S_AXI_DATA_WIDTH-1:0]   wrdata_control;
+	wire [C_S_AXI_DATA_WIDTH-1:0]   wrdata_status;
+	wire [C_S_AXI_DATA_WIDTH-1:0]   wrdata_input;
+	wire [C_S_AXI_DATA_WIDTH-1:0]   wrdata_command;
 	
 	// Other signals for implementing axi4 logic
 	wire						 slv_reg_rden;
@@ -111,124 +113,39 @@
 	reg							 aw_en;
 	
 	// Wires used for the Keccak Core
-	reg 		 sha3_reset [3:0];
-	wire [31:0]  sha3_input [3:0];
-	reg [1:0]    sha3_byte_to_send [3:0];
-	reg          sha3_is_sending_bytes [3:0];
-	reg  		 sha3_is_last [3:0];
-	wire 		 sha3_buffer_full [3:0];
-	wire 		 sha3_out_ready [3:0];
+	reg 		 sha3_reset;
+	wire [31:0]  sha3_input;
+	reg [1:0]    sha3_byte_to_send;
+	reg          sha3_is_sending_bytes;
+	reg  		 sha3_is_last;
+	wire 		 sha3_buffer_full;
+	wire 		 sha3_out_ready;
+	
+	wire [511:0] sha3_output;
+	wire [C_SHA3_SIZE-1:0] sha3_core_output;
 
-	wire 		 sha3_reset_512;
-	wire [31:0]  sha3_input_512;
-	wire [1:0]    sha3_byte_to_send_512;
-	wire          sha3_is_sending_bytes_512;
-	wire  		 sha3_is_last_512;
-	wire 		 sha3_buffer_full_512;
-	wire 		 sha3_out_ready_512;
-  
-	wire 		 sha3_reset_224;
-	wire [31:0]  sha3_input_224;
-	wire [1:0]    sha3_byte_to_send_224;
-	wire          sha3_is_sending_bytes_224;
-	wire  		 sha3_is_last_224;
-	wire 		 sha3_buffer_full_224;
-	wire 		 sha3_out_ready_224;
-
-	// WORKAROUND TO VCD FILES NOT SUPPORTING ARRAYS
-	assign sha3_reset_512 = sha3_reset [0];
-	assign sha3_input_512 = sha3_input [0];
-	assign sha3_byte_to_send_512 = sha3_byte_to_send [0];
-	assign sha3_is_sending_bytes_512 = sha3_is_sending_bytes [0];
-	assign sha3_is_last_512 = sha3_is_last [0];
-	assign sha3_buffer_full_512 = sha3_buffer_full [0];
-	assign sha3_out_ready_512 = sha3_out_ready [0];
-
-	assign sha3_reset_224 = sha3_reset [3];
-	assign sha3_input_224 = sha3_input [3];
-	assign sha3_byte_to_send_224 = sha3_byte_to_send [3];
-	assign sha3_is_sending_bytes_224 = sha3_is_sending_bytes [3];
-	assign sha3_is_last_224 = sha3_is_last [3];
-	assign sha3_buffer_full_224 = sha3_buffer_full [3];
-	assign sha3_out_ready_224 = sha3_out_ready [3];
-
-	wire [511:0] sha3_output_512;
-	wire [383:0] sha3_output_384;
-	wire [255:0] sha3_output_256;
-	wire [223:0] sha3_output_224;
-
-	wire [511:0] sha3_output [3:0];
+	assign sha3_output[511:511-(C_SHA3_SIZE-1)] = sha3_core_output;
 
 
-	assign sha3_output[0] = sha3_output_512;
-	assign sha3_output[1][511:511-383] = sha3_output_384;
-	assign sha3_output[2][511:511-255] = sha3_output_256;
-	assign sha3_output[3][511:511-223] = sha3_output_224;
+	assign reg_status[0]    = sha3_out_ready;
+	assign reg_status[1]    = sha3_buffer_full;
+	assign reg_status[31:2] = 0;
 
-	genvar j;
+	assign sha3_input = reg_input;
 
-	generate
-		for (j = 0; j < 4; j = j + 1) begin
-			assign reg_status[j][0]    = sha3_out_ready   [j];
-			assign reg_status[j][1]    = sha3_buffer_full [j];
-			assign reg_status[j][31:2] = 0;
-
-			assign sha3_input[j] = reg_input[j];
-		end
-
-	endgenerate
 	
 
-	keccak 
+	keccak #(.OUTBITS(C_SHA3_SIZE), .R_BITRATE(`SHA_BITRATE(C_SHA3_SIZE)))
 	 sha512_core (
 	   .clk(S_AXI_ACLK), 
-	   .reset(sha3_reset[0]),
-	   .in(sha3_input[0]), 
-	   .in_ready(sha3_is_sending_bytes[0]),
-	   .is_last(sha3_is_last[0]), 
-	   .byte_num(sha3_byte_to_send[0]), 
-	   .buffer_full(sha3_buffer_full[0]), 
-	   .out(sha3_output_512), 
-	   .out_ready(sha3_out_ready[0])
-	);
-
-	keccak #(.OUTBITS(384), .R_BITRATE(832))
-	 sha384_core (
-	   .clk(S_AXI_ACLK), 
-	   .reset(sha3_reset[1]),
-	   .in(sha3_input[1]), 
-	   .in_ready(sha3_is_sending_bytes[1]),
-	   .is_last(sha3_is_last[1]), 
-	   .byte_num(sha3_byte_to_send[1]), 
-	   .buffer_full(sha3_buffer_full[1]), 
-	   .out(sha3_output_384), 
-	   .out_ready(sha3_out_ready[1])
-	);
-
-	keccak #(.OUTBITS(256), .R_BITRATE(1088))
-	 sha256_core (
-	   .clk(S_AXI_ACLK), 
-	   .reset(sha3_reset[2]),
-	   .in(sha3_input[2]), 
-	   .in_ready(sha3_is_sending_bytes[2]),
-	   .is_last(sha3_is_last[2]), 
-	   .byte_num(sha3_byte_to_send[2]), 
-	   .buffer_full(sha3_buffer_full[2]), 
-	   .out(sha3_output_256), 
-	   .out_ready(sha3_out_ready[2])
-	);
-
-	keccak #(.OUTBITS(224), .R_BITRATE(1152))
-	 sha224_core (
-	   .clk(S_AXI_ACLK), 
-	   .reset(sha3_reset[3]),
-	   .in(sha3_input[3]), 
-	   .in_ready(sha3_is_sending_bytes[3]),
-	   .is_last(sha3_is_last[3]), 
-	   .byte_num(sha3_byte_to_send[3]), 
-	   .buffer_full(sha3_buffer_full[3]), 
-	   .out(sha3_output_224), 
-	   .out_ready(sha3_out_ready[3])
+	   .reset(sha3_reset),
+	   .in(sha3_input), 
+	   .in_ready(sha3_is_sending_bytes),
+	   .is_last(sha3_is_last), 
+	   .byte_num(sha3_byte_to_send), 
+	   .buffer_full(sha3_buffer_full), 
+	   .out(sha3_core_output), 
+	   .out_ready(sha3_out_ready)
 	);
 
 
@@ -347,63 +264,52 @@
 	// and the slave is ready to accept the write address and write data.
 	assign slv_reg_wren = axi_wready && S_AXI_WVALID && axi_awready && S_AXI_AWVALID;
 	
-	generate
-		for (j = 0; j < 4; j = j + 1) begin
-			assign wrdata_control[j] = apply_wstrb(reg_control[j], S_AXI_WDATA, S_AXI_WSTRB);
-			assign wrdata_input[j]   = apply_wstrb(reg_input[j],   S_AXI_WDATA, S_AXI_WSTRB);
-			assign wrdata_command[j] = apply_wstrb(0, S_AXI_WDATA, S_AXI_WSTRB);
-		end
-	endgenerate
+	assign wrdata_control = apply_wstrb(reg_control, S_AXI_WDATA, S_AXI_WSTRB);
+	assign wrdata_input   = apply_wstrb(reg_input,   S_AXI_WDATA, S_AXI_WSTRB);
+	assign wrdata_command = apply_wstrb(0,           S_AXI_WDATA, S_AXI_WSTRB);
 
-	integer core_idx;
 	integer reg_idx;
-	integer i;
 
 	
 	always @( posedge S_AXI_ACLK )
     begin
         if (!S_AXI_ARESETN) begin
-			for (i = 0; i < 4; i = i + 1) begin
-	    		reg_control[i] <= 0;
-	    		reg_input[i] <= 0;
+	    		reg_control <= 0;
+	    		reg_input <= 0;
 	
-	    		sha3_byte_to_send[i] <= 0;
-				sha3_is_sending_bytes[i] <= 0;
-				sha3_reset[i] <= 1;
-				sha3_is_last[i] <= 0;
-			end
+	    		sha3_byte_to_send <= 0;
+				sha3_is_sending_bytes <= 0;
+				sha3_reset <= 1;
+				sha3_is_last <= 0;
 
         end else if (slv_reg_wren) begin
-			core_idx = axi_awaddr[ADDR_LSB + REG_ADDR_BITS +: CORE_ADDR_BITS];
 			reg_idx  = axi_awaddr[ADDR_LSB +: REG_ADDR_BITS];
 
 			if (reg_idx == 5'h00) begin
-				reg_control[core_idx] <= wrdata_control[core_idx];
+				reg_control <= wrdata_control;
 			end else if (reg_idx == 5'h02) begin
-				reg_input[core_idx] <= wrdata_input[core_idx];
+				reg_input <= wrdata_input;
                 // Set appropriate bits in the peripheral 
                 // according to the control register.
                 // Control Register:
                 // Bit 1:0 - Amount of bits to transfer
                 // Bit 2   - Is this the last transmission?
 
-				if (reg_control[core_idx][2] == 1) begin
-					sha3_is_last[core_idx] <= 1;
-					sha3_byte_to_send[core_idx] <= reg_control[core_idx][1:0];
+				if (reg_control[2] == 1) begin
+					sha3_is_last <= 1;
+					sha3_byte_to_send <= reg_control[1:0];
 				end
 
-				sha3_is_sending_bytes[core_idx] <= 1;
+				sha3_is_sending_bytes <= 1;
 			end else if (reg_idx == 5'h03) begin
-				if (wrdata_command[core_idx][0] == 1) begin
-					sha3_reset[core_idx] <= 1;
+				if (wrdata_command[0] == 1) begin
+					sha3_reset <= 1;
 				end
 			end
         end else begin
-			for (i = 0; i < 4; i = i + 1) begin
-            	sha3_reset[i] <= 0;
-            	sha3_is_sending_bytes[i] <= 0;        
-				sha3_is_last[i] <= 0;
-			end
+            sha3_reset <= 0;
+            sha3_is_sending_bytes <= 0;        
+			sha3_is_last <= 0;
         end
     end
 
@@ -499,45 +405,38 @@
 	    end
 	end    
 
-	wire [1:0] core_idx_r;
-	wire [5:0] reg_idx_r; 
-
-	assign core_idx_r[1:0] = axi_awaddr[ADDR_LSB + REG_ADDR_BITS +: CORE_ADDR_BITS];
-	assign reg_idx_r[5:0] =  axi_araddr[ADDR_LSB +: REG_ADDR_BITS];
-
 	// Implement memory mapped register select and read logic generation
 	// Slave register read enable is asserted when valid address is available
 	// and the slave is ready to accept the read address.
 	assign slv_reg_rden = axi_arready & S_AXI_ARVALID & ~axi_rvalid;
 	always @(*)
 	begin
-		core_idx = axi_araddr[ADDR_LSB + REG_ADDR_BITS +: CORE_ADDR_BITS];
 		reg_idx  = axi_araddr[ADDR_LSB +: REG_ADDR_BITS];
 
 	      // Address decoding for reading registers
 		case (reg_idx)
-	        5'h00   : reg_data_out <= reg_control[core_idx];
-	        5'h01   : reg_data_out <= reg_status[core_idx];
-	        5'h02   : reg_data_out <= reg_input[core_idx];
+	        5'h00   : reg_data_out <= reg_control;
+	        5'h01   : reg_data_out <= reg_status;
+	        5'h02   : reg_data_out <= reg_input;
 	        5'h03   : reg_data_out <= 0; // NOTE: reg_command cannot be read 
 	        
 	        // Reading the massive SHA3-512 512-bit output
-	        5'h04   : reg_data_out <= sha3_output[core_idx][511:480];
-	        5'h05   : reg_data_out <= sha3_output[core_idx][479:448];
-	        5'h06   : reg_data_out <= sha3_output[core_idx][447:418];
-	        5'h07   : reg_data_out <= sha3_output[core_idx][417:384];
-	        5'h08   : reg_data_out <= sha3_output[core_idx][383:352];
-	        5'h09   : reg_data_out <= sha3_output[core_idx][351:320];
-	        5'h0A   : reg_data_out <= sha3_output[core_idx][319:288];
-	        5'h0B   : reg_data_out <= sha3_output[core_idx][287:256];
-	        5'h0C   : reg_data_out <= sha3_output[core_idx][255:224];
-	        5'h0D   : reg_data_out <= sha3_output[core_idx][223:192];
-	        5'h0E   : reg_data_out <= sha3_output[core_idx][191:160];
-	        5'h0F   : reg_data_out <= sha3_output[core_idx][159:128];
-	        5'h10   : reg_data_out <= sha3_output[core_idx][127:96 ];
-	        5'h11   : reg_data_out <= sha3_output[core_idx][95 :64 ];
-	        5'h12   : reg_data_out <= sha3_output[core_idx][63 :32 ];
-	        5'h13   : reg_data_out <= sha3_output[core_idx][31 :0  ];
+	        5'h04   : reg_data_out <= sha3_output[511:480];
+	        5'h05   : reg_data_out <= sha3_output[479:448];
+	        5'h06   : reg_data_out <= sha3_output[447:418];
+	        5'h07   : reg_data_out <= sha3_output[417:384];
+	        5'h08   : reg_data_out <= sha3_output[383:352];
+	        5'h09   : reg_data_out <= sha3_output[351:320];
+	        5'h0A   : reg_data_out <= sha3_output[319:288];
+	        5'h0B   : reg_data_out <= sha3_output[287:256];
+	        5'h0C   : reg_data_out <= sha3_output[255:224];
+	        5'h0D   : reg_data_out <= sha3_output[223:192];
+	        5'h0E   : reg_data_out <= sha3_output[191:160];
+	        5'h0F   : reg_data_out <= sha3_output[159:128];
+	        5'h10   : reg_data_out <= sha3_output[127:96 ];
+	        5'h11   : reg_data_out <= sha3_output[95 :64 ];
+	        5'h12   : reg_data_out <= sha3_output[63 :32 ];
+	        5'h13   : reg_data_out <= sha3_output[31 :0  ];
 	        
 	        default : reg_data_out <= 0;
 		endcase
