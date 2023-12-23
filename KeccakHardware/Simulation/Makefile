@@ -7,4 +7,4 @@ OUTFILE_NAME := simulation.vvp
 
 all:
 	iverilog -o $(OUTFILE_NAME) $(SOURCES) $(TESTBENCH)
-	vvp $(OUTFILE_NAME)
+	vvp $(OUTFILE_NAME) $(VVP_FLAGS)

@@ -24,7 +24,7 @@
 module peripheral_tb;
     reg axi_clock;
     reg axi_aresetn;
-    reg [6:0] axi_awaddr;
+    reg [8:0] axi_awaddr;
     reg [2:0] axi_awprot;
     reg axi_awvalid;
     wire axi_awready;
@@ -35,7 +35,7 @@ module peripheral_tb;
     wire [1:0] axi_bresp;
     wire axi_bvalid;
     reg axi_bready; 
-    reg [6:0] axi_araddr;
+    reg [8:0] axi_araddr;
     reg [2:0] axi_arprot;
     reg axi_arvalid;
     wire axi_arready;
@@ -111,6 +111,8 @@ module peripheral_tb;
         .S_AXI_RREADY(axi_rready)
     );
 
+    reg [2:0] core_idx;
+
     initial begin
         $dumpfile("signals.vcd");
         $dumpvars(0, peripheral_tb);
@@ -145,6 +147,33 @@ module peripheral_tb;
         // Control Register:
         // Bit 1:0 - how many bytes to send
         // Bit 2   - is this the last bit
+
+        
+        for (core_idx = 0; core_idx < 4; core_idx = core_idx + 1) begin
+            // Hello World
+            write_procedure({core_idx[1:0], `REG_COMMAND}, 32'h1);
+
+            write_procedure({core_idx[1:0], `REG_CONTROL}, 32'h0);
+            write_procedure({core_idx[1:0], `REG_INPUT}, "Hell");
+            write_procedure({core_idx[1:0], `REG_INPUT}, "o Wo");
+
+            write_procedure({core_idx[1:0], `REG_CONTROL}, 32'h7);
+            write_procedure({core_idx[1:0], `REG_INPUT}, "rld ");
+
+            read_procedure({core_idx[1:0], `REG_STATUS});
+            while ((read_value & 2'b1) == 0) begin
+                read_procedure({core_idx[1:0], `REG_STATUS});
+            end
+
+            read_procedure({core_idx[1:0], `REG_OUTPUT});
+
+            // Hash finished! Retrieve value
+            $display("Core idx = %d", core_idx);
+            $display("Keccak(\"Hello World\") = %08h...", read_value);
+        end
+        #200;
+
+        $finish;
 
         // Empty String
 
@@ -242,7 +271,7 @@ module peripheral_tb;
 
         write_procedure(`REG_CONTROL, 0);
         for (i = 0; i < 20; i = i + 1) begin
-            write_procedure(`REG_INPUT, "0000");
+            write_procedure(`REG_INPUT, "0001");
         end
 
         write_procedure(`REG_CONTROL, 32'h04);
@@ -257,11 +286,12 @@ module peripheral_tb;
         read_procedure(`REG_OUTPUT);
         $display("Keccak(80 times the character '0') = %08h...", read_value);
 
+        #300;
         $finish;
     end
 
     task write_procedure;
-        input [6:0] write_address;
+        input [8:0] write_address;
         input [31:0] write_data;
         begin
             // Put address and write data on the bus
@@ -306,7 +336,7 @@ module peripheral_tb;
     endtask
 
     task read_procedure;
-        input [6:0] read_address;
+        input [8:0] read_address;
         begin
             axi_araddr = read_address; //7'h8;
 
