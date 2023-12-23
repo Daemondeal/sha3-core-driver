@@ -48,6 +48,7 @@ void Sha3Test() {
     contexts[3].digest_length_bits = 512;
 
 
+    char test0[] = "";
     char test1[] = "Hello World";
     char test2[] = "Hello World!";
     char test3[] = "Hello";
@@ -56,6 +57,7 @@ void Sha3Test() {
 
     printf("OpenSSL tests:\n");
     for (int i = 0; i < 4; i++) {
+        hash_then_print(contexts[i], test0, strlen(test0));
         hash_then_print(contexts[i], test1, strlen(test1));
         hash_then_print(contexts[i], test2, strlen(test2));
         hash_then_print(contexts[i], test3, strlen(test3));
