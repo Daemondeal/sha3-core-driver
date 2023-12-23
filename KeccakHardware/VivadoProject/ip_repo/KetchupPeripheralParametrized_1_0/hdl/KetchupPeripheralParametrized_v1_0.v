@@ -47,7 +47,8 @@
 // Instantiation of Axi Bus Interface S00_AXI
 	KetchupPeripheralParametrized_v1_0_S00_AXI # ( 
 		.C_S_AXI_DATA_WIDTH(C_S00_AXI_DATA_WIDTH),
-		.C_S_AXI_ADDR_WIDTH(C_S00_AXI_ADDR_WIDTH)
+		.C_S_AXI_ADDR_WIDTH(C_S00_AXI_ADDR_WIDTH),
+		.C_SHA3_SIZE(C_SHA3_SIZE)
 	) KetchupPeripheralParametrized_v1_0_S00_AXI_inst (
 		.S_AXI_ACLK(s00_axi_aclk),
 		.S_AXI_ARESETN(s00_axi_aresetn),

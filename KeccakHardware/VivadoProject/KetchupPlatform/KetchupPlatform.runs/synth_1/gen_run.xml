@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<GenRun Id="synth_1" LaunchPart="xc7z020clg400-1" LaunchTime="1703351059" LaunchIncrCheckpoint="$PSRCDIR/utils_1/imports/synth_1/processing_wrapper.dcp">
+<GenRun Id="synth_1" LaunchPart="xc7z020clg400-1" LaunchTime="1703353961" LaunchIncrCheckpoint="$PSRCDIR/utils_1/imports/synth_1/processing_wrapper.dcp">
   <File Type="VDS-TIMING-PB" Name="processing_wrapper_timing_summary_synth.pb"/>
   <File Type="VDS-TIMINGSUMMARY" Name="processing_wrapper_timing_summary_synth.rpt"/>
   <File Type="RDS-DCP" Name="processing_wrapper.dcp"/>
@@ -57,9 +57,9 @@
   </Strategy>
   <BlockFileSet Type="BlockSrcs" Name="processing_KetchupPeripheralPar_1_2"/>
   <BlockFileSet Type="BlockSrcs" Name="processing_KetchupPeripheralPar_1_1"/>
-  <BlockFileSet Type="BlockSrcs" Name="processing_xbar_0"/>
-  <BlockFileSet Type="BlockSrcs" Name="processing_KetchupPeripheralPar_1_3"/>
-  <BlockFileSet Type="BlockSrcs" Name="processing_processing_system7_0_1"/>
-  <BlockFileSet Type="BlockSrcs" Name="processing_KetchupPeripheralPar_0_0"/>
   <BlockFileSet Type="BlockSrcs" Name="processing_KetchupPeripheralPar_1_0"/>
+  <BlockFileSet Type="BlockSrcs" Name="processing_KetchupPeripheralPar_0_0"/>
+  <BlockFileSet Type="BlockSrcs" Name="processing_KetchupPeripheralPar_1_3"/>
+  <BlockFileSet Type="BlockSrcs" Name="processing_xbar_0"/>
+  <BlockFileSet Type="BlockSrcs" Name="processing_processing_system7_0_1"/>
 </GenRun>

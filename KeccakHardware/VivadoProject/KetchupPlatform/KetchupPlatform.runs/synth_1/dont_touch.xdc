@@ -31,7 +31,7 @@ set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==processing_
 # IP: bd/processing/ip/processing_rst_ps7_0_100M_1/processing_rst_ps7_0_100M_1.xci
 set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==processing_rst_ps7_0_100M_1 || ORIG_REF_NAME==processing_rst_ps7_0_100M_1} -quiet] -quiet
 
-# IP: bd/processing/ip/processing_auto_pc_1/processing_auto_pc_1.xci
-set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==processing_auto_pc_1 || ORIG_REF_NAME==processing_auto_pc_1} -quiet] -quiet
+# IP: bd/processing/ip/processing_auto_pc_0/processing_auto_pc_0.xci
+set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==processing_auto_pc_0 || ORIG_REF_NAME==processing_auto_pc_0} -quiet] -quiet
 
 # XDC: /home/daem/Desktop/group9/KeccakHardware/VivadoProject/KetchupPlatform/KetchupPlatform.gen/sources_1/bd/processing/processing_ooc.xdc

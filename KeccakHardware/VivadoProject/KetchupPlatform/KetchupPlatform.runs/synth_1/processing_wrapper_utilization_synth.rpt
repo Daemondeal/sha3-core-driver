@@ -1,7 +1,7 @@
 Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2023 Advanced Micro Devices, Inc. All Rights Reserved.
 ---------------------------------------------------------------------------------------------------------------------------------------------
 | Tool Version : Vivado v.2023.2 (lin64) Build 4029153 Fri Oct 13 20:13:54 MDT 2023
-| Date         : Sat Dec 23 18:06:34 2023
+| Date         : Sat Dec 23 18:55:04 2023
 | Host         : daem-laptop-ubuntu running 64-bit Ubuntu 22.04.3 LTS
 | Command      : report_utilization -file processing_wrapper_utilization_synth.rpt -pb processing_wrapper_utilization_synth.pb
 | Design       : processing_wrapper
@@ -180,7 +180,7 @@ Table of Contents
 | processing_xbar_0                   |    1 |
 | processing_rst_ps7_0_100M_1         |    1 |
 | processing_processing_system7_0_1   |    1 |
-| processing_auto_pc_1                |    1 |
+| processing_auto_pc_0                |    1 |
 | processing_KetchupPeripheralPar_1_3 |    1 |
 | processing_KetchupPeripheralPar_1_2 |    1 |
 | processing_KetchupPeripheralPar_1_1 |    1 |

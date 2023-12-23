@@ -4,7 +4,7 @@
     "xci_name": "processing_KetchupPeripheralPar_1_1",
     "cell_name": "KetchupPeripheralPar_2",
     "component_reference": "user.org:user:KetchupPeripheralParametrized:1.0",
-    "ip_revision": "2",
+    "ip_revision": "3",
     "gen_directory": "../../../../../../KetchupPlatform.gen/sources_1/bd/processing/ip/processing_KetchupPeripheralPar_1_1",
     "parameters": {
       "component_parameters": {
@@ -35,7 +35,7 @@
       },
       "runtime_parameters": {
         "IPCONTEXT": [ { "value": "IP_Integrator" } ],
-        "IPREVISION": [ { "value": "2" } ],
+        "IPREVISION": [ { "value": "3" } ],
         "MANAGED": [ { "value": "TRUE" } ],
         "OUTPUTDIR": [ { "value": "../../../../../../KetchupPlatform.gen/sources_1/bd/processing/ip/processing_KetchupPeripheralPar_1_1" } ],
         "SELECTEDSIMMODEL": [ { "value": "" } ],

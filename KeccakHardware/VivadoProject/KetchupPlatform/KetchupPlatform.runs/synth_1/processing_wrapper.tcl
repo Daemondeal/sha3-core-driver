@@ -71,7 +71,6 @@ proc create_report { reportName command } {
 }
 OPTRACE "synth_1" START { ROLLUP_AUTO }
 set_param checkpoint.writeSynthRtdsInDcp 1
-set_msg_config -id {HDL-1065} -limit 10000
 set_msg_config -id {Synth 8-256} -limit 10000
 set_msg_config -id {Synth 8-638} -limit 10000
 set_msg_config  -id {17-179}  -suppress 
@@ -105,7 +104,7 @@ set_property used_in_implementation false [get_files -all /home/daem/Desktop/gro
 set_property used_in_implementation false [get_files -all /home/daem/Desktop/group9/KeccakHardware/VivadoProject/KetchupPlatform/KetchupPlatform.gen/sources_1/bd/processing/ip/processing_rst_ps7_0_100M_1/processing_rst_ps7_0_100M_1_board.xdc]
 set_property used_in_implementation false [get_files -all /home/daem/Desktop/group9/KeccakHardware/VivadoProject/KetchupPlatform/KetchupPlatform.gen/sources_1/bd/processing/ip/processing_rst_ps7_0_100M_1/processing_rst_ps7_0_100M_1.xdc]
 set_property used_in_implementation false [get_files -all /home/daem/Desktop/group9/KeccakHardware/VivadoProject/KetchupPlatform/KetchupPlatform.gen/sources_1/bd/processing/ip/processing_rst_ps7_0_100M_1/processing_rst_ps7_0_100M_1_ooc.xdc]
-set_property used_in_implementation false [get_files -all /home/daem/Desktop/group9/KeccakHardware/VivadoProject/KetchupPlatform/KetchupPlatform.gen/sources_1/bd/processing/ip/processing_auto_pc_1/processing_auto_pc_1_ooc.xdc]
+set_property used_in_implementation false [get_files -all /home/daem/Desktop/group9/KeccakHardware/VivadoProject/KetchupPlatform/KetchupPlatform.gen/sources_1/bd/processing/ip/processing_auto_pc_0/processing_auto_pc_0_ooc.xdc]
 set_property used_in_implementation false [get_files -all /home/daem/Desktop/group9/KeccakHardware/VivadoProject/KetchupPlatform/KetchupPlatform.gen/sources_1/bd/processing/processing_ooc.xdc]
 
 OPTRACE "Adding files" END { }

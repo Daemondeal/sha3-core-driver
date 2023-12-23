@@ -4,14 +4,14 @@
     "xci_name": "processing_KetchupPeripheralPar_1_2",
     "cell_name": "KetchupPeripheralPar_3",
     "component_reference": "user.org:user:KetchupPeripheralParametrized:1.0",
-    "ip_revision": "2",
+    "ip_revision": "3",
     "gen_directory": "../../../../../../KetchupPlatform.gen/sources_1/bd/processing/ip/processing_KetchupPeripheralPar_1_2",
     "parameters": {
       "component_parameters": {
         "C_S00_AXI_BASEADDR": [ { "value": "0xFFFFFFFF", "resolve_type": "user", "format": "bitString", "enabled": false, "usage": "all" } ],
         "C_S00_AXI_HIGHADDR": [ { "value": "0x00000000", "resolve_type": "user", "format": "bitString", "enabled": false, "usage": "all" } ],
         "Component_Name": [ { "value": "processing_KetchupPeripheralPar_1_2", "resolve_type": "user", "usage": "all" } ],
-        "C_S00_AXI_DATA_WIDTH": [ { "value": "32", "resolve_type": "user", "format": "long", "usage": "all" } ],
+        "C_S00_AXI_DATA_WIDTH": [ { "value": "32", "value_src": "user", "resolve_type": "user", "format": "long", "usage": "all" } ],
         "C_S00_AXI_ADDR_WIDTH": [ { "value": "7", "resolve_type": "user", "format": "long", "usage": "all" } ],
         "C_SHA3_SIZE": [ { "value": "224", "value_src": "user", "resolve_type": "user", "format": "long", "usage": "all" } ]
       },
@@ -35,7 +35,7 @@
       },
       "runtime_parameters": {
         "IPCONTEXT": [ { "value": "IP_Integrator" } ],
-        "IPREVISION": [ { "value": "2" } ],
+        "IPREVISION": [ { "value": "3" } ],
         "MANAGED": [ { "value": "TRUE" } ],
         "OUTPUTDIR": [ { "value": "../../../../../../KetchupPlatform.gen/sources_1/bd/processing/ip/processing_KetchupPeripheralPar_1_2" } ],
         "SELECTEDSIMMODEL": [ { "value": "" } ],

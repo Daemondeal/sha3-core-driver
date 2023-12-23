@@ -1,7 +1,7 @@
 {
   "design": {
     "design_info": {
-      "boundary_crc": "0xCC6CFA53F622E079",
+      "boundary_crc": "0xCC6CFA53B4580162",
       "device": "xc7z020clg400-1",
       "gen_directory": "../../../../KetchupPlatform.gen/sources_1/bd/processing",
       "name": "processing",
@@ -1920,14 +1920,14 @@
       },
       "KetchupPeripheralPar_0": {
         "vlnv": "user.org:user:KetchupPeripheralParametrized:1.0",
-        "ip_revision": "2",
+        "ip_revision": "3",
         "xci_name": "processing_KetchupPeripheralPar_0_0",
         "xci_path": "ip/processing_KetchupPeripheralPar_0_0/processing_KetchupPeripheralPar_0_0.xci",
         "inst_hier_path": "KetchupPeripheralPar_0"
       },
       "KetchupPeripheralPar_1": {
         "vlnv": "user.org:user:KetchupPeripheralParametrized:1.0",
-        "ip_revision": "2",
+        "ip_revision": "3",
         "xci_name": "processing_KetchupPeripheralPar_1_0",
         "xci_path": "ip/processing_KetchupPeripheralPar_1_0/processing_KetchupPeripheralPar_1_0.xci",
         "inst_hier_path": "KetchupPeripheralPar_1",
@@ -1939,7 +1939,7 @@
       },
       "KetchupPeripheralPar_2": {
         "vlnv": "user.org:user:KetchupPeripheralParametrized:1.0",
-        "ip_revision": "2",
+        "ip_revision": "3",
         "xci_name": "processing_KetchupPeripheralPar_1_1",
         "xci_path": "ip/processing_KetchupPeripheralPar_1_1/processing_KetchupPeripheralPar_1_1.xci",
         "inst_hier_path": "KetchupPeripheralPar_2",
@@ -1951,11 +1951,14 @@
       },
       "KetchupPeripheralPar_3": {
         "vlnv": "user.org:user:KetchupPeripheralParametrized:1.0",
-        "ip_revision": "2",
+        "ip_revision": "3",
         "xci_name": "processing_KetchupPeripheralPar_1_2",
         "xci_path": "ip/processing_KetchupPeripheralPar_1_2/processing_KetchupPeripheralPar_1_2.xci",
         "inst_hier_path": "KetchupPeripheralPar_3",
         "parameters": {
+          "C_S00_AXI_DATA_WIDTH": {
+            "value": "32"
+          },
           "C_SHA3_SIZE": {
             "value": "224"
           }
@@ -1963,7 +1966,7 @@
       },
       "KetchupPeripheralPar_4": {
         "vlnv": "user.org:user:KetchupPeripheralParametrized:1.0",
-        "ip_revision": "2",
+        "ip_revision": "3",
         "xci_name": "processing_KetchupPeripheralPar_1_3",
         "xci_path": "ip/processing_KetchupPeripheralPar_1_3/processing_KetchupPeripheralPar_1_3.xci",
         "inst_hier_path": "KetchupPeripheralPar_4",
@@ -2209,8 +2212,8 @@
               "auto_pc": {
                 "vlnv": "xilinx.com:ip:axi_protocol_converter:2.1",
                 "ip_revision": "29",
-                "xci_name": "processing_auto_pc_1",
-                "xci_path": "ip/processing_auto_pc_1/processing_auto_pc_1.xci",
+                "xci_name": "processing_auto_pc_0",
+                "xci_path": "ip/processing_auto_pc_0/processing_auto_pc_0.xci",
                 "inst_hier_path": "ps7_0_axi_periph/s00_couplers/auto_pc",
                 "parameters": {
                   "MI_PROTOCOL": {
@@ -2719,17 +2722,17 @@
           "processing_system7_0/M_AXI_GP0_ACLK",
           "ps7_0_axi_periph/S00_ACLK",
           "rst_ps7_0_100M/slowest_sync_clk",
-          "KetchupPeripheralPar_0/s00_axi_aclk",
           "ps7_0_axi_periph/M00_ACLK",
           "ps7_0_axi_periph/ACLK",
-          "KetchupPeripheralPar_1/s00_axi_aclk",
           "ps7_0_axi_periph/M01_ACLK",
-          "KetchupPeripheralPar_2/s00_axi_aclk",
           "ps7_0_axi_periph/M02_ACLK",
-          "KetchupPeripheralPar_3/s00_axi_aclk",
           "ps7_0_axi_periph/M03_ACLK",
-          "KetchupPeripheralPar_4/s00_axi_aclk",
-          "ps7_0_axi_periph/M04_ACLK"
+          "ps7_0_axi_periph/M04_ACLK",
+          "KetchupPeripheralPar_0/s00_axi_aclk",
+          "KetchupPeripheralPar_1/s00_axi_aclk",
+          "KetchupPeripheralPar_2/s00_axi_aclk",
+          "KetchupPeripheralPar_3/s00_axi_aclk",
+          "KetchupPeripheralPar_4/s00_axi_aclk"
         ]
       },
       "processing_system7_0_FCLK_RESET0_N": {
@@ -2742,17 +2745,17 @@
         "ports": [
           "rst_ps7_0_100M/peripheral_aresetn",
           "ps7_0_axi_periph/S00_ARESETN",
-          "KetchupPeripheralPar_0/s00_axi_aresetn",
           "ps7_0_axi_periph/M00_ARESETN",
           "ps7_0_axi_periph/ARESETN",
-          "KetchupPeripheralPar_1/s00_axi_aresetn",
           "ps7_0_axi_periph/M01_ARESETN",
-          "KetchupPeripheralPar_2/s00_axi_aresetn",
           "ps7_0_axi_periph/M02_ARESETN",
-          "KetchupPeripheralPar_3/s00_axi_aresetn",
           "ps7_0_axi_periph/M03_ARESETN",
-          "KetchupPeripheralPar_4/s00_axi_aresetn",
-          "ps7_0_axi_periph/M04_ARESETN"
+          "ps7_0_axi_periph/M04_ARESETN",
+          "KetchupPeripheralPar_0/s00_axi_aresetn",
+          "KetchupPeripheralPar_1/s00_axi_aresetn",
+          "KetchupPeripheralPar_2/s00_axi_aresetn",
+          "KetchupPeripheralPar_3/s00_axi_aresetn",
+          "KetchupPeripheralPar_4/s00_axi_aresetn"
         ]
       }
     },

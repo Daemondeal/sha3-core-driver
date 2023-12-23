@@ -2,7 +2,7 @@
 //Copyright 2022-2023 Advanced Micro Devices, Inc. All Rights Reserved.
 //--------------------------------------------------------------------------------
 //Tool Version: Vivado v.2023.2 (lin64) Build 4029153 Fri Oct 13 20:13:54 MDT 2023
-//Date        : Sat Dec 23 18:04:01 2023
+//Date        : Sat Dec 23 18:52:07 2023
 //Host        : daem-laptop-ubuntu running 64-bit Ubuntu 22.04.3 LTS
 //Command     : generate_target processing.bd
 //Design      : processing
@@ -2518,7 +2518,7 @@ module s00_couplers_imp_AZDMQ8
   assign s00_couplers_to_auto_pc_WLAST = S_AXI_wlast;
   assign s00_couplers_to_auto_pc_WSTRB = S_AXI_wstrb[3:0];
   assign s00_couplers_to_auto_pc_WVALID = S_AXI_wvalid;
-  processing_auto_pc_1 auto_pc
+  processing_auto_pc_0 auto_pc
        (.aclk(S_ACLK_1),
         .aresetn(S_ARESETN_1),
         .m_axi_araddr(auto_pc_to_s00_couplers_ARADDR),
