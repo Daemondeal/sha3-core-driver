@@ -4,17 +4,32 @@
 # Block Designs: bd/processing/processing.bd
 set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==processing || ORIG_REF_NAME==processing} -quiet] -quiet
 
-# IP: bd/processing/ip/processing_processing_system7_0_0/processing_processing_system7_0_0.xci
-set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==processing_processing_system7_0_0 || ORIG_REF_NAME==processing_processing_system7_0_0} -quiet] -quiet
+# IP: bd/processing/ip/processing_processing_system7_0_1/processing_processing_system7_0_1.xci
+set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==processing_processing_system7_0_1 || ORIG_REF_NAME==processing_processing_system7_0_1} -quiet] -quiet
 
-# IP: bd/processing/ip/processing_KetchupPeripheral_0_0/processing_KetchupPeripheral_0_0.xci
-set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==processing_KetchupPeripheral_0_0 || ORIG_REF_NAME==processing_KetchupPeripheral_0_0} -quiet] -quiet
+# IP: bd/processing/ip/processing_KetchupPeripheralPar_0_0/processing_KetchupPeripheralPar_0_0.xci
+set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==processing_KetchupPeripheralPar_0_0 || ORIG_REF_NAME==processing_KetchupPeripheralPar_0_0} -quiet] -quiet
 
-# IP: bd/processing/ip/processing_ps7_0_axi_periph_0/processing_ps7_0_axi_periph_0.xci
-set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==processing_ps7_0_axi_periph_0 || ORIG_REF_NAME==processing_ps7_0_axi_periph_0} -quiet] -quiet
+# IP: bd/processing/ip/processing_KetchupPeripheralPar_1_0/processing_KetchupPeripheralPar_1_0.xci
+set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==processing_KetchupPeripheralPar_1_0 || ORIG_REF_NAME==processing_KetchupPeripheralPar_1_0} -quiet] -quiet
 
-# IP: bd/processing/ip/processing_rst_ps7_0_100M_0/processing_rst_ps7_0_100M_0.xci
-set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==processing_rst_ps7_0_100M_0 || ORIG_REF_NAME==processing_rst_ps7_0_100M_0} -quiet] -quiet
+# IP: bd/processing/ip/processing_KetchupPeripheralPar_1_1/processing_KetchupPeripheralPar_1_1.xci
+set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==processing_KetchupPeripheralPar_1_1 || ORIG_REF_NAME==processing_KetchupPeripheralPar_1_1} -quiet] -quiet
+
+# IP: bd/processing/ip/processing_KetchupPeripheralPar_1_2/processing_KetchupPeripheralPar_1_2.xci
+set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==processing_KetchupPeripheralPar_1_2 || ORIG_REF_NAME==processing_KetchupPeripheralPar_1_2} -quiet] -quiet
+
+# IP: bd/processing/ip/processing_KetchupPeripheralPar_1_3/processing_KetchupPeripheralPar_1_3.xci
+set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==processing_KetchupPeripheralPar_1_3 || ORIG_REF_NAME==processing_KetchupPeripheralPar_1_3} -quiet] -quiet
+
+# IP: bd/processing/ip/processing_xbar_0/processing_xbar_0.xci
+set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==processing_xbar_0 || ORIG_REF_NAME==processing_xbar_0} -quiet] -quiet
+
+# IP: bd/processing/ip/processing_ps7_0_axi_periph_1/processing_ps7_0_axi_periph_1.xci
+set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==processing_ps7_0_axi_periph_1 || ORIG_REF_NAME==processing_ps7_0_axi_periph_1} -quiet] -quiet
+
+# IP: bd/processing/ip/processing_rst_ps7_0_100M_1/processing_rst_ps7_0_100M_1.xci
+set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==processing_rst_ps7_0_100M_1 || ORIG_REF_NAME==processing_rst_ps7_0_100M_1} -quiet] -quiet
 
 # IP: bd/processing/ip/processing_auto_pc_0/processing_auto_pc_0.xci
 set_property KEEP_HIERARCHY SOFT [get_cells -hier -filter {REF_NAME==processing_auto_pc_0 || ORIG_REF_NAME==processing_auto_pc_0} -quiet] -quiet
