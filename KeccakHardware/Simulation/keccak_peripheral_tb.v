@@ -48,7 +48,8 @@ module peripheral_tb;
 
     integer i;
 
-    SHA3Keccak_v1_0_S00_AXI keccak_instance (
+    KetchupPeripheral_v1_0_S00_AXI  #(.C_SHA3_SIZE(224))
+        keccak_instance (
         // Global Clock Signal
         .S_AXI_ACLK(axi_clock),
         // Global Reset Signal. This Signal is Active LOW
@@ -111,6 +112,8 @@ module peripheral_tb;
         .S_AXI_RREADY(axi_rready)
     );
 
+    reg [2:0] core_idx;
+
     initial begin
         $dumpfile("signals.vcd");
         $dumpvars(0, peripheral_tb);
@@ -146,20 +149,32 @@ module peripheral_tb;
         // Bit 1:0 - how many bytes to send
         // Bit 2   - is this the last bit
 
-        // Empty String
-
-        // Send reset signal to keccak core
+        // ""
         write_procedure(`REG_COMMAND, 32'h1);
 
-        // last = true, nbits = 0
-        // 0000 00100 = 0x4
-        write_procedure(`REG_CONTROL, 32'h00000004);
+        write_procedure(`REG_CONTROL, 32'h4);
+        write_procedure(`REG_INPUT, "   ");
 
-        // Write any data here, it should be ignored
-        // but it should also trigger the hashing.
-        write_procedure(`REG_INPUT, 32'h00AABBCC);
+        read_procedure(`REG_STATUS);
+        while ((read_value & 2'b1) == 0) begin
+            read_procedure(`REG_STATUS);
+        end
 
-        // Wait for the hash to be done.
+        read_procedure(`REG_OUTPUT);
+
+        $display("Sha3(\"\") = %08h...", read_value);
+
+        
+        // "Hello World"
+        write_procedure(`REG_COMMAND, 32'h1);
+
+        write_procedure(`REG_CONTROL, 32'h0);
+        write_procedure(`REG_INPUT, "Hell");
+        write_procedure(`REG_INPUT, "o Wo");
+
+        write_procedure(`REG_CONTROL, 32'h7);
+        write_procedure(`REG_INPUT, "rld ");
+
         read_procedure(`REG_STATUS);
         while ((read_value & 2'b1) == 0) begin
             read_procedure(`REG_STATUS);
@@ -168,100 +183,104 @@ module peripheral_tb;
         read_procedure(`REG_OUTPUT);
 
         // Hash finished! Retrieve value
-        $display("Keccak(\"\") = %08h...", read_value);
+        $display("Sha3(\"Hello World\") = %08h...", read_value);
 
-        // Example Text
-        // Send reset signal to keccak core
+        // "Hello World!"
         write_procedure(`REG_COMMAND, 32'h1);
 
+        write_procedure(`REG_CONTROL, 32'h0);
+        write_procedure(`REG_INPUT, "Hell");
+        write_procedure(`REG_INPUT, "o Wo");
+        write_procedure(`REG_INPUT, "rld!");
 
-        // Set control to zero in order to send four bytes at a time
-        write_procedure(`REG_CONTROL, 0);
+        write_procedure(`REG_CONTROL, 32'h4);
+        write_procedure(`REG_INPUT, "    ");
 
-        write_procedure(`REG_INPUT, "The ");
-        write_procedure(`REG_INPUT, "quic");
-        write_procedure(`REG_INPUT, "k br");
-        write_procedure(`REG_INPUT, "own ");
-        write_procedure(`REG_INPUT, "fox ");
-        write_procedure(`REG_INPUT, "jump");
-        write_procedure(`REG_INPUT, "s ov");
-        write_procedure(`REG_INPUT, "er t");
-        write_procedure(`REG_INPUT, "he l");
-        write_procedure(`REG_INPUT, "azy ");
-        write_procedure(`REG_INPUT, "dog.");
-
-        // End of hash packet
-        write_procedure(`REG_CONTROL, 32'h00000004);
-        write_procedure(`REG_INPUT, 0);
-
-        // Wait for hash to be done
         read_procedure(`REG_STATUS);
-        while ((read_value & 2'b01) == 0) begin
+        while ((read_value & 2'b1) == 0) begin
             read_procedure(`REG_STATUS);
         end
 
         read_procedure(`REG_OUTPUT);
-        $display("Keccak(\"The quick brown fox jumps over the lazy dog.\") = %08h...", read_value);
-        #(`PERIOD);
 
-        // Send just two chars:
-        write_procedure(`REG_COMMAND, 32'h1); // Reset
+        $display("Sha3(\"Hello World!\") = %08h...", read_value);
 
-        // Control register:
-        // 0000 0110 = 0x06
+        // "Hello"
+        write_procedure(`REG_COMMAND, 32'h1);
+
+        write_procedure(`REG_CONTROL, 32'h0);
+        write_procedure(`REG_INPUT, "Hell");
+
+        write_procedure(`REG_CONTROL, 32'h5);
+        write_procedure(`REG_INPUT, "o   ");
+
+        read_procedure(`REG_STATUS);
+        while ((read_value & 2'b1) == 0) begin
+            read_procedure(`REG_STATUS);
+        end
+
+        read_procedure(`REG_OUTPUT);
+
+        $display("Sha3(\"Hello\") = %08h...", read_value);
+
+        // "hi mom"
+        write_procedure(`REG_COMMAND, 32'h1);
+
+        write_procedure(`REG_CONTROL, 32'h0);
+        write_procedure(`REG_INPUT, "hi m");
+
         write_procedure(`REG_CONTROL, 32'h6);
-        write_procedure(`REG_INPUT, "The ");
+        write_procedure(`REG_INPUT, "om  ");
 
-        // Wait for hash to be done
         read_procedure(`REG_STATUS);
-        while ((read_value & 2'b01) == 0) begin
+        while ((read_value & 2'b1) == 0) begin
             read_procedure(`REG_STATUS);
         end
 
         read_procedure(`REG_OUTPUT);
-        $display("Keccak(\"Th\") = %08h...", read_value);
 
-        // Send just six chars:
-        write_procedure(`REG_COMMAND, 32'h1); // Reset
+        $display("Sha3(\"hi mom\") = %08h...", read_value);
 
-        write_procedure(`REG_CONTROL, 0);
-        write_procedure(`REG_INPUT, "The ");
-        write_procedure(`REG_CONTROL, 32'h06);
-        write_procedure(`REG_INPUT, "quic");
+        // "This is a very very very very very very long test test test test test!";
+        write_procedure(`REG_COMMAND, 32'h1);
 
-        // Wait for hash to be done
+        write_procedure(`REG_CONTROL, 32'h0);
+        write_procedure(`REG_INPUT, "This");
+        write_procedure(`REG_INPUT, " is ");
+        write_procedure(`REG_INPUT, "a ve");
+        write_procedure(`REG_INPUT, "ry v");
+        write_procedure(`REG_INPUT, "ery ");
+        write_procedure(`REG_INPUT, "very");
+        write_procedure(`REG_INPUT, " ver");
+        write_procedure(`REG_INPUT, "y ve");
+        write_procedure(`REG_INPUT, "ry v");
+        write_procedure(`REG_INPUT, "ery ");
+        write_procedure(`REG_INPUT, "long");
+        write_procedure(`REG_INPUT, " tes");
+        write_procedure(`REG_INPUT, "t te");
+        write_procedure(`REG_INPUT, "st t");
+        write_procedure(`REG_INPUT, "est ");
+        write_procedure(`REG_INPUT, "test");
+        write_procedure(`REG_INPUT, " tes");
+
+        write_procedure(`REG_CONTROL, 32'h6);
+        write_procedure(`REG_INPUT, "t!  ");
+
         read_procedure(`REG_STATUS);
-        while ((read_value & 2'b01) == 0) begin
+        while ((read_value & 2'b1) == 0) begin
             read_procedure(`REG_STATUS);
         end
 
         read_procedure(`REG_OUTPUT);
-        $display("Keccak(\"The qu\") = %08h...", read_value);
 
-        write_procedure(`REG_COMMAND, 32'h1); // Reset
+        $display("Sha3(\"This is a very very very very very very long test test test test test!\") = %08h...", read_value);
 
-        write_procedure(`REG_CONTROL, 0);
-        for (i = 0; i < 20; i = i + 1) begin
-            write_procedure(`REG_INPUT, "0000");
-        end
-
-        write_procedure(`REG_CONTROL, 32'h04);
-        write_procedure(`REG_INPUT, 0);
-
-        // Wait for hash to be done
-        read_procedure(`REG_STATUS);
-        while ((read_value & 2'b01) == 0) begin
-            read_procedure(`REG_STATUS);
-        end
-
-        read_procedure(`REG_OUTPUT);
-        $display("Keccak(80 times the character '0') = %08h...", read_value);
-
+        #200;
         $finish;
     end
 
     task write_procedure;
-        input [6:0] write_address;
+        input [8:0] write_address;
         input [31:0] write_data;
         begin
             // Put address and write data on the bus
@@ -306,7 +325,7 @@ module peripheral_tb;
     endtask
 
     task read_procedure;
-        input [6:0] read_address;
+        input [8:0] read_address;
         begin
             axi_araddr = read_address; //7'h8;
 

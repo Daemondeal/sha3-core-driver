@@ -6,9 +6,20 @@ To run the testbench, just `cd` to the Simulation folder and then run `make`. Yo
 
 Under the Vitis folder, there is some test code for the peripheral, alongside a quick and dirty benchmark program.
 
+## KetchupHardwarePlatformFivePeripherals Specification
+
+This is an hardware platform with five different Ketchup Peripherals implemented, with varying hash sizes. The peripherals and their starting addresses are thus defined:
+|Index|HashSize|BaseAddress|
+|-|-|-|
+|0|512|`0x43C00000`|
+|1|384|`0x43C10000`|
+|2|256|`0x43C20000`|
+|3|224|`0x43C30000`|
+|4|512|`0x43C40000`|
+
 ## Peripheral Specification
 
-The Keccak Peripheral has 20 registers, all starting from address `0x43C00000`. Those registers are:
+The Ketchup Peripheral has 20 registers, all starting from a common base address. Those registers are:
 |Name|Offset|
 |-|-|
 |`CONTROL` |`0x00`|
@@ -31,6 +42,8 @@ The Keccak Peripheral has 20 registers, all starting from address `0x43C00000`. 
 |`OUTPUT13`|`0x44`|
 |`OUTPUT14`|`0x48`|
 |`OUTPUT15`|`0x4C`|
+
+It can output SHA3 hashes of varying sizes, according to the `C_SHA3_SIZE` parameter.
 
 ## Control Register
 
@@ -71,4 +84,4 @@ Note that the command register is a write-only register. Reading the command reg
 
 The output registers contain the values of the output. The values contained here are valid if and only if bit 0 of the status register is `1`. 
 
-The output is saved in chunks of unsigned 32 bit integers, where the most significant u32 is in the first register, and the least significant one is in the 16th.
+The output is saved in chunks of unsigned 32 bit integers, where the most significant u32 is in the first register, and the least significant one is in the 16th. Note that if the peripheral is set up to output less than 512 bits, only values for all registers up to the hash length are defined, the values of the last registers are kept undefined and should not be read.
