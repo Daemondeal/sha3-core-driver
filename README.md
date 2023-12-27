@@ -23,6 +23,13 @@ The driver for the peripheral is a simple platform driver that exposes the devic
 
 ## Contributing
 
-Each folder in this repository is a Petalinux project. Simply navigate to it in the terminal and run petalinux-build, and the project will be built.
+Inside this repository we can find:
 
-> Note: Before committing, run the command petalinux-build -x mrproper to avoid uploading a large folder.
+- Adder folder: inside this folder you can find the driver and the peripheral for the adder shown in the tutorial
+- KeccakHardware: inside this folder there is the Keccak peripheral
+- LedExampleProject: inside this folder you can find a pwn peripheral and a driver that handles the RGB led's of the ZYNQ board
+- Tutorials: here you can find a collection of a variety of tutorials written by us regarding all the steps necessary to work with the environment and also some "deep" dives into the different topics that must be understood in order to develop a driver
+
+We tried to version control directly the entire petalinux project folder, but the folder is too big and once you try to build it, Yocto starts the download of all the dependencies once again (even if in theory they should be already there) and it takes too long.
+
+> Inside of each folder there is a README.md, refer to it for more details about the contents of the different folders
