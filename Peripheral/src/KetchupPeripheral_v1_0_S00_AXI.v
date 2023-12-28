@@ -1,8 +1,6 @@
 `timescale 1 ns / 1 ps
 
-`define SHA_BITRATE(size) (1600 - 2 * size)
-
-	module  KetchupPeripheral_v1_0_S00_AXI #
+	module  KetchupPeripheralConfigurable_v1_0 #
     (
 		// Width of S_AXI data bus
 		parameter integer C_S_AXI_DATA_WIDTH	= 32,
