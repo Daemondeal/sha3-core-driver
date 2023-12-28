@@ -43,13 +43,12 @@ int main()
 {
     init_platform();
 
-    Sha3Context contexts[5];
+    Sha3Context contexts[4];
 
     sha3_224_init(&contexts[0]);
     sha3_256_init(&contexts[1]);
     sha3_384_init(&contexts[2]);
     sha3_512_init(&contexts[3]);
-    sha3_512_init_2(&contexts[4]);
 
     char test0[] = "";
     char test1[] = "Hello World";
@@ -59,7 +58,7 @@ int main()
     char test5[] = "This is a very very very very very very long test test test test test!";
 
     printf("Beginning Tests:\n\n");
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < 4; i++) {
         Sha3Context context = contexts[i];
         hash_then_print(context, test0, strlen(test0));
         hash_then_print(context, test1, strlen(test1));
