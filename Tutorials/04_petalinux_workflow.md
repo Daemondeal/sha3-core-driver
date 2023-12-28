@@ -96,6 +96,8 @@ Now you can run `petalinux-config -c rootfs`, and enable sharutils under `user p
 
 You also need to install this library on your pc; under Ubuntu this can be done with `sudo apt install sharutils`.
 
+build tmp sysroot-components com zynq generic ledomule lib modules 6.1 extra ledmodule.ko
+
 At this point, you have everything needed. Whenever you need to send a file to the Pynq, you can:
 ```bash
 uuencode <file-name> <file-target-name> > <file-name>.enc
@@ -106,6 +108,16 @@ Then, in your serial terminal of choice, you can run `cat > tmp`, and then send 
 If you use GTKTerm, you can use `File > Send RAW file` to send the file after writing `cat > tmp`:
 
 ![GTKTerm Send RAW file](./Resources/gtkterm-sendrawfile.png)
+
+> All the steps are summarized below: 
+> 1. Build the petalinux project including the newly created driver
+> 2. From the root of the petalinux project, go inside `/build/tmp/sysroots-components/zynq_generic_7z020/<driver_name>/lib/modules/6.1.30-xilinx-v2023.2/extra/` and locate the file named `<driver_name>.ko`.
+> 3. From an open terminal, run `uuencode <path_to_ko>file>.<driver_name>.ko <driver_name>.ko > <name>.enc`
+> 4. On the Pynq board, run `cat > tmp`
+> 5. From GTKTerm, select `File`, than `Send RAW file` and locate the `<name>.enc` file created in step 3
+> 6. Once it finishes, press ctrl+d
+> 7. On the Pynq board, type `uudecode <name>.enc`
+> 8. Now by running `ls` you should see the `.ko` file you can insert in the kernel
 
 ## Compiling an application for the Pynq without Petalinux
 

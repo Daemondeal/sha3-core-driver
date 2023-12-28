@@ -3839,6 +3839,7 @@ CONFIG_Init-manager-sysvinit=y
 # user packages 
 #
 CONFIG_gpio-demo=y
+CONFIG_ketchup-driver=y
 CONFIG_peekpoke=y
 CONFIG_sharutils=y
 

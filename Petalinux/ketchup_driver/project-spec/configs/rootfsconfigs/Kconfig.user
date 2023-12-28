@@ -3,6 +3,10 @@ config gpio-demo
 	 bool "gpio-demo"
 	 help
 	
+config ketchup-driver  
+	 bool "ketchup-driver"
+	 help
+	
 config peekpoke  
 	 bool "peekpoke"
 	 help
