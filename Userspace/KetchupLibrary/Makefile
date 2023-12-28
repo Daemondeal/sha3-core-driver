@@ -34,5 +34,3 @@ arm_openssl: $(BINARY_NAME).arm_openssl
 
 $(BINARY_NAME).arm_openssl: $(SOURCES) 
 	$(ARM_CC) $(SOURCES) -o $(BINARY_NAME).arm $(CFLAGS) -I$(ARM_INCLUDES) $(ARM_LIBS)
-
-

@@ -40,7 +40,7 @@ kc_error kc_sha3_256_init(kc_sha3_context *context) {
 }
 
 kc_error kc_sha3_224_init(kc_sha3_context *context) {
-    context->algorithm = EVP_sha3_512();
+    context->algorithm = EVP_sha3_224();
     context->openssl_context = EVP_MD_CTX_create();
     context->digest_length = 224 / 8;
 
