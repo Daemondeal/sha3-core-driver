@@ -13,6 +13,11 @@ There is a sample usage in `example.c`. There are three supported targets for th
 - You can run it on the PYNQ under Petalinux with the OpenSSL backend. To do that, run `make arm_openssl`
 - You can run it on the PYNQ using the hardware peripheral. To do it, run `make arm`
 
+The local OpenSSL backend depends on OpenSSL. To install its libraries under ubuntu, run:
+```sh
+sudo apt install libssl-dev
+```
+
 Note that the `arm_openssl` target statically links OpenSSL, so expect the resulting binary to be somewhat large, making any UART transfer very slow.
 
 > Note: `make arm` currently not supported
