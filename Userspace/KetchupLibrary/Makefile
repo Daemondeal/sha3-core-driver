@@ -23,11 +23,16 @@ $(BINARY_NAME): $(SOURCES)
 	$(CC) $(SOURCES) -o $(BINARY_NAME) $(CFLAGS) $(LIBS)
 
 
-# ARM OpenSSL Target
 .PHONY: arm
-arm: $(BINARY_NAME).arm
+arm: 
+	@echo '### ERROR: arm target currently not supported'
 
-$(BINARY_NAME).arm: $(SOURCES) 
+
+# ARM OpenSSL Target
+.PHONY: arm_openssl
+arm_openssl: $(BINARY_NAME).arm_openssl
+
+$(BINARY_NAME).arm_openssl: $(SOURCES) 
 	$(ARM_CC) $(SOURCES) -o $(BINARY_NAME).arm $(CFLAGS) -I$(ARM_INCLUDES) $(ARM_LIBS)
 
 

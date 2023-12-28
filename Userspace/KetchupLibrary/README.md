@@ -6,8 +6,13 @@ This is the code for the userspace library needed to use the peripheral from a C
 
 > TODO
 
-## OpenSSL
+## Sample Code
 
-This library supports also an OpenSSL target other than the hardware one. This is mostly just for testing that the hardware is actually correct, and to compare performance with an identical interface.
+There is a sample usage in `example.c`. There are three supported targets for this example:
+- You can run it locally, using OpenSSL as a backend. To build the executable this way, run just `make` or `make compile`
+- You can run it on the PYNQ under Petalinux with the OpenSSL backend. To do that, run `make arm_openssl`
+- You can run it on the PYNQ using the hardware peripheral. To do it, run `make arm`
 
-To make building for the Petalinux target easier, we actually statically link against OpenSSL. Inside the `./openssl` folder, there is everything needed to do so. Do note that this means that the resulting binary will be pretty large, so it's going to be very slow to transfer it over UART. 
+Note that the `arm_openssl` target statically links OpenSSL, so expect the resulting binary to be somewhat large, making any UART transfer very slow.
+
+> Note: `make arm` currently not supported

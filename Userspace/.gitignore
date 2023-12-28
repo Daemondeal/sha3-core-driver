@@ -1,2 +1,4 @@
 *.out
+*.out.arm
+*.out.arm_openssl
 !libcrypto.a
