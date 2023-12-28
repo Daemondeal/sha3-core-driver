@@ -1,24 +1,5 @@
 `timescale 1ns / 1ps
 `define PERIOD 20
-//////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer: 
-// 
-// Create Date: 12/09/2023 10:34:11 PM
-// Design Name: 
-// Module Name: peripheral_tb
-// Project Name: 
-// Target Devices: 
-// Tool Versions: 
-// Description: 
-// 
-// Dependencies: 
-// 
-// Revision:
-// Revision 0.01 - File Created
-// Additional Comments:
-// 
-//////////////////////////////////////////////////////////////////////////////////
 
 
 module peripheral_tb;
@@ -46,9 +27,21 @@ module peripheral_tb;
 
     reg [31:0] read_value;
 
-    integer i;
+    integer i, j;
+    integer line_number;
+    integer fileno;
+    integer length, ret;
 
-    KetchupPeripheral_v1_0_S00_AXI  #(.C_SHA3_SIZE(224))
+    reg [31:0] peripheral_in;
+    reg [7:0] inbyte;
+
+    reg [511:0] output_hash;
+    reg [511:0] expected_hash;
+
+    parameter mdlen = 256/8; 
+    parameter filename = "./testvectors/256.mem";
+
+    KetchupPeripheral_v1_0_S00_AXI  #(.C_SHA3_SIZE(mdlen*8))
         keccak_instance (
         // Global Clock Signal
         .S_AXI_ACLK(axi_clock),
@@ -112,8 +105,6 @@ module peripheral_tb;
         .S_AXI_RREADY(axi_rready)
     );
 
-    reg [2:0] core_idx;
-
     initial begin
         $dumpfile("signals.vcd");
         $dumpvars(0, peripheral_tb);
@@ -143,139 +134,88 @@ module peripheral_tb;
         `define REG_COMMAND 7'h0C
         `define REG_OUTPUT  7'h10
 
-        // $display("Value read from register 3 is 0x%08h", read_value);
 
-        // Control Register:
-        // Bit 1:0 - how many bytes to send
-        // Bit 2   - is this the last bit
+        fileno = $fopen(filename, "r");
 
-        // ""
-        write_procedure(`REG_COMMAND, 32'h1);
+        line_number = 0;
+        ret = $fscanf(fileno, "%d ", length);
+        while (length > 0) begin
+            line_number = line_number + 1;
+            
+            // Reset the Peripheral
+            write_procedure(`REG_COMMAND, 32'h1);
 
-        write_procedure(`REG_CONTROL, 32'h4);
-        write_procedure(`REG_INPUT, "   ");
+            // Inputting four bytes at a time 
+            if (length >= 4) begin
+                write_procedure(`REG_CONTROL, 32'h0);
+            end
 
-        read_procedure(`REG_STATUS);
-        while ((read_value & 2'b1) == 0) begin
+            while (length >= 4) begin
+                // Get input in chunks of four
+                for (i = 0; i < 4; i=i+1) begin
+                    inbyte = $fgetc(fileno);
+                    peripheral_in[(3-i)*8 +: 8] = inbyte[7:0];
+                end
+                length = length - 4;
+
+                // Send chunk to peripheral
+                write_procedure(`REG_INPUT, peripheral_in);
+            end
+
+            // Now we need to send the last chunk
+            // Control Register structure:
+            // Bit 1:0 - how many bytes to send
+            // Bit 2   - is this the last input
+            // So 32'h4 is to tell it that this is the last input
+            write_procedure(`REG_CONTROL, 32'h4 + length);
+            i = 3;
+            while (length > 0) begin
+                inbyte = $fgetc(fileno);
+                peripheral_in[i*8 +: 8] = inbyte[7:0];
+                i = i - 1;
+                length = length - 1;
+            end
+            write_procedure(`REG_INPUT, peripheral_in);
+
+            // It should be now done. Wait for output
             read_procedure(`REG_STATUS);
+            while ((read_value & 2'b1) == 0) begin
+                read_procedure(`REG_STATUS);
+            end
+
+            // Done! Read output now
+            read_procedure(`REG_OUTPUT);
+
+            // Skip the space
+            inbyte = $fgetc(fileno);
+
+            expected_hash = 0;
+            output_hash = 0;
+
+            ret = $fscanf(fileno, "%h", expected_hash);
+            for (i = 0; i < mdlen/4; i = i + 1) begin
+                j = mdlen/4 - i - 1;
+                read_procedure(`REG_OUTPUT + (i * 4));
+                output_hash[j*32 +: 32] = read_value;
+            end
+
+
+            if (expected_hash !== output_hash) begin
+                $display("ERROR: hashes do not match for line %d.", line_number);
+                $display("Expected hash: %h", expected_hash);
+                $display("Output   hash: %h", output_hash);
+                $finish;
+            end else begin
+                $display("Hash %3d matches", line_number);
+            end
+
+
+            // Go ahead to next test case
+            ret = $fscanf(fileno, "%d ", length);
         end
 
-        read_procedure(`REG_OUTPUT);
-
-        $display("Sha3(\"\") = %08h...", read_value);
-
-        
-        // "Hello World"
-        write_procedure(`REG_COMMAND, 32'h1);
-
-        write_procedure(`REG_CONTROL, 32'h0);
-        write_procedure(`REG_INPUT, "Hell");
-        write_procedure(`REG_INPUT, "o Wo");
-
-        write_procedure(`REG_CONTROL, 32'h7);
-        write_procedure(`REG_INPUT, "rld ");
-
-        read_procedure(`REG_STATUS);
-        while ((read_value & 2'b1) == 0) begin
-            read_procedure(`REG_STATUS);
-        end
-
-        read_procedure(`REG_OUTPUT);
-
-        // Hash finished! Retrieve value
-        $display("Sha3(\"Hello World\") = %08h...", read_value);
-
-        // "Hello World!"
-        write_procedure(`REG_COMMAND, 32'h1);
-
-        write_procedure(`REG_CONTROL, 32'h0);
-        write_procedure(`REG_INPUT, "Hell");
-        write_procedure(`REG_INPUT, "o Wo");
-        write_procedure(`REG_INPUT, "rld!");
-
-        write_procedure(`REG_CONTROL, 32'h4);
-        write_procedure(`REG_INPUT, "    ");
-
-        read_procedure(`REG_STATUS);
-        while ((read_value & 2'b1) == 0) begin
-            read_procedure(`REG_STATUS);
-        end
-
-        read_procedure(`REG_OUTPUT);
-
-        $display("Sha3(\"Hello World!\") = %08h...", read_value);
-
-        // "Hello"
-        write_procedure(`REG_COMMAND, 32'h1);
-
-        write_procedure(`REG_CONTROL, 32'h0);
-        write_procedure(`REG_INPUT, "Hell");
-
-        write_procedure(`REG_CONTROL, 32'h5);
-        write_procedure(`REG_INPUT, "o   ");
-
-        read_procedure(`REG_STATUS);
-        while ((read_value & 2'b1) == 0) begin
-            read_procedure(`REG_STATUS);
-        end
-
-        read_procedure(`REG_OUTPUT);
-
-        $display("Sha3(\"Hello\") = %08h...", read_value);
-
-        // "hi mom"
-        write_procedure(`REG_COMMAND, 32'h1);
-
-        write_procedure(`REG_CONTROL, 32'h0);
-        write_procedure(`REG_INPUT, "hi m");
-
-        write_procedure(`REG_CONTROL, 32'h6);
-        write_procedure(`REG_INPUT, "om  ");
-
-        read_procedure(`REG_STATUS);
-        while ((read_value & 2'b1) == 0) begin
-            read_procedure(`REG_STATUS);
-        end
-
-        read_procedure(`REG_OUTPUT);
-
-        $display("Sha3(\"hi mom\") = %08h...", read_value);
-
-        // "This is a very very very very very very long test test test test test!";
-        write_procedure(`REG_COMMAND, 32'h1);
-
-        write_procedure(`REG_CONTROL, 32'h0);
-        write_procedure(`REG_INPUT, "This");
-        write_procedure(`REG_INPUT, " is ");
-        write_procedure(`REG_INPUT, "a ve");
-        write_procedure(`REG_INPUT, "ry v");
-        write_procedure(`REG_INPUT, "ery ");
-        write_procedure(`REG_INPUT, "very");
-        write_procedure(`REG_INPUT, " ver");
-        write_procedure(`REG_INPUT, "y ve");
-        write_procedure(`REG_INPUT, "ry v");
-        write_procedure(`REG_INPUT, "ery ");
-        write_procedure(`REG_INPUT, "long");
-        write_procedure(`REG_INPUT, " tes");
-        write_procedure(`REG_INPUT, "t te");
-        write_procedure(`REG_INPUT, "st t");
-        write_procedure(`REG_INPUT, "est ");
-        write_procedure(`REG_INPUT, "test");
-        write_procedure(`REG_INPUT, " tes");
-
-        write_procedure(`REG_CONTROL, 32'h6);
-        write_procedure(`REG_INPUT, "t!  ");
-
-        read_procedure(`REG_STATUS);
-        while ((read_value & 2'b1) == 0) begin
-            read_procedure(`REG_STATUS);
-        end
-
-        read_procedure(`REG_OUTPUT);
-
-        $display("Sha3(\"This is a very very very very very very long test test test test test!\") = %08h...", read_value);
-
-        #200;
+        $display("All hashes match!");
+        $fclose(fileno);
         $finish;
     end
 
