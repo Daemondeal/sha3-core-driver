@@ -1,21 +1,16 @@
 # Keccak Hardware
 
-This folder is related to the hardware part of the Project. Inside the Peripheral folder is the verilog code for the whole peripheral, and inside the Simulation folder there's a testbench for it.
+This folder is related to the hardware part of the Project. Under the Vitis folder, there is some test code for the peripheral. The hardware platform is defined by the `KetchupPlatform.xsa` file.
 
-To run the testbench, just `cd` to the Simulation folder and then run `make`. You should have [Icarus Verilog](https://github.com/steveicarus/iverilog) installed on your system, as a dependency.
+## KetchupPlatform Specification
 
-Under the Vitis folder, there is some test code for the peripheral, alongside a quick and dirty benchmark program.
-
-## KetchupHardwarePlatformFivePeripherals Specification
-
-This is an hardware platform with five different Ketchup Peripherals implemented, with varying hash sizes. The peripherals and their starting addresses are thus defined:
+This is an hardware platform with five different Ketchup Peripherals implemented, all identical. The peripherals and their starting addresses are thus defined:
 |Index|HashSize|BaseAddress|
 |-|-|-|
-|0|512|`0x43C00000`|
-|1|384|`0x43C10000`|
-|2|256|`0x43C20000`|
-|3|224|`0x43C30000`|
-|4|512|`0x43C40000`|
+|0|`0x43C00000`|
+|1|`0x43C10000`|
+|2|`0x43C20000`|
+|3|`0x43C30000`|
 
 ## Peripheral Specification
 
@@ -43,7 +38,7 @@ The Ketchup Peripheral has 20 registers, all starting from a common base address
 |`OUTPUT14`|`0x48`|
 |`OUTPUT15`|`0x4C`|
 
-It can output SHA3 hashes of varying sizes, according to the `C_SHA3_SIZE` parameter.
+It can output SHA3 hashes of varying sizes, based on the appropriate bits in the control register.
 
 ## Control Register
 
@@ -52,7 +47,11 @@ The control registers is thus defined:
 |-|-|
 |`1:0`|Number of bits to be transmitted. Ignored if bit 2 is zero|
 |`2`|Is the next write to `INPUT` the last for this stream?|
+|`3`|Reserved|
+|`5:4`|Size of output hash. Accepted values are: 00 for 512, 01 for 384, 10 for 256 and 11 for 224|
 |`31:3`|Reserved|
+
+NOTE: never change the value of bits 5 and 4 after having given the first bytes of the hash. The peripheral's behaviour is unspecified if you do so.
 
 ## Status Register
 
