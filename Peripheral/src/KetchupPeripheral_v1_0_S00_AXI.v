@@ -409,6 +409,7 @@
 	// Slave register read enable is asserted when valid address is available
 	// and the slave is ready to accept the read address.
 	assign slv_reg_rden = axi_arready & S_AXI_ARVALID & ~axi_rvalid;
+	integer output_idx;
 	always @(*)
 	begin
 		reg_idx  = axi_araddr[ADDR_LSB +: REG_ADDR_BITS];
@@ -419,27 +420,14 @@
 	        5'h01   : reg_data_out <= reg_status;
 	        5'h02   : reg_data_out <= reg_input;
 	        5'h03   : reg_data_out <= 0; // NOTE: reg_command cannot be read 
-	        
-	        // Reading the massive SHA3-512 512-bit output
-	        5'h04   : reg_data_out <= sha3_output[511:480];
-	        5'h05   : reg_data_out <= sha3_output[479:448];
-	        5'h06   : reg_data_out <= sha3_output[447:418];
-	        5'h07   : reg_data_out <= sha3_output[417:384];
-	        5'h08   : reg_data_out <= sha3_output[383:352];
-	        5'h09   : reg_data_out <= sha3_output[351:320];
-	        5'h0A   : reg_data_out <= sha3_output[319:288];
-	        5'h0B   : reg_data_out <= sha3_output[287:256];
-	        5'h0C   : reg_data_out <= sha3_output[255:224];
-	        5'h0D   : reg_data_out <= sha3_output[223:192];
-	        5'h0E   : reg_data_out <= sha3_output[191:160];
-	        5'h0F   : reg_data_out <= sha3_output[159:128];
-	        5'h10   : reg_data_out <= sha3_output[127:96 ];
-	        5'h11   : reg_data_out <= sha3_output[95 :64 ];
-	        5'h12   : reg_data_out <= sha3_output[63 :32 ];
-	        5'h13   : reg_data_out <= sha3_output[31 :0  ];
-	        
-	        default : reg_data_out <= 0;
+			default : reg_data_out <= 0;
 		endcase
+
+		// Reading an output register
+		if (reg_idx <= 5'h13 && reg_idx >= 5'h04) begin
+			output_idx = 15 - (reg_idx - 4);
+			reg_data_out <= sha3_output[output_idx * 32 +: 32];
+		end
 	end
 
 	// Output register or memory read data
