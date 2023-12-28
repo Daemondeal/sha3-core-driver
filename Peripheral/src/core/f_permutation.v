@@ -16,11 +16,9 @@
 
 /* if "ack" is 1, then current input has been used. */
 
-module f_permutation #(
-  parameter integer R_BITRATE = 576
-) (clk, reset, in, in_ready, ack, out, out_ready, out_size);
+module f_permutation (clk, reset, in, in_ready, ack, out, out_ready, out_size);
     input               clk, reset;
-    input      [R_BITRATE-1:0]  in;
+    input      [1151:0]  in;
     input               in_ready;
     output              ack;
     output reg [1599:0] out;

@@ -18,15 +18,13 @@
 /* if "in_ready" == 0, then "is_last" should be 0. */
 /* the user switch to next "in" only if "ack" == 1. */
 
-module padder #(
-  parameter integer R_BITRATE = 576
-  ) (clk, reset, in, in_ready, is_last, byte_num, buffer_full, out, out_ready, f_ack, out_size);
+module padder (clk, reset, in, in_ready, is_last, byte_num, buffer_full, out, out_ready, f_ack, out_size);
     input              clk, reset;
     input      [31:0]  in;
     input              in_ready, is_last;
     input      [1:0]   byte_num;
     output             buffer_full; /* to "user" module */
-    output reg [R_BITRATE-1:0] out;         /* to "f_permutation" module */
+    output reg [1151:0] out;         /* to "f_permutation" module */
     output             out_ready;   /* to "f_permutation" module */
     input              f_ack;       /* from "f_permutation" module */
     input     [1:0]    out_size; /* 00 -> 512, 01 -> 384, 10 -> 256, 11 -> 224 */
@@ -47,10 +45,8 @@ module padder #(
                             out_size == 2'h1 ? 25 :
                             out_size == 2'h2 ? 33 :
                                                35 ; 
-    // i[BITRATE/32-1]
+    // last_state_idx = BITRATE/32-1
     assign buffer_full = i[last_state_idx];
-
-    // assign buffer_full = i[R_BITRATE/32-1];
 
     assign out_ready = buffer_full;
     assign accept = (~ state) & in_ready & (~ buffer_full); // if state == 1, do not eat input
@@ -73,9 +69,6 @@ module padder #(
           out <= {64'h0,  out[BITRATE_256-1-32:0], v1};
         else 
           out <= {out[BITRATE_224-1-32:0], v1};
-        
-
-        // out <= {out[R_BITRATE-1-32:0], v1};
       end
     end
 
@@ -83,6 +76,8 @@ module padder #(
       if (reset)
         i <= 0;
       else if (f_ack | update) begin
+        // i <= {i[bitrate/32-2], 1'b1} & ((bitrate/32){~ f_ack})
+
         if (out_size == 0) 
           i <= {i[16:0], 1'b1} & {(36){~ f_ack}};
         else if (out_size == 1)
@@ -91,9 +86,6 @@ module padder #(
           i <= {i[32:0], 1'b1} & {(36){~ f_ack}};
         else 
           i <= {i[34:0], 1'b1} & {(36){~ f_ack}};
-
-
-        // i <= {i[R_BITRATE/32-2:0], 1'b1} & {(R_BITRATE/32){~ f_ack}};
       end
     end
 

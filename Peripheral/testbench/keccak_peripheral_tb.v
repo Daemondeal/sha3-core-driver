@@ -38,10 +38,7 @@ module peripheral_tb;
     reg [511:0] output_hash;
     reg [511:0] expected_hash;
 
-    parameter mdlen = 512/8; 
-    parameter filename = "./testvectors/512.mem";
-
-    KetchupPeripheral_v1_0_S00_AXI #(.C_SHA3_SIZE(512))
+    KetchupPeripheral_v1_0_S00_AXI 
         keccak_instance (
         // Global Clock Signal
         .S_AXI_ACLK(axi_clock),
@@ -135,90 +132,118 @@ module peripheral_tb;
         `define REG_OUTPUT  7'h10
 
 
-        fileno = $fopen(filename, "r");
-
-
-        line_number = 0;
-        ret = $fscanf(fileno, "%d ", length);
-        while (length > 0) begin
-            line_number = line_number + 1;
-            
-            // Reset the Peripheral
-            write_procedure(`REG_COMMAND, 32'h1);
-
-            // Inputting four bytes at a time 
-            if (length >= 4) begin
-                write_procedure(`REG_CONTROL, 32'h0);
-            end
-
-            while (length >= 4) begin
-                // Get input in chunks of four
-                for (i = 0; i < 4; i=i+1) begin
-                    inbyte = $fgetc(fileno);
-                    peripheral_in[(3-i)*8 +: 8] = inbyte[7:0];
-                end
-                length = length - 4;
-
-                // Send chunk to peripheral
-                write_procedure(`REG_INPUT, peripheral_in);
-            end
-
-            // Now we need to send the last chunk
-            // Control Register structure:
-            // Bit 1:0 - how many bytes to send
-            // Bit 2   - is this the last input
-            // So 32'h4 is to tell it that this is the last input
-            write_procedure(`REG_CONTROL, 32'h4 + length);
-            i = 3;
-            while (length > 0) begin
-                inbyte = $fgetc(fileno);
-                peripheral_in[i*8 +: 8] = inbyte[7:0];
-                i = i - 1;
-                length = length - 1;
-            end
-            write_procedure(`REG_INPUT, peripheral_in);
-
-            // It should be now done. Wait for output
-            read_procedure(`REG_STATUS);
-            while ((read_value & 2'b1) == 0) begin
-                read_procedure(`REG_STATUS);
-            end
-
-            // Done! Read output now
-            read_procedure(`REG_OUTPUT);
-
-            // Skip the space
-            inbyte = $fgetc(fileno);
-
-            expected_hash = 0;
-            output_hash = 0;
-
-            ret = $fscanf(fileno, "%h", expected_hash);
-            for (i = 0; i < mdlen/4; i = i + 1) begin
-                j = mdlen/4 - i - 1;
-                read_procedure(`REG_OUTPUT + (i * 4));
-                output_hash[j*32 +: 32] = read_value;
-            end
-
-
-            if (expected_hash !== output_hash) begin
-                $display("ERROR: hashes do not match for line %1d.", line_number);
-                $display("Expected hash: %h", expected_hash);
-                $display("Output hash:   %h", output_hash);
-                $finish;
-            end else begin
-                $display("Hash %3d matches", line_number);
-            end
-
-
-            // Go ahead to next test case
-            ret = $fscanf(fileno, "%d ", length);
-        end
-
-        $display("All hashes match!");
+        fileno = $fopen("./testvectors/512.mem", "r");
+        $display("Sha3-512 Tests:");
+        run_tests(fileno, 2'h0, 512/8);
+        $display("");
         $fclose(fileno);
+
+        fileno = $fopen("./testvectors/384.mem", "r");
+        $display("Sha3-384 Tests:");
+        run_tests(fileno, 2'h1, 384/8);
+        $display("");
+        $fclose(fileno);
+
+        fileno = $fopen("./testvectors/256.mem", "r");
+        $display("Sha3-256 Tests:");
+        run_tests(fileno, 2'h2, 256/8);
+        $display("");
+        $fclose(fileno);
+
+        fileno = $fopen("./testvectors/224.mem", "r");
+        $display("Sha3-224 Tests:");
+        run_tests(fileno, 2'h3, 224/8);
+        $display("");
+        $fclose(fileno);
+
         $finish;
     end
+
+    task run_tests;
+        input [31:0] fileno;
+        input [1:0]  out_size;
+        input [31:0]  mdlen;
+        begin
+            line_number = 0;
+            ret = $fscanf(fileno, "%d ", length);
+            while (length > 0) begin
+                line_number = line_number + 1;
+
+                // Reset the Peripheral
+                write_procedure(`REG_COMMAND, 32'h1);
+
+                // Inputting four bytes at a time 
+                if (length >= 4) begin
+                    write_procedure(`REG_CONTROL, out_size << 4);
+                end
+
+                while (length >= 4) begin
+                    // Get input in chunks of four
+                    for (i = 0; i < 4; i=i+1) begin
+                        inbyte = $fgetc(fileno);
+                        peripheral_in[(3-i)*8 +: 8] = inbyte[7:0];
+                    end
+                    length = length - 4;
+
+                    // Send chunk to peripheral
+                    write_procedure(`REG_INPUT, peripheral_in);
+                end
+
+                // Now we need to send the last chunk
+                // Control Register structure:
+                // Bit 1:0 - how many bytes to send
+                // Bit 2   - is this the last input
+                // So 32'h4 is to tell it that this is the last input
+                write_procedure(`REG_CONTROL, (out_size << 4) + 32'h4 + length);
+                i = 3;
+                while (length > 0) begin
+                    inbyte = $fgetc(fileno);
+                    peripheral_in[i*8 +: 8] = inbyte[7:0];
+                    i = i - 1;
+                    length = length - 1;
+                end
+                write_procedure(`REG_INPUT, peripheral_in);
+
+                // It should be now done. Wait for output
+                read_procedure(`REG_STATUS);
+                while ((read_value & 2'b1) == 0) begin
+                    read_procedure(`REG_STATUS);
+                end
+
+                // Done! Read output now
+                read_procedure(`REG_OUTPUT);
+
+                // Skip the space
+                inbyte = $fgetc(fileno);
+
+                expected_hash = 0;
+                output_hash = 0;
+
+                ret = $fscanf(fileno, "%h", expected_hash);
+                for (i = 0; i < mdlen/4; i = i + 1) begin
+                    j = mdlen/4 - i - 1;
+                    read_procedure(`REG_OUTPUT + (i * 4));
+                    output_hash[j*32 +: 32] = read_value;
+                end
+
+
+                if (expected_hash !== output_hash) begin
+                    $display("ERROR: hashes do not match for line %1d.", line_number);
+                    $display("Expected hash: %h", expected_hash);
+                    $display("Output hash:   %h", output_hash);
+                    $finish;
+                end else begin
+                    $display("Hash %3d matches", line_number);
+                end
+
+
+                // Go ahead to next test case
+                ret = $fscanf(fileno, "%d ", length);
+            end
+
+            $display("All hashes match!");
+        end
+    endtask
 
     task write_procedure;
         input [8:0] write_address;

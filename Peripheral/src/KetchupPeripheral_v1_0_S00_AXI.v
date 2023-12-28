@@ -123,9 +123,9 @@
 	wire [1:0]   sha3_out_size;
 
 	wire [511:0] sha3_output;
-	wire [C_SHA3_SIZE-1:0] sha3_core_output;
+	wire [511:0] sha3_core_output;
 
-	assign sha3_output[511:511-(C_SHA3_SIZE-1)] = sha3_core_output;
+	assign sha3_output = sha3_core_output;
 
 	assign sha3_out_size[1:0] = reg_control[5:4];
 
@@ -137,8 +137,7 @@
 
 	
 
-	// keccak #(.OUTBITS(C_SHA3_SIZE), .R_BITRATE(`SHA_BITRATE(C_SHA3_SIZE)))
-	keccak #(.OUTBITS(C_SHA3_SIZE), .R_BITRATE(1152))
+	keccak 
 	 sha512_core (
 	   .clk(S_AXI_ACLK), 
 	   .reset(sha3_reset),

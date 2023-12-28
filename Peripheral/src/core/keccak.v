@@ -23,10 +23,7 @@
 `define high_pos(w,b)     (`low_pos(w,b) + 7)
 `define high_pos2(w,b)    (`low_pos2(w,b) + 7)
 
-module keccak #(
-  parameter integer R_BITRATE = 576,
-  parameter integer OUTBITS = 512
-) (clk, reset, in, in_ready, is_last, byte_num, buffer_full, out, out_ready, out_size);
+module keccak (clk, reset, in, in_ready, is_last, byte_num, buffer_full, out, out_ready, out_size);
     input              clk, reset;
     input      [31:0]  in;
     input              in_ready, is_last;
@@ -38,7 +35,7 @@ module keccak #(
 
     reg                state;     /* state == 0: user will send more input data
                                    * state == 1: user will not send any data */
-    wire       [R_BITRATE-1:0] padder_out,
+    wire       [1151:0] padder_out,
                        padder_out_1; /* before reorder byte */
     wire               padder_out_ready;
     wire               f_ack;
@@ -52,7 +49,7 @@ module keccak #(
 
     assign out1 = f_out[1599:1599-511];
 
-    assign out[OUTBITS-1:0] = out_full[511:511-OUTBITS+1];
+    assign out[511:0] = out_full[511:0];
 
     always @ (posedge clk)
       if (reset)
@@ -140,10 +137,10 @@ module keccak #(
       else if (i[22])
         out_ready <= 1;
 
-    padder #(.R_BITRATE(R_BITRATE)) 
+    padder 
       padder_ (clk, reset, in, in_ready, is_last, byte_num, buffer_full, padder_out_1, padder_out_ready, f_ack, out_size);
 
-    f_permutation #(.R_BITRATE(R_BITRATE)) 
+    f_permutation
       f_permutation_ (clk, reset, padder_out, padder_out_ready, f_ack, f_out, f_out_ready, out_size);
 endmodule
 
