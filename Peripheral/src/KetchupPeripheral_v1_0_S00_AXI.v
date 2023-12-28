@@ -7,9 +7,7 @@
 		// Width of S_AXI data bus
 		parameter integer C_S_AXI_DATA_WIDTH	= 32,
 		// Width of S_AXI address bus
-		parameter integer C_S_AXI_ADDR_WIDTH	= 7,
-		// Size of the output SHA hash, in bits
-		parameter integer C_SHA3_SIZE           = 512
+		parameter integer C_S_AXI_ADDR_WIDTH	= 7
 	)
 	(
 		// Global Clock Signal
