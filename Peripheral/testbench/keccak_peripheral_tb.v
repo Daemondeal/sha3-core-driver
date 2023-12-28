@@ -38,10 +38,10 @@ module peripheral_tb;
     reg [511:0] output_hash;
     reg [511:0] expected_hash;
 
-    parameter mdlen = 256/8; 
-    parameter filename = "./testvectors/256.mem";
+    parameter mdlen = 512/8; 
+    parameter filename = "./testvectors/512.mem";
 
-    KetchupPeripheral_v1_0_S00_AXI  #(.C_SHA3_SIZE(mdlen*8))
+    KetchupPeripheral_v1_0_S00_AXI #(.C_SHA3_SIZE(512))
         keccak_instance (
         // Global Clock Signal
         .S_AXI_ACLK(axi_clock),
@@ -137,6 +137,7 @@ module peripheral_tb;
 
         fileno = $fopen(filename, "r");
 
+
         line_number = 0;
         ret = $fscanf(fileno, "%d ", length);
         while (length > 0) begin
@@ -201,9 +202,9 @@ module peripheral_tb;
 
 
             if (expected_hash !== output_hash) begin
-                $display("ERROR: hashes do not match for line %d.", line_number);
+                $display("ERROR: hashes do not match for line %1d.", line_number);
                 $display("Expected hash: %h", expected_hash);
-                $display("Output   hash: %h", output_hash);
+                $display("Output hash:   %h", output_hash);
                 $finish;
             end else begin
                 $display("Hash %3d matches", line_number);

@@ -18,16 +18,17 @@
 
 module f_permutation #(
   parameter integer R_BITRATE = 576
-) (clk, reset, in, in_ready, ack, out, out_ready);
+) (clk, reset, in, in_ready, ack, out, out_ready, out_size);
     input               clk, reset;
     input      [R_BITRATE-1:0]  in;
     input               in_ready;
     output              ack;
     output reg [1599:0] out;
     output reg          out_ready;
+    input [1:0]         out_size;
 
     reg        [22:0]   i; /* select round constant */
-    wire       [1599:0] round_in, round_out;
+    wire       [1599:0] next_round_in, round_in, round_out;
     wire       [63:0]   rc; /* round constant */
     wire                update;
     wire                accept;
@@ -55,7 +56,17 @@ module f_permutation #(
       else if (i[22]) // only change at the last round
         out_ready <= 1;
 
-    assign round_in = accept ? {in ^ out[1599:1599-R_BITRATE+1], out[1599-R_BITRATE:0]} : out;
+   parameter BITRATE_512 = 576;
+   parameter BITRATE_384 = 832;
+   parameter BITRATE_256 = 1088;
+   parameter BITRATE_224 = 1152;
+
+    assign next_round_in = out_size == 0 ? {in[BITRATE_512-1:0] ^ out[1599:1599-BITRATE_512+1], out[1599-BITRATE_512:0]} :
+                           out_size == 1 ? {in[BITRATE_384-1:0] ^ out[1599:1599-BITRATE_384+1], out[1599-BITRATE_384:0]} :
+                           out_size == 2 ? {in[BITRATE_256-1:0] ^ out[1599:1599-BITRATE_256+1], out[1599-BITRATE_256:0]} :
+                                           {in[BITRATE_224-1:0] ^ out[1599:1599-BITRATE_224+1], out[1599-BITRATE_224:0]} ;
+
+    assign round_in = accept ? next_round_in : out;
 
     rconst
       rconst_ ({i, accept}, rc);

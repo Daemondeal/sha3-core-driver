@@ -2,6 +2,8 @@ import hashlib
 import os
 
 test_strings = [
+    b"four",
+    b"This is a long long starting message made to test the peripheral properly",
     b"Hello",
     b"Hello World!",
     b"Hi there",

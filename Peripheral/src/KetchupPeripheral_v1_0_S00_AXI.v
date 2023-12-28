@@ -120,12 +120,14 @@
 	reg  		 sha3_is_last;
 	wire 		 sha3_buffer_full;
 	wire 		 sha3_out_ready;
-	
+	wire [1:0]   sha3_out_size;
+
 	wire [511:0] sha3_output;
 	wire [C_SHA3_SIZE-1:0] sha3_core_output;
 
 	assign sha3_output[511:511-(C_SHA3_SIZE-1)] = sha3_core_output;
 
+	assign sha3_out_size[1:0] = reg_control[5:4];
 
 	assign reg_status[0]    = sha3_out_ready;
 	assign reg_status[1]    = sha3_buffer_full;
@@ -135,7 +137,8 @@
 
 	
 
-	keccak #(.OUTBITS(C_SHA3_SIZE), .R_BITRATE(`SHA_BITRATE(C_SHA3_SIZE)))
+	// keccak #(.OUTBITS(C_SHA3_SIZE), .R_BITRATE(`SHA_BITRATE(C_SHA3_SIZE)))
+	keccak #(.OUTBITS(C_SHA3_SIZE), .R_BITRATE(1152))
 	 sha512_core (
 	   .clk(S_AXI_ACLK), 
 	   .reset(sha3_reset),
@@ -145,7 +148,8 @@
 	   .byte_num(sha3_byte_to_send), 
 	   .buffer_full(sha3_buffer_full), 
 	   .out(sha3_core_output), 
-	   .out_ready(sha3_out_ready)
+	   .out_ready(sha3_out_ready),
+	   .out_size(sha3_out_size)
 	);
 
 
@@ -294,6 +298,8 @@
                 // Control Register:
                 // Bit 1:0 - Amount of bits to transfer
                 // Bit 2   - Is this the last transmission?
+				// Bit 3   - Reserved
+				// Bit 5:4 - Size of output
 
 				if (reg_control[2] == 1) begin
 					sha3_is_last <= 1;
