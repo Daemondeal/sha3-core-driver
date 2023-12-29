@@ -23,21 +23,19 @@
 `define high_pos(w,b)     (`low_pos(w,b) + 7)
 `define high_pos2(w,b)    (`low_pos2(w,b) + 7)
 
-module keccak #(
-  parameter integer R_BITRATE = 576,
-  parameter integer OUTBITS = 512
-) (clk, reset, in, in_ready, is_last, byte_num, buffer_full, out, out_ready);
+module keccak (clk, reset, in, in_ready, is_last, byte_num, buffer_full, out, out_ready, out_size);
     input              clk, reset;
     input      [31:0]  in;
     input              in_ready, is_last;
     input      [1:0]   byte_num;
     output             buffer_full; /* to "user" module */
-    output     [OUTBITS-1:0] out;
+    output     [511:0] out;
     output reg         out_ready;
+    input      [1:0]   out_size;
 
     reg                state;     /* state == 0: user will send more input data
                                    * state == 1: user will not send any data */
-    wire       [R_BITRATE-1:0] padder_out,
+    wire       [1151:0] padder_out,
                        padder_out_1; /* before reorder byte */
     wire               padder_out_ready;
     wire               f_ack;
@@ -51,7 +49,7 @@ module keccak #(
 
     assign out1 = f_out[1599:1599-511];
 
-    assign out[OUTBITS-1:0] = out_full[511:511-OUTBITS+1];
+    assign out[511:0] = out_full[511:0];
 
     always @ (posedge clk)
       if (reset)
@@ -76,16 +74,62 @@ module keccak #(
         end
     endgenerate
 
+
+    parameter BITRATE_512 = 576;
+    parameter BITRATE_384 = 832;
+    parameter BITRATE_256 = 1088;
+    parameter BITRATE_224 = 1152;
+
+    wire [BITRATE_512-1:0] padder_out_512;
+    wire [BITRATE_384-1:0] padder_out_384;
+    wire [BITRATE_256-1:0] padder_out_256;
+    wire [BITRATE_224-1:0] padder_out_224;
+
     /* reorder byte ~ ~ */
     generate
-      for(w=0; w<(R_BITRATE/64); w=w+1)
-        begin : L2
+      for(w=0; w<(BITRATE_512/64); w=w+1)
+        begin : L2_512
           for(b=0; b<8; b=b+1)
-            begin : L3
-              assign padder_out[`high_pos(w,b):`low_pos(w,b)] = padder_out_1[`high_pos2(w,b):`low_pos2(w,b)];
+            begin : L3_512
+              assign padder_out_512[`high_pos(w,b):`low_pos(w,b)] = padder_out_1[`high_pos2(w,b):`low_pos2(w,b)];
             end
         end
     endgenerate
+
+    generate
+      for(w=0; w<(BITRATE_384/64); w=w+1)
+        begin : L2_384
+          for(b=0; b<8; b=b+1)
+            begin : L3_384
+              assign padder_out_384[`high_pos(w,b):`low_pos(w,b)] = padder_out_1[`high_pos2(w,b):`low_pos2(w,b)];
+            end
+        end
+    endgenerate
+
+    generate
+      for(w=0; w<(BITRATE_256/64); w=w+1)
+        begin : L2_256
+          for(b=0; b<8; b=b+1)
+            begin : L3_256
+              assign padder_out_256[`high_pos(w,b):`low_pos(w,b)] = padder_out_1[`high_pos2(w,b):`low_pos2(w,b)];
+            end
+        end
+    endgenerate
+
+    generate
+      for(w=0; w<(BITRATE_224/64); w=w+1)
+        begin : L2_224
+          for(b=0; b<8; b=b+1)
+            begin : L3_224
+              assign padder_out_224[`high_pos(w,b):`low_pos(w,b)] = padder_out_1[`high_pos2(w,b):`low_pos2(w,b)];
+            end
+        end
+    endgenerate
+
+    assign padder_out = out_size == 0 ? {576'h0, padder_out_512} :
+                        out_size == 1 ? {320'h0, padder_out_384} :
+                        out_size == 2 ? {64'h0,  padder_out_256} :
+                                                 padder_out_224  ;
 
     always @ (posedge clk)
       if (reset)
@@ -93,11 +137,11 @@ module keccak #(
       else if (i[22])
         out_ready <= 1;
 
-    padder #(.R_BITRATE(R_BITRATE)) 
-      padder_ (clk, reset, in, in_ready, is_last, byte_num, buffer_full, padder_out_1, padder_out_ready, f_ack);
+    padder 
+      padder_ (clk, reset, in, in_ready, is_last, byte_num, buffer_full, padder_out_1, padder_out_ready, f_ack, out_size);
 
-    f_permutation #(.R_BITRATE(R_BITRATE)) 
-      f_permutation_ (clk, reset, padder_out, padder_out_ready, f_ack, f_out, f_out_ready);
+    f_permutation
+      f_permutation_ (clk, reset, padder_out, padder_out_ready, f_ack, f_out, f_out_ready, out_size);
 endmodule
 
 `undef low_pos

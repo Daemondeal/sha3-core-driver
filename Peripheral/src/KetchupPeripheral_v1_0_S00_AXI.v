@@ -1,15 +1,11 @@
 `timescale 1 ns / 1 ps
 
-`define SHA_BITRATE(size) (1600 - 2 * size)
-
 	module  KetchupPeripheral_v1_0_S00_AXI #
     (
 		// Width of S_AXI data bus
 		parameter integer C_S_AXI_DATA_WIDTH	= 32,
 		// Width of S_AXI address bus
-		parameter integer C_S_AXI_ADDR_WIDTH	= 7,
-		// Size of the output SHA hash, in bits
-		parameter integer C_SHA3_SIZE           = 512
+		parameter integer C_S_AXI_ADDR_WIDTH	= 7
 	)
 	(
 		// Global Clock Signal
@@ -120,12 +116,14 @@
 	reg  		 sha3_is_last;
 	wire 		 sha3_buffer_full;
 	wire 		 sha3_out_ready;
-	
+	wire [1:0]   sha3_out_size;
+
 	wire [511:0] sha3_output;
-	wire [C_SHA3_SIZE-1:0] sha3_core_output;
+	wire [511:0] sha3_core_output;
 
-	assign sha3_output[511:511-(C_SHA3_SIZE-1)] = sha3_core_output;
+	assign sha3_output = sha3_core_output;
 
+	assign sha3_out_size[1:0] = reg_control[5:4];
 
 	assign reg_status[0]    = sha3_out_ready;
 	assign reg_status[1]    = sha3_buffer_full;
@@ -135,7 +133,7 @@
 
 	
 
-	keccak #(.OUTBITS(C_SHA3_SIZE), .R_BITRATE(`SHA_BITRATE(C_SHA3_SIZE)))
+	keccak 
 	 sha512_core (
 	   .clk(S_AXI_ACLK), 
 	   .reset(sha3_reset),
@@ -145,7 +143,8 @@
 	   .byte_num(sha3_byte_to_send), 
 	   .buffer_full(sha3_buffer_full), 
 	   .out(sha3_core_output), 
-	   .out_ready(sha3_out_ready)
+	   .out_ready(sha3_out_ready),
+	   .out_size(sha3_out_size)
 	);
 
 
@@ -294,6 +293,8 @@
                 // Control Register:
                 // Bit 1:0 - Amount of bits to transfer
                 // Bit 2   - Is this the last transmission?
+				// Bit 3   - Reserved
+				// Bit 5:4 - Size of output
 
 				if (reg_control[2] == 1) begin
 					sha3_is_last <= 1;
@@ -409,6 +410,7 @@
 	// Slave register read enable is asserted when valid address is available
 	// and the slave is ready to accept the read address.
 	assign slv_reg_rden = axi_arready & S_AXI_ARVALID & ~axi_rvalid;
+	integer output_idx;
 	always @(*)
 	begin
 		reg_idx  = axi_araddr[ADDR_LSB +: REG_ADDR_BITS];
@@ -419,27 +421,14 @@
 	        5'h01   : reg_data_out <= reg_status;
 	        5'h02   : reg_data_out <= reg_input;
 	        5'h03   : reg_data_out <= 0; // NOTE: reg_command cannot be read 
-	        
-	        // Reading the massive SHA3-512 512-bit output
-	        5'h04   : reg_data_out <= sha3_output[511:480];
-	        5'h05   : reg_data_out <= sha3_output[479:448];
-	        5'h06   : reg_data_out <= sha3_output[447:418];
-	        5'h07   : reg_data_out <= sha3_output[417:384];
-	        5'h08   : reg_data_out <= sha3_output[383:352];
-	        5'h09   : reg_data_out <= sha3_output[351:320];
-	        5'h0A   : reg_data_out <= sha3_output[319:288];
-	        5'h0B   : reg_data_out <= sha3_output[287:256];
-	        5'h0C   : reg_data_out <= sha3_output[255:224];
-	        5'h0D   : reg_data_out <= sha3_output[223:192];
-	        5'h0E   : reg_data_out <= sha3_output[191:160];
-	        5'h0F   : reg_data_out <= sha3_output[159:128];
-	        5'h10   : reg_data_out <= sha3_output[127:96 ];
-	        5'h11   : reg_data_out <= sha3_output[95 :64 ];
-	        5'h12   : reg_data_out <= sha3_output[63 :32 ];
-	        5'h13   : reg_data_out <= sha3_output[31 :0  ];
-	        
-	        default : reg_data_out <= 0;
+			default : reg_data_out <= 0;
 		endcase
+
+		// Reading an output register
+		if (reg_idx <= 5'h13 && reg_idx >= 5'h04) begin
+			output_idx = 15 - (reg_idx - 4);
+			reg_data_out <= sha3_output[output_idx * 32 +: 32];
+		end
 	end
 
 	// Output register or memory read data
