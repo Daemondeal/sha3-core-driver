@@ -9,6 +9,7 @@ INHIBIT_PACKAGE_STRIP = "1"
 
 SRC_URI = "file://Makefile \
            file://ketchup-driver.c \
+           file://ketchup-driver.h \
 	   file://COPYING \
           "
 
