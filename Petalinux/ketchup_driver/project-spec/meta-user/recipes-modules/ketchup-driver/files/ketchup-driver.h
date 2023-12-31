@@ -10,6 +10,7 @@
 #define DRIVER_NAME "ketchup-driver"
 #define CLASS_NAME "KEKKAK_ACCELERATORS"
 #define DEBUG
+#define NUM_INSTANCES 5
 /******************* FUNCTIONS *******************/
 static int dev_open(struct inode *, struct file *);
 static ssize_t dev_read(struct file *, char *, size_t, loff_t *);
@@ -23,10 +24,4 @@ static int ketchup_driver_remove(struct platform_device *);
 static int __init ketchup_driver_init(void);
 static void __exit ketchup_driver_exit(void);
 
-struct char_dev {
-    struct class *driver_class;
-    dev_t first;
-    struct cdev c_dev;
-    struct device *test_device;
-};
 #endif

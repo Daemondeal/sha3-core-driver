@@ -60,13 +60,21 @@ struct ketchup_driver_local {
 	char ker_buf[1024];
 };
 
-
-/**
- * Static variables used inside the driver
-*/
-static struct char_dev my_device = {
-    .driver_class = NULL
+static struct char_dev {
+    struct class *driver_class;
+    dev_t first;
+    struct cdev c_dev;
+    struct device *test_device;
+    /**
+    * Array containing a pointer to the ketchup_driver_local strcut of each peripheral
+    */
+    struct ketchup_driver_local all_registered_peripherals[NUM_INSTANCES];
+	int count;
+} my_device = {
+	.driver_class = NULL,
+	.count = 0
 };
+
 
 /**
  * The various attributes that will pop up in /sys/class/CLASS_NAME/DRIVER_NAME/
@@ -158,6 +166,16 @@ static ssize_t dev_read(struct file *fil, char *buf, size_t len, loff_t *off)
 	#ifdef DEBUG
 	pr_info("dev_read called!\n");
 	#endif
+	pr_info("Printing all the available peripheral informations \n");
+	for (int i = 0; i < my_device.count; i++){
+		pr_info("Peripheral number: %d\n", i);
+		pr_info("BASE_ADDRESS: 0x%08x\n", my_device.all_registered_peripherals[i].base_addr);
+		pr_info("CONTROL_ADDRESS: 0x%08x\n",  my_device.all_registered_peripherals[i].control);
+		pr_info("STATUS_ADDRESS: 0x%08x\n",  my_device.all_registered_peripherals[i].status);
+		pr_info("INPUT_ADDRESS: 0x%08x\n",  my_device.all_registered_peripherals[i].input);
+		pr_info("COMMAND_ADDRESS: 0x%08x\n",  my_device.all_registered_peripherals[i].command);	
+		pr_info("OUTPUT_BASE_ADDRESS: 0x%08x\n",  my_device.all_registered_peripherals[i].output_base);
+	}
 	return 0;
 }
 
@@ -239,6 +257,14 @@ static int ketchup_driver_probe(struct platform_device *pdev)
 	pr_info("OUTPUT_BASE_ADDRESS: 0x%08x\n", lp->output_base);
 	#endif
 	
+	/**
+	 * Before returning, we need to add the peripheral to the list of available
+	 * peripherals
+	*/
+	my_device.all_registered_peripherals[my_device.count] = *lp;
+	my_device.count++;
+	pr_info("Added new peripheral to the array!\n");
+
 	return 0;
 error2:
 	release_mem_region(lp->mem_start, lp->mem_end - lp->mem_start + 1);
