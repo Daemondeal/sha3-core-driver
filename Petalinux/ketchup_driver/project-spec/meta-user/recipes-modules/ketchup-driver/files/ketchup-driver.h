@@ -1,7 +1,6 @@
 #ifndef KETCHUP_DRIVER
 #define KETCHUP_DRIVER
 
-#include <linux/fs.h>
 /******************* DEFINES *******************/
 /**
  * DRIVER_NAME -> name of the driver
@@ -24,4 +23,8 @@ static int ketchup_driver_remove(struct platform_device *);
 static int __init ketchup_driver_init(void);
 static void __exit ketchup_driver_exit(void);
 
+typedef enum {
+    NOT_AVAILABLE,
+    AVAILABLE
+} Availability;
 #endif

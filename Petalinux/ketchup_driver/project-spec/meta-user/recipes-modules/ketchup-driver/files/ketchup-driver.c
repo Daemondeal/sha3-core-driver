@@ -11,6 +11,8 @@
 #include <asm/uaccess.h>
 #include <linux/device.h>
 #include <linux/cdev.h>
+#include <linux/mutex.h>
+#include <linux/fs.h>
 #include "ketchup-driver.h"
 
 MODULE_LICENSE("GPL");
@@ -58,6 +60,8 @@ struct ketchup_driver_local {
 	void __iomem *output_base;
 	// un buffer per ogni "istanza" del driver
 	char ker_buf[1024];
+	Availability peripheral_available;
+	struct mutex lock;
 };
 
 static struct char_dev {
@@ -260,13 +264,14 @@ static int ketchup_driver_probe(struct platform_device *pdev)
 	}
 
 	/**
-	 * Setting all the base addresses of the peripheral
+	 * Setting all the base addresses of the peripheral and the mutex
 	*/
 	lp->control = lp->base_addr + 4;
 	lp->status = lp->base_addr + 8;
 	lp->input = lp->base_addr + 12;
 	lp->command = lp->base_addr + 16;
 	lp->output_base = lp->base_addr + 20;
+	mutex_init(&lp->lock);
 
 	#ifdef DEBUG
 	pr_info("ketchup_peripheral\n");
