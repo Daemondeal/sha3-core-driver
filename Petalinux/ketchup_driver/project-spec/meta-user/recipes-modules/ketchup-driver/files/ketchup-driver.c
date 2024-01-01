@@ -92,46 +92,67 @@ static DEVICE_ATTR(control, 0444, read_control, NULL);
 
 static ssize_t read_control(struct device *dev, struct device_attribute *attr, char *buf)
 {
-	sprintf(buf, "read_control called! \n");
-	return strlen(buf) + 1;
-	/**
-	 * 1. readl() di control per prendermi il valore
-	 * 2. estrapolo hash_type -> [5:4]
-	 * 3. estrapolo last_input -> [2]
-	 * 4. estrapolo num_bits -> [1:0]
-	 * 5. Lo restituisco magari formattato bene
-	*/
-}
-
-// Read only
-static DEVICE_ATTR(status, 0444, read_status, NULL);
-
-static ssize_t read_status(struct device *dev, struct device_attribute *attr, char *buf)
-{
-	sprintf(buf, "read_status called! \n");
-	return strlen(buf) + 1;
-	/**
-	 * 1. readl() di status per prendermi il valore
-	 * 2. estrapolo output_ready -> [0]
-	 * 3. Lo restituisco magari formattato bene
-	*/
+	uint32_t mask = 0x30;  // 0x110000
+	int len = 0;
+	for (int index = 0; index < NUM_INSTANCES; index++){
+		uint32_t control_register_value = readl(my_device.all_registered_peripherals[index].control);
+		uint32_t extracted_bits = (control_register_value & mask) >> 4;
+		pr_info("read_control called on the peripheral %d\n", index);
+		// 00 for 512, 01 for 384, 10 for 256 and 11 for 224
+		const char *message;
+		switch (extracted_bits)
+		{
+		case 0:
+			/* code */
+			message = "Hash size: 512\n";
+			break;
+		case 1:
+			message = "Hash size: 384\n";
+			break;
+		case 2:
+			message = "Hash size: 256\n";
+			break;
+		case 3:
+			message = "Hash size: 224\n";
+			break; 
+		default:
+			message = "Error! \n";
+			break;
+		}
+		char index_str[2];
+        snprintf(index_str, sizeof(index_str), "%d", index);
+        strcat(buf, "Periferica ");
+        strcat(buf, index_str);
+        strcat(buf, ": ");
+        strcat(buf, message);
+	}
+	return strlen(buf);
 }
 
 // Writable, it's always zero, OTHERS_WRITABLE? BAD IDEA - kernel
 static DEVICE_ATTR(command, 0220, NULL, write_command);
 static ssize_t write_command(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
 {
-	/*
-	pr_info("Received %d bytes attribute %s\n", (int)count, buf);
-	return count;
-	*/
-	pr_info("write_command called! \n");
-	sprintf(buf, "write_command called! \n");
-	return strlen(buf) + 1;
-	/**
-	 * 1. qualsiasi sia l'argomento, scriviamo 1 nella periferica
-	 * 3. conferma
-	*/
+	int peripheral;
+	int reset;
+	struct ketchup_driver_local selected_peripheral;
+	sscanf(buf, "%d,%d", &peripheral, &reset);
+	pr_info("peripheral: %d\n", peripheral);
+	pr_info("reset: %d\n", reset);
+	if (peripheral < 0 || peripheral > NUM_INSTANCES - 1)
+	{
+		pr_err("The peripheral number specified is invalid!\n");
+		return strlen(buf);
+	}
+	if (reset != 1)
+	{
+		pr_err("Invalid command, pass 1 to reset the selected peripheral\n");
+		return strlen(buf);
+	}
+	// At this point we have a valid index and a correct command
+	writel((uint32_t)1, my_device.all_registered_peripherals[peripheral].command);
+	pr_info("Peripheral number %d reset completed\n", peripheral);
+	return strlen(buf);
 }
 
 static int dev_open(struct inode *inod, struct file *fil)
@@ -355,15 +376,10 @@ static int __init ketchup_driver_init(void)
 		return -1;
 	}
 
-	// control, status, command
+	// control, command
 	if (device_create_file(my_device.test_device, &dev_attr_control) < 0)
 	{
 		pr_info("Device attribute control creation failed\n");
-	}
-
-	if (device_create_file(my_device.test_device, &dev_attr_status) < 0)
-	{
-		pr_info("Device attribute status creation failed\n");
 	}
 
 	if (device_create_file(my_device.test_device, &dev_attr_command) < 0)
@@ -381,7 +397,6 @@ static void __exit ketchup_driver_exit(void)
 {
 	cdev_del(&my_device.c_dev);
 	device_remove_file(my_device.test_device, &dev_attr_control);
-	device_remove_file(my_device.test_device, &dev_attr_status);
 	device_remove_file(my_device.test_device, &dev_attr_command);
 	device_destroy(my_device.driver_class, my_device.first);
 	class_destroy(my_device.driver_class);
