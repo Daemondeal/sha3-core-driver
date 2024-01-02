@@ -13,6 +13,7 @@
 #include <linux/cdev.h>
 #include <linux/mutex.h>
 #include <linux/fs.h>
+#include <linux/errno.h>
 #include "ketchup-driver.h"
 
 MODULE_LICENSE("GPL");
@@ -46,8 +47,7 @@ static struct platform_driver ketchup_driver_driver = {
 };
 
 /**
- * Struct representing the platform driver, maybe we can put all the static variables 
- * here?
+ * Struct representing the platform driver
 */
 struct ketchup_driver_local {
 	unsigned long mem_start;
@@ -59,9 +59,10 @@ struct ketchup_driver_local {
 	void __iomem *command;
 	void __iomem *output_base;
 	// un buffer per ogni "istanza" del driver
-	char ker_buf[1024];
+	char input_ker_buf[BUF_SIZE];
+	char tmp_ker_buf[3];
+	int num_bytes_tmp_ker_buf;
 	Availability peripheral_available;
-	struct mutex lock;
 };
 
 static struct char_dev {
@@ -73,7 +74,9 @@ static struct char_dev {
     * Array containing a pointer to the ketchup_driver_local strcut of each peripheral
     */
     struct ketchup_driver_local all_registered_peripherals[NUM_INSTANCES];
+	// The number of the peripherals registered
 	int count;
+	struct mutex lock;
 } my_device = {
 	.driver_class = NULL,
 	.count = 0
@@ -93,12 +96,11 @@ static struct char_dev {
 */
 // Read only
 static DEVICE_ATTR(control, 0444, read_control, NULL);
-
 static ssize_t read_control(struct device *dev, struct device_attribute *attr, char *buf)
 {
 	uint32_t mask = 0x30;  // 0x110000
 	int len = 0;
-	for (int index = 0; index < NUM_INSTANCES; index++){
+	for (int index = 0; index < my_device.count; index++){
 		uint32_t control_register_value = readl(my_device.all_registered_peripherals[index].control);
 		uint32_t extracted_bits = (control_register_value & mask) >> 4;
 		pr_info("read_control called on the peripheral %d\n", index);
@@ -159,11 +161,29 @@ static ssize_t write_command(struct device *dev, struct device_attribute *attr, 
 	return strlen(buf);
 }
 
+/**
+ * TODO: implementation
+*/
+static DEVICE_ATTR(current_usage, 0444, read_current_usage, NULL);
+static ssize_t read_current_usage(struct device *dev, struct device_attribute *attr, char *buf)
+{
+	pr_info("read_current_usage called! \n");
+	return strlen(buf);
+}
+
 static int dev_open(struct inode *inod, struct file *fil)
 {
 	#ifdef DEBUG
 	pr_info("Device ketchup_accel opened \n");
 	#endif
+	/**
+	 * When a new file descriptor is opened we need to assign to it an available
+	 * peripheral
+	 * If all the peripherals are busy, we return -EBUSY
+	*/
+	int index_of_assigned_peripheral = peripheral_array_access(fil);
+	if (index_of_assigned_peripheral == -EBUSY)
+		return -EBUSY;
 	return 0;
 }
 
@@ -172,6 +192,9 @@ static int dev_release(struct inode *inod, struct file *fil)
 	#ifdef DEBUG
 	pr_info("Device ketchup_accel closed \n");
 	#endif
+	int op_result = peripheral_release(fil);
+	if (!op_result)
+		return -EAGAIN;
 	return 0;
 }
 
@@ -204,19 +227,179 @@ static ssize_t dev_read(struct file *fil, char *buf, size_t len, loff_t *off)
 	return 0;
 }
 
-static ssize_t dev_write(struct file *fil, const char *buf, size_t len, loff_t *off)
+void write_into_input_reg(char temporary_buffer[])
 {
-	/*
-	// Copiamo da user space a kernel space
-	copy_from_user(ker_buf, buf, len);
-	sscanf(ker_buf, "%d,%d", &operand_a, &operand_b);
-	ker_buf[len] = 0;
-	pr_info("Received the following operands <%d + %d>", operand_a, operand_b);
-	*/
+	uint32_t final_value = 0;
+	uint32_t tmp;
+	for (int i = 0; i < byte_alignment; i++)
+	{
+		tmp = temporary_buffer[i];
+		final_value |= tmp << ((3-i)*8); 
+	}
+	writel(final_value, my_device.all_registered_peripherals[index_of_assigned_peripheral].input);	
+	// we clean also clean the temporary buffer
+	memset(temporary_buffer, 0, sizeof(temporary_buffer));
+}
+
+static ssize_t dev_write(struct file *filep, const char *buf, size_t len, loff_t *off)
+{
 	#ifdef DEBUG
 	pr_info("dev_write called!\n");
 	#endif
+	/**
+	 * The plan is the following:
+	 * 1. we copy inside kernel space the data the user wants to write, keeping in mind that the
+	 * internal buffer is limited to BUF_SIZE
+	 * 2. once we have the new buf data in kernel space we start doing copy-pasting if there's previous
+	 * data
+	 * 3. once we are over with it we handle residual data (if present)
+	*/
+	// We need to retrieve from the file descriptor the peripheral index assigned
+	int index_of_assigned_peripheral = (int)(uintptr_t)filep->private_data;
+	pr_info("Assigned peripheral given the file descriptor: %d\n", index_of_assigned_peripheral);
+	// This variable is needed at the end to know how many bytes we copied
+	int internal_buffer_too_small = 0;
+	// I'll use this buffer to store the data before the writel in order to facilitate the copy-paste from buffers
+	char tmp_buffer[4];
+	int byte_alignment = 4;
+	int offset = 0;
+	int remaining_bytes_to_be_sent = 0;
+	int not_divisible_by_four = 0;
+	// This variable will be used in case the tmp_ker_buff will be necessary
+	int remaining_bytes = 0;
+	// Now we want to bring inside kernel space the new write data, but how much data the user is passing?
+	if (len > BUF_SIZE)
+	{
+		// in this case we need to truncate, we can't copy it all in one read
+		copy_from_user(my_device.all_registered_peripherals[index_of_assigned_peripheral].input_ker_buf,
+						buf, BUF_SIZE);
+		internal_buffer_too_small = 1;
+	} else 
+	{
+		// if we are here it means that we have less than BUF_SIZE to copy, we can use len
+		(my_device.all_registered_peripherals[index_of_assigned_peripheral].input_ker_buf,
+						buf, len);
+	}
+
+	/**
+	 * Now inside the peripheral ker_buf buffer we have the data the user wants us to send to the peripheral
+	 * We can begin the copy but first we need to handle the potential presence of data inside the tmp_ker_buf 
+	*/
+	if (my_device.num_bytes_tmp_ker_buf > 0)
+	{
+		/**
+		 * If we are here we have some data left from a previous write, we can copy it without problems since
+		 * the tmp_buffer size is 4 and at max the peripheral tmp_ker_buf has 3 bytes
+		*/
+		memcpy(tmp_buffer, my_device.all_registered_peripherals[index_of_assigned_peripheral].tmp_ker_buf,
+		    my_device.num_bytes_tmp_ker_buf);
+		/**
+		 * After the copy inside tmp_buffer we'll still have some space empty, but how much? It depends from the 
+		 * value of num_bytes_tmp_ker_buf
+		*/
+		int bytes_left = byte_alignment - my_device.num_bytes_tmp_ker_buf;
+		// We can now completely fill the tmp_buf
+		memcpy(tmp_buffer + my_device.num_bytes_tmp_ker_buf, 
+				my_device.all_registered_peripherals[index_of_assigned_peripheral].input_ker_buf,
+				bytes_left);
+		// At this point the tmp_buf is ready to be sent to the peripheral
+		write_into_input_reg(tmp_buffer);
+		// We can clear the peripheral's tmp_ker_buf for future usage
+		memset(my_device.tmp_ker_buf, 0, sizeof(my_device.tmp_ker_buf));
+	}
+
+	/**
+	 * At this point we have handled the possibility of residual data from previous writes. we can now
+	 * complete the copy of all the remaining data inside input_ker_buf but we need to be careful, 
+	 * we can only send 4 bytes at a time
+	*/
+	// we can calculate all the parameters
+	int num_of_write_cycles;
+	if (my_device.num_bytes_tmp_ker_buf > 0)
+	{
+		// if we have copied data from two buffers we need to consider an offset
+		offset = my_device.num_bytes_tmp_ker_buf;
+		// we can now reset the peripheral buffer data for future usage
+		my_device.num_bytes_tmp_ker_buf = 0;
+		remaining_bytes_to_be_sent = len - offset;
+		// now we can check if all the data will be copied without problems
+		num_of_write_cycles = remaining_bytes_to_be_sent / byte_alignment;
+		// we can also check if we will be able to copy all the data without the usage of the tmp_ker_buf
+		remaining_bytes = remaining_bytes_to_be_sent % byte_alignment;
+	} else {
+		// Here we don't have to consider any offset and we don't have to reset any peripheral variable
+		num_of_write_cycles = len / byte_alignment;
+		remaining_bytes = len % byte_alignment;
+	}
+	// We can now copy everything
+	while (num_of_write_cycles != 0)
+	{
+		memcpy(tmp_buffer, my_device.all_registered_peripherals[index_of_assigned_peripheral].input_ker_buf + offset, 4);
+		write_into_input_reg(tmp_buffer);
+		offset += 4;
+		num_of_write_cycles--;
+	}
+	/**
+	 * At this point the last problem we have is: do we have some remaining data to be put inside the
+	 * peripheral internal tmp_ker_buf buffer? Let's find out
+	*/
+	if (remaining_bytes)
+	{
+		// we still have remaining_bytes that must be copied inside the tmp_ker_buf buffer
+		memcpy(my_device.all_registered_peripherals[index_of_assigned_peripheral].tmp_ker_buf,
+		my_device.all_registered_peripherals[index_of_assigned_peripheral].input_ker_buf + offset, remaining_bytes);
+	}
+	// Are we over?
+	// Maybe we can also clean the internal buffer
+	memset(my_device.all_registered_peripherals[index_of_assigned_peripheral].input_ker_buf, 0, 
+		sizeof(my_device.all_registered_peripherals[index_of_assigned_peripheral].input_ker_buf));
+	// Based on the the variable setted at the beginning of the function, we can return how many bytes we copied
+	if (internal_buffer_too_small)
+		return BUF_SIZE;
 	return len;
+}
+
+int peripheral_array_access(struct file * filep)
+{
+	mutex_lock(&my_device.lock);
+	pr_info("preso il controllo del mutex -> peripheral_array_access\n");
+	// A questo punto il thread ha accesso esclusivo all'array delle periferiche
+	int found = 0;
+	int index_assigned = 0;
+	for (int i = 0; i < my_device.count; i++)
+	{
+		pr_info("guardo la periferica numero %d \n", i);
+		if (my_device.all_registered_peripherals[i].peripheral_available == AVAILABLE)
+		{
+			// Ne abbiamo trovata una, e' nostra
+			pr_info("la periferica %d e' disponiible \n", i);
+			my_device.all_registered_peripherals[i].peripheral_available = NOT_AVAILABLE;
+			index_assigned = i;
+			filep->private_data = (void *)(uintptr_t)i;
+			found = 1;
+			// We also must reset it
+			writel((uint32_t)1, my_device.all_registered_peripherals[i].command);
+			break;
+		}
+	}
+	mutex_unlock(&my_device.lock);
+	pr_info("sto per restituire, found vale %d ", found);
+	// If found == 0 than all the peripherals are already assigned
+	if (found == 0)
+		return -EBUSY;
+	else
+		return index_assigned;
+}
+
+int peripheral_release(struct file * filep)
+{
+	mutex_lock(&my_device.lock);
+	pr_info("Lock acquired -> peripheral release \n");
+	int peripheral_index = (int)(uintptr_t)filep->private_data;
+	my_device.all_registered_peripherals[peripheral_index].peripheral_available = AVAILABLE;
+	writel((uint32_t)1, my_device.all_registered_peripherals[peripheral_index].command);
+	mutex_unlock(&my_device.lock);
+	return 1;
 }
 
 /**
@@ -271,7 +454,11 @@ static int ketchup_driver_probe(struct platform_device *pdev)
 	lp->input = lp->base_addr + 12;
 	lp->command = lp->base_addr + 16;
 	lp->output_base = lp->base_addr + 20;
-	mutex_init(&lp->lock);
+	lp->peripheral_available = AVAILABLE;
+	lp->num_bytes_tmp_ker_buf = 0;
+	// preparing the two buffers
+	memset(lp->input_ker_buf, 0, sizeof(lp->input_ker_buf));
+	memset(lp->tmp_ker_buf, 0, sizeof(lp->tmp_ker_buf));
 
 	#ifdef DEBUG
 	pr_info("ketchup_peripheral\n");
@@ -281,6 +468,7 @@ static int ketchup_driver_probe(struct platform_device *pdev)
 	pr_info("INPUT_ADDRESS: 0x%08x\n", lp->input);
 	pr_info("COMMAND_ADDRESS: 0x%08x\n", lp->command);	
 	pr_info("OUTPUT_BASE_ADDRESS: 0x%08x\n", lp->output_base);
+	pr_info("PERIPHERAL STATUS: %d\n", lp->peripheral_available);
 	#endif
 	
 	/**
@@ -381,16 +569,24 @@ static int __init ketchup_driver_init(void)
 		return -1;
 	}
 
-	// control, command
+	// control, command, current_usage
 	if (device_create_file(my_device.test_device, &dev_attr_control) < 0)
 	{
-		pr_info("Device attribute control creation failed\n");
+		pr_err("Device attribute control creation failed\n");
 	}
 
 	if (device_create_file(my_device.test_device, &dev_attr_command) < 0)
 	{
-		pr_info("Device attribute command creation failed\n");
+		pr_err("Device attribute command creation failed\n");
 	}
+
+	if (device_create_file(my_device.test_device, &dev_attr_current_usage) < 0)
+	{
+		pr_err("Device attribute current_usage creation failed\n");
+	}
+
+	// Initializing the mutex in for the array access
+	mutex_init(&my_device.lock);
 
 	return platform_driver_register(&ketchup_driver_driver);
 }
@@ -403,6 +599,7 @@ static void __exit ketchup_driver_exit(void)
 	cdev_del(&my_device.c_dev);
 	device_remove_file(my_device.test_device, &dev_attr_control);
 	device_remove_file(my_device.test_device, &dev_attr_command);
+	device_remove_file(my_device.test_device, &dev_attr_current_usage);
 	device_destroy(my_device.driver_class, my_device.first);
 	class_destroy(my_device.driver_class);
 	platform_driver_unregister(&ketchup_driver_driver);
