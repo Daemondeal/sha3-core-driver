@@ -74,6 +74,7 @@ void kc_sha3_final(kc_sha3_context *context, uint8_t *digest, uint32_t *digest_l
             return;
         }
         remaining_data -= data_read;
+        digest_ptr += data_read;
     }
 }
 
