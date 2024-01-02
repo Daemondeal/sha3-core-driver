@@ -227,18 +227,19 @@ static ssize_t dev_read(struct file *fil, char *buf, size_t len, loff_t *off)
 	return 0;
 }
 
-void write_into_input_reg(char temporary_buffer[])
+void write_into_input_reg(char temporary_buffer[], size_t buffer_size, int index)
 {
 	uint32_t final_value = 0;
 	uint32_t tmp;
+	int byte_alignment = 4;
 	for (int i = 0; i < byte_alignment; i++)
 	{
 		tmp = temporary_buffer[i];
 		final_value |= tmp << ((3-i)*8); 
 	}
-	writel(final_value, my_device.all_registered_peripherals[index_of_assigned_peripheral].input);	
+	writel(final_value, my_device.all_registered_peripherals[index].input);	
 	// we clean also clean the temporary buffer
-	memset(temporary_buffer, 0, sizeof(temporary_buffer));
+	memset(temporary_buffer, 0, buffer_size);
 }
 
 static ssize_t dev_write(struct file *filep, const char *buf, size_t len, loff_t *off)
@@ -264,7 +265,6 @@ static ssize_t dev_write(struct file *filep, const char *buf, size_t len, loff_t
 	int byte_alignment = 4;
 	int offset = 0;
 	int remaining_bytes_to_be_sent = 0;
-	int not_divisible_by_four = 0;
 	// This variable will be used in case the tmp_ker_buff will be necessary
 	int remaining_bytes = 0;
 	// Now we want to bring inside kernel space the new write data, but how much data the user is passing?
@@ -277,7 +277,7 @@ static ssize_t dev_write(struct file *filep, const char *buf, size_t len, loff_t
 	} else 
 	{
 		// if we are here it means that we have less than BUF_SIZE to copy, we can use len
-		(my_device.all_registered_peripherals[index_of_assigned_peripheral].input_ker_buf,
+		copy_from_user(my_device.all_registered_peripherals[index_of_assigned_peripheral].input_ker_buf,
 						buf, len);
 	}
 
@@ -285,27 +285,28 @@ static ssize_t dev_write(struct file *filep, const char *buf, size_t len, loff_t
 	 * Now inside the peripheral ker_buf buffer we have the data the user wants us to send to the peripheral
 	 * We can begin the copy but first we need to handle the potential presence of data inside the tmp_ker_buf 
 	*/
-	if (my_device.num_bytes_tmp_ker_buf > 0)
+	if (my_device.all_registered_peripherals[index_of_assigned_peripheral].num_bytes_tmp_ker_buf > 0)
 	{
 		/**
 		 * If we are here we have some data left from a previous write, we can copy it without problems since
 		 * the tmp_buffer size is 4 and at max the peripheral tmp_ker_buf has 3 bytes
 		*/
 		memcpy(tmp_buffer, my_device.all_registered_peripherals[index_of_assigned_peripheral].tmp_ker_buf,
-		    my_device.num_bytes_tmp_ker_buf);
+		    my_device.all_registered_peripherals[index_of_assigned_peripheral].num_bytes_tmp_ker_buf);
 		/**
 		 * After the copy inside tmp_buffer we'll still have some space empty, but how much? It depends from the 
 		 * value of num_bytes_tmp_ker_buf
 		*/
-		int bytes_left = byte_alignment - my_device.num_bytes_tmp_ker_buf;
+		int bytes_left = byte_alignment - my_device.all_registered_peripherals[index_of_assigned_peripheral].num_bytes_tmp_ker_buf;
 		// We can now completely fill the tmp_buf
-		memcpy(tmp_buffer + my_device.num_bytes_tmp_ker_buf, 
+		memcpy(tmp_buffer + my_device.all_registered_peripherals[index_of_assigned_peripheral].num_bytes_tmp_ker_buf, 
 				my_device.all_registered_peripherals[index_of_assigned_peripheral].input_ker_buf,
 				bytes_left);
 		// At this point the tmp_buf is ready to be sent to the peripheral
-		write_into_input_reg(tmp_buffer);
+		write_into_input_reg(tmp_buffer, sizeof(tmp_buffer), index_of_assigned_peripheral);
 		// We can clear the peripheral's tmp_ker_buf for future usage
-		memset(my_device.tmp_ker_buf, 0, sizeof(my_device.tmp_ker_buf));
+		memset(my_device.all_registered_peripherals[index_of_assigned_peripheral].tmp_ker_buf, 0, 
+				sizeof(my_device.all_registered_peripherals[index_of_assigned_peripheral].tmp_ker_buf));
 	}
 
 	/**
@@ -315,12 +316,12 @@ static ssize_t dev_write(struct file *filep, const char *buf, size_t len, loff_t
 	*/
 	// we can calculate all the parameters
 	int num_of_write_cycles;
-	if (my_device.num_bytes_tmp_ker_buf > 0)
+	if (my_device.all_registered_peripherals[index_of_assigned_peripheral].num_bytes_tmp_ker_buf > 0)
 	{
 		// if we have copied data from two buffers we need to consider an offset
-		offset = my_device.num_bytes_tmp_ker_buf;
+		offset = my_device.all_registered_peripherals[index_of_assigned_peripheral].num_bytes_tmp_ker_buf;
 		// we can now reset the peripheral buffer data for future usage
-		my_device.num_bytes_tmp_ker_buf = 0;
+		my_device.all_registered_peripherals[index_of_assigned_peripheral].num_bytes_tmp_ker_buf = 0;
 		remaining_bytes_to_be_sent = len - offset;
 		// now we can check if all the data will be copied without problems
 		num_of_write_cycles = remaining_bytes_to_be_sent / byte_alignment;
@@ -335,7 +336,7 @@ static ssize_t dev_write(struct file *filep, const char *buf, size_t len, loff_t
 	while (num_of_write_cycles != 0)
 	{
 		memcpy(tmp_buffer, my_device.all_registered_peripherals[index_of_assigned_peripheral].input_ker_buf + offset, 4);
-		write_into_input_reg(tmp_buffer);
+		write_into_input_reg(tmp_buffer, sizeof(tmp_buffer), index_of_assigned_peripheral);
 		offset += 4;
 		num_of_write_cycles--;
 	}
@@ -348,6 +349,8 @@ static ssize_t dev_write(struct file *filep, const char *buf, size_t len, loff_t
 		// we still have remaining_bytes that must be copied inside the tmp_ker_buf buffer
 		memcpy(my_device.all_registered_peripherals[index_of_assigned_peripheral].tmp_ker_buf,
 		my_device.all_registered_peripherals[index_of_assigned_peripheral].input_ker_buf + offset, remaining_bytes);
+		// We also need to set how many bytes are present in the tmp_ker_buf
+		my_device.all_registered_peripherals[index_of_assigned_peripheral].num_bytes_tmp_ker_buf = remaining_bytes;
 	}
 	// Are we over?
 	// Maybe we can also clean the internal buffer
