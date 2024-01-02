@@ -11,7 +11,10 @@
 #endif
 
 #if KETCHUP_LIB_MODE == KETCHUP_LIB_MODE_HARDWARE
-#error "CURRENTLY UNIMPLEMENTED"
+struct kc_sha3_context_s {
+    int fd;
+    uint32_t digest_length;
+};
 #endif
 
 #if KETCHUP_LIB_MODE == KETCHUP_LIB_MODE_OPENSSL 
@@ -27,6 +30,11 @@ struct kc_sha3_context_s {
 
 typedef enum kc_sha3_error_e {
     KC_ERR_NONE,
+    KC_ERR_BUSY,
+    // NOTE: This is not ideal, remove this after
+    //       the driver is fully defined and 
+    //       all possible errors have been enumerated
+    KC_ERR_OTHER 
 } kc_error;
 
 typedef struct kc_sha3_context_s kc_sha3_context;

@@ -8,6 +8,10 @@ CFLAGS       := -Wall -Werror
 LIBS         := 
 BINARY_NAME  := example.out
 
+# Peripheral Parameters
+SOURCES_HARDWARE := ./src/ketchup_lib_hardware.c
+CFLAGS_HARDWARE  := -D KETCHUP_LIB_MODE=0
+
 # OpenSSL Parameters
 LIBS_OPENSSL    := -lcrypto
 SOURCES_OPENSSL := ./src/ketchup_lib_openssl.c
@@ -29,7 +33,7 @@ $(BINARY_NAME): $(SOURCES)
 
 .PHONY: arm
 arm: 
-	@echo '### ERROR: arm target currently not supported'
+	$(ARM_CC) $(SOURCES) $(SOURCES_HARDWARE) -o $(BINARY_NAME).arm $(CFLAGS) $(CFLAGS_HARDWARE)
 
 
 # ARM OpenSSL Target
@@ -37,4 +41,8 @@ arm:
 arm_openssl: $(BINARY_NAME).arm_openssl
 
 $(BINARY_NAME).arm_openssl: $(SOURCES) 
-	$(ARM_CC) $(SOURCES) $(SOURCES_OPENSSL) -o $(BINARY_NAME).arm $(CFLAGS) -I$(ARM_INCLUDES_OPENSSL) $(ARM_LIBS_OPENSSL)
+	$(ARM_CC) $(SOURCES) $(SOURCES_OPENSSL) -o $(BINARY_NAME).arm_openssl $(CFLAGS) -I$(ARM_INCLUDES_OPENSSL) $(ARM_LIBS_OPENSSL)
+
+.PHONY: clean
+clean:
+	rm -rf ./*.out
