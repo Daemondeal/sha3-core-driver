@@ -14,6 +14,7 @@
 #include <linux/mutex.h>
 #include <linux/fs.h>
 #include <linux/errno.h>
+#include <linux/ioctl.h>
 #include "ketchup-driver.h"
 
 MODULE_LICENSE("GPL");
@@ -28,6 +29,7 @@ static struct file_operations fops = {
 	.write=dev_write,
 	.open=dev_open,
 	.release=dev_release,
+	.unlocked_ioctl=kekkac_ioctl,
 };
 
 static struct of_device_id ketchup_driver_of_match[] = {
@@ -63,11 +65,12 @@ struct ketchup_driver_local {
 	char tmp_ker_buf[3];
 	int num_bytes_tmp_ker_buf;
 	Availability peripheral_available;
+	Hash_size setted_hash_size;
 };
 
 static struct char_dev {
     struct class *driver_class;
-    dev_t first;
+    dev_t device;
     struct cdev c_dev;
     struct device *test_device;
     /**
@@ -82,6 +85,22 @@ static struct char_dev {
 	.count = 0
 };
 
+
+/**
+ * #define "ioctl name" __IOX("magic number","command number","argument type")
+ * where IOX can be :
+ * - “IO“: an ioctl with no parameters
+ * - “IOW“: an ioctl with write parameters (copy_from_user)
+ * - “IOR“: an ioctl with read parameters (copy_to_user)
+ * - “IOWR“: an ioctl with both write and read parameters
+ * The Magic Number is a unique number or character that will differentiate our set of ioctl calls 
+ * from the other ioctl calls. some times the major number for the device is used here.
+ * Command Number is the number that is assigned to the ioctl. This is used to differentiate the 
+ * commands from one another.
+ * The last is the type of data.
+*/
+#define WR_PERIPH_HASH_SIZE __IOW(MAJOR(my_device.device), 1, int32_t*)
+#define RD_PERIPH_HASH_SIZE __IOR(MAJOR(my_device.device), 2, int32_t*)
 
 /**
  * The various attributes that will pop up in /sys/class/CLASS_NAME/DRIVER_NAME/
@@ -135,6 +154,11 @@ static ssize_t read_control(struct device *dev, struct device_attribute *attr, c
 	return strlen(buf);
 }
 
+static long kekkac_ioctl(struct file *filp, unsigned int cmd, unsigned long arg){
+
+}
+
+
 // Writable, it's always zero, OTHERS_WRITABLE? BAD IDEA - kernel
 static DEVICE_ATTR(command, 0220, NULL, write_command);
 static ssize_t write_command(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
@@ -162,7 +186,7 @@ static ssize_t write_command(struct device *dev, struct device_attribute *attr, 
 }
 
 /**
- * TODO: implementation
+ * TODO: implementation, we want pid -> peripheral in use
 */
 static DEVICE_ATTR(current_usage, 0444, read_current_usage, NULL);
 static ssize_t read_current_usage(struct device *dev, struct device_attribute *attr, char *buf)
@@ -198,33 +222,78 @@ static int dev_release(struct inode *inod, struct file *fil)
 	return 0;
 }
 
-static ssize_t dev_read(struct file *fil, char *buf, size_t len, loff_t *off)
+static ssize_t dev_read(struct file *filep, char *buf, size_t len, loff_t *off)
 {
-	/*
-	if (result_ready)
-	{
-		result_ready = 0;
-		pr_info("Reading device rx: %d \n", (int)len);
-		int n = sprintf(ker_buf, "%d\n", result);
-		copy_to_user(buf, ker_buf, n);
-		pr_info("Returning %s rx: %d\n", ker_buf, n);
-		return n;
-	}
-	*/
 	#ifdef DEBUG
 	pr_info("dev_read called!\n");
 	#endif
-	pr_info("Printing all the available peripheral informations \n");
-	for (int i = 0; i < my_device.count; i++){
-		pr_info("Peripheral number: %d\n", i);
-		pr_info("BASE_ADDRESS: 0x%08x\n", my_device.all_registered_peripherals[i].base_addr);
-		pr_info("CONTROL_ADDRESS: 0x%08x\n",  my_device.all_registered_peripherals[i].control);
-		pr_info("STATUS_ADDRESS: 0x%08x\n",  my_device.all_registered_peripherals[i].status);
-		pr_info("INPUT_ADDRESS: 0x%08x\n",  my_device.all_registered_peripherals[i].input);
-		pr_info("COMMAND_ADDRESS: 0x%08x\n",  my_device.all_registered_peripherals[i].command);	
-		pr_info("OUTPUT_BASE_ADDRESS: 0x%08x\n",  my_device.all_registered_peripherals[i].output_base);
+	/**
+	 * Now we handle the read. When the user reads we need to:
+	 * 1. Set this write as the last one
+	 * 2. Copy data from the tmp_ker_buf into the input register 
+	 * 3. Start polling the peripheral on the status register
+	 * 4. Once the output is ready, buffer it and return it to the user
+	 * 5. Reset the peripheral
+	 * 6. Set the same hash size as before in control
+	*/
+	// Let's set this as the last write, we need to craft a specific value
+	uint32_t control_register_value = 0;
+	uint32_t tmp;
+	int index_of_assigned_peripheral = (int)(uintptr_t)filep->private_data;
+	char buffer[4] = {0};
+	int num_of_output_regs = my_device.all_registered_peripherals[index_of_assigned_peripheral].setted_hash_size/32;
+	uint8_t output_buffer[512/8] = {0};
+	uint32_t output_packed[512/32] = {0};
+	/**
+	 * bits [5:4] must be the same as the ones in setted_hash_size
+	 * bit [2] must be 1
+	 * bits [1:0] must be equal to num_bytes_tmp_ker_buf
+	 * The following is a sketchy method  but in theory it should work. 
+	*/
+	tmp = my_device.all_registered_peripherals[index_of_assigned_peripheral].setted_hash_size;
+	pr_info("dev_read: tmp_value = %u\n", tmp);
+	control_register_value |= tmp << 4;
+	// The bit [2] must be 1
+	tmp = 1;
+	control_register_value |= tmp << 2;
+	// We need to set the bits [1:0] with the number of bytes
+	tmp = my_device.all_registered_peripherals[index_of_assigned_peripheral].num_bytes_tmp_ker_buf;
+	control_register_value |= tmp;
+	// We can now write into the control register
+	writel(control_register_value, my_device.all_registered_peripherals[index_of_assigned_peripheral].control);
+	// We need to check if there is some residual data to copy
+	if (my_device.all_registered_peripherals[index_of_assigned_peripheral].num_bytes_tmp_ker_buf > 0)
+	{
+		// We have bytes to copy
+		memcpy(buffer, my_device.all_registered_peripherals[index_of_assigned_peripheral].tmp_ker_buf,
+			my_device.all_registered_peripherals[index_of_assigned_peripheral].num_bytes_tmp_ker_buf);
+	} 
+	// we can now send data to the input register
+	write_into_input_reg(buffer, sizeof(buffer), index_of_assigned_peripheral);
+
+	// Now we need to poll the peripheral, is it possible that some other bits flip? I'm supposing to have a constant 0
+	while (!readl(my_device.all_registered_peripherals[index_of_assigned_peripheral].status));
+	
+	// When we get here we have the output, we now need to loop depending from the hash size
+	for (uint32_t i = 0; i < num_of_output_regs; i++)
+	{
+		uint32_t value = readl(my_device.all_registered_peripherals[index_of_assigned_peripheral].output + 4*i);
+		output_buffer[i*4 + 0] = (value >> 24) & 0xFF;
+		output_buffer[i*4 + 1] = (value >> 16) & 0xFF;
+		output_buffer[i*4 + 2] = (value >> 8) & 0xFF;
+		output_buffer[i*4 + 3] = value & 0xFF;
 	}
-	return 0;
+
+	copy_to_user(buf, output_buffer, sizeof(output_buffer));
+	// Resetting the peripheral
+	writel((uint32_t)1, my_device.all_registered_peripherals[peripheral_index].command);
+	// Setting the same hash_size as the one just concluded
+	tmp = my_device.all_registered_peripherals[index_of_assigned_peripheral].setted_hash_size;
+	control_register_value = 0;
+	control_register_value |= tmp << 4;
+	writel(control_register_value, my_device.all_registered_peripherals[index_of_assigned_peripheral].control);
+
+	return sizeof(output_buffer);
 }
 
 void write_into_input_reg(char temporary_buffer[], size_t buffer_size, int index)
@@ -534,7 +603,7 @@ static int __init ketchup_driver_init(void)
 	 * - the number of minor numbers required
 	 * - the name of the associated device or driver
 	*/
-	if (alloc_chrdev_region(&my_device.first, 0, 1, DRIVER_NAME) < 0)
+	if (alloc_chrdev_region(&my_device.device, 0, 1, DRIVER_NAME) < 0)
 	{
 		return -1;
 	}
@@ -543,7 +612,7 @@ static int __init ketchup_driver_init(void)
 	if (my_device.driver_class == NULL)
 	{
 		pr_info("Create class failed \n");
-		unregister_chrdev_region(my_device.first, 1);
+		unregister_chrdev_region(my_device.device, 1);
 		return -1;
 	}
 
@@ -552,23 +621,23 @@ static int __init ketchup_driver_init(void)
 	*/
 	my_device.driver_class->devnode = kekkac_accel_devnode;
 
-	my_device.test_device = device_create(my_device.driver_class, NULL, my_device.first, NULL, "ketchup_driver");
+	my_device.test_device = device_create(my_device.driver_class, NULL, my_device.device, NULL, "ketchup_driver");
 	if (my_device.test_device == NULL)
 	{
 		pr_info("Create device failed \n");
 		class_destroy(my_device.driver_class);
-		unregister_chrdev_region(my_device.first, 1);
+		unregister_chrdev_region(my_device.device, 1);
 		return -1;
 	}
 
 	cdev_init(&my_device.c_dev, &fops);
 
-	if (cdev_add(&my_device.c_dev, my_device.first, 1) == -1)
+	if (cdev_add(&my_device.c_dev, my_device.device, 1) == -1)
 	{
 		pr_info("create character device failed\n");
-		device_destroy(my_device.driver_class, my_device.first);
+		device_destroy(my_device.driver_class, my_device.device);
 		class_destroy(my_device.driver_class);
-		unregister_chrdev_region(my_device.first, 1);
+		unregister_chrdev_region(my_device.device, 1);
 		return -1;
 	}
 
@@ -603,7 +672,7 @@ static void __exit ketchup_driver_exit(void)
 	device_remove_file(my_device.test_device, &dev_attr_control);
 	device_remove_file(my_device.test_device, &dev_attr_command);
 	device_remove_file(my_device.test_device, &dev_attr_current_usage);
-	device_destroy(my_device.driver_class, my_device.first);
+	device_destroy(my_device.driver_class, my_device.device);
 	class_destroy(my_device.driver_class);
 	platform_driver_unregister(&ketchup_driver_driver);
 	printk(KERN_ALERT "Goodbye module world.\n");
