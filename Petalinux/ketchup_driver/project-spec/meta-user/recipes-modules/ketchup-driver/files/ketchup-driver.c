@@ -33,7 +33,7 @@ static struct file_operations fops = {
 };
 
 static struct of_device_id ketchup_driver_of_match[] = {
-	{ .compatible = "xlnx,KetchupPeripheralParametrized-1.0", },
+	{ .compatible = "xlnx,KetchupPeripheral-1.0", },
 	{ /* end of list */ },
 };
 MODULE_DEVICE_TABLE(of, ketchup_driver_of_match);
