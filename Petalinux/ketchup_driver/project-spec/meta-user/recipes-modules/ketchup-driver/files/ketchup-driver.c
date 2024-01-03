@@ -28,8 +28,8 @@ static struct file_operations fops = {
 	.read=dev_read,
 	.write=dev_write,
 	.open=dev_open,
-	.release=dev_release,
 	.unlocked_ioctl=kekkac_ioctl,
+	.release=dev_release,
 };
 
 static struct of_device_id ketchup_driver_of_match[] = {
@@ -98,9 +98,49 @@ static struct char_dev {
  * Command Number is the number that is assigned to the ioctl. This is used to differentiate the 
  * commands from one another.
  * The last is the type of data.
+ * #define WR_SIZE _IOW(MAJOR(my_device.device), 1, uint32_t*)
+#define RD_SIZE _IOR(MAJOR(my_device.device), 2, uint32_t*)
 */
-#define WR_PERIPH_HASH_SIZE __IOW(MAJOR(my_device.device), 1, int32_t*)
-#define RD_PERIPH_HASH_SIZE __IOR(MAJOR(my_device.device), 2, int32_t*)
+#define WR_PERIPH_HASH_SIZE _IOW('ketchup', 1, uint32_t*)
+#define RD_PERIPH_HASH_SIZE _IOR('ketchup', 2, uint32_t*)
+static long kekkac_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+{
+	uint32_t command;
+	int index_of_assigned_peripheral = (int)(uintptr_t)filp->private_data;
+		switch (cmd)
+	{
+	case WR_PERIPH_HASH_SIZE:
+		// The command is the hash size we want to write
+		if (copy_from_user(&command, (int32_t*) arg, sizeof(command)))
+		{
+			pr_err("kekkac_ioctl: error copying the command\n");
+			return -1;
+		}
+		if (command < 0 || command > 3)
+		{
+			pr_err("kekkac_ioctl: invalid hash size!\n");
+			return -EINVAL;
+		}
+		my_device.all_registered_peripherals[index_of_assigned_peripheral].setted_hash_size = command;
+		command = command << 4;
+		writel(command, my_device.all_registered_peripherals[index_of_assigned_peripheral].control);
+		break;
+	case RD_PERIPH_HASH_SIZE:
+		// We want to return the value of the hash size
+		command = my_device.all_registered_peripherals[index_of_assigned_peripheral].setted_hash_size;
+		if (copy_to_user((uint32_t *)arg, &command, sizeof(command)))
+		{
+			pr_err("keccak_ioctl: error copying data to user space");
+			return -1;
+		}
+		break;
+	default:
+		pr_info("default\n");
+		return -EINVAL;
+	}
+	return 0;
+}
+
 
 /**
  * The various attributes that will pop up in /sys/class/CLASS_NAME/DRIVER_NAME/
@@ -153,11 +193,6 @@ static ssize_t read_control(struct device *dev, struct device_attribute *attr, c
 	}
 	return strlen(buf);
 }
-
-static long kekkac_ioctl(struct file *filp, unsigned int cmd, unsigned long arg){
-
-}
-
 
 // Writable, it's always zero, OTHERS_WRITABLE? BAD IDEA - kernel
 static DEVICE_ATTR(command, 0220, NULL, write_command);
@@ -277,7 +312,7 @@ static ssize_t dev_read(struct file *filep, char *buf, size_t len, loff_t *off)
 	// When we get here we have the output, we now need to loop depending from the hash size
 	for (uint32_t i = 0; i < num_of_output_regs; i++)
 	{
-		uint32_t value = readl(my_device.all_registered_peripherals[index_of_assigned_peripheral].output + 4*i);
+		uint32_t value = readl(my_device.all_registered_peripherals[index_of_assigned_peripheral].output_base + 4*i);
 		output_buffer[i*4 + 0] = (value >> 24) & 0xFF;
 		output_buffer[i*4 + 1] = (value >> 16) & 0xFF;
 		output_buffer[i*4 + 2] = (value >> 8) & 0xFF;
@@ -286,7 +321,7 @@ static ssize_t dev_read(struct file *filep, char *buf, size_t len, loff_t *off)
 
 	copy_to_user(buf, output_buffer, sizeof(output_buffer));
 	// Resetting the peripheral
-	writel((uint32_t)1, my_device.all_registered_peripherals[peripheral_index].command);
+	writel((uint32_t)1, my_device.all_registered_peripherals[index_of_assigned_peripheral].command);
 	// Setting the same hash_size as the one just concluded
 	tmp = my_device.all_registered_peripherals[index_of_assigned_peripheral].setted_hash_size;
 	control_register_value = 0;

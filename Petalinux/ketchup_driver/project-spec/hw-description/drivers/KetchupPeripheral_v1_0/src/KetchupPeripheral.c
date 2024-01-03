@@ -1,6 +1,6 @@
 
 
 /***************************** Include Files *******************************/
-#include "KetchupPeripheralParametrized.h"
+#include "KetchupPeripheral.h"
 
 /************************** Function Definitions ***************************/
