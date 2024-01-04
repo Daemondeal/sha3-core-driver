@@ -107,40 +107,37 @@ static long kekkac_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 {
 	uint32_t command;
 	int index_of_assigned_peripheral = (int)(uintptr_t)filp->private_data;
+	struct ketchup_driver_local * curr_device = &my_device.all_registered_peripherals[index_of_assigned_peripheral];
 	#ifdef DEBUG
 	pr_info("kekkac_ioctl called!");
 	pr_info("kekkac_ioctl: we are working on the peripheral with index %d\n", index_of_assigned_peripheral);
 	#endif
-	switch (cmd)
-	{
-	case WR_PERIPH_HASH_SIZE:
-		// The command is the hash size we want to write
-		if (copy_from_user(&command, (int32_t*) arg, sizeof(command)))
-		{
-			pr_err("kekkac_ioctl: error copying the command\n");
-			return -1;
-		}
-		if (command < 0 || command > 3)
-		{
-			pr_err("kekkac_ioctl: invalid hash size!\n");
+	switch (cmd) {
+		case WR_PERIPH_HASH_SIZE:
+			// The command is the hash size we want to write
+			if (copy_from_user(&command, (int32_t*) arg, sizeof(command))) {
+				pr_err("kekkac_ioctl: error copying the command\n");
+				return -1;
+			}
+			if (command < 0 || command > 3) {
+				pr_err("kekkac_ioctl: invalid hash size!\n");
+				return -EINVAL;
+			}
+			curr_device->setted_hash_size = command;
+			command = command << 4;
+			writel(command, curr_device->control);
+			break;
+		case RD_PERIPH_HASH_SIZE:
+			// We want to return the value of the hash size
+			command = curr_device->setted_hash_size;
+			if (copy_to_user((uint32_t *)arg, &command, sizeof(command))) {
+				pr_err("keccak_ioctl: error copying data to user space");
+				return -1;
+			}
+			break;
+		default:
+			pr_info("default\n");
 			return -EINVAL;
-		}
-		my_device.all_registered_peripherals[index_of_assigned_peripheral].setted_hash_size = command;
-		command = command << 4;
-		writel(command, my_device.all_registered_peripherals[index_of_assigned_peripheral].control);
-		break;
-	case RD_PERIPH_HASH_SIZE:
-		// We want to return the value of the hash size
-		command = my_device.all_registered_peripherals[index_of_assigned_peripheral].setted_hash_size;
-		if (copy_to_user((uint32_t *)arg, &command, sizeof(command)))
-		{
-			pr_err("keccak_ioctl: error copying data to user space");
-			return -1;
-		}
-		break;
-	default:
-		pr_info("default\n");
-		return -EINVAL;
 	}
 	return 0;
 }
@@ -163,8 +160,10 @@ static ssize_t read_control(struct device *dev, struct device_attribute *attr, c
 {
 	uint32_t mask = 0x30;  // 0x110000
 	int len = 0;
+	struct ketchup_driver_local * curr_device;
 	for (int index = 0; index < my_device.count; index++){
-		uint32_t control_register_value = readl(my_device.all_registered_peripherals[index].control);
+		curr_device = &my_device.all_registered_peripherals[index];
+		uint32_t control_register_value = readl(curr_device->control);
 		uint32_t extracted_bits = (control_register_value & mask) >> 4;
 		pr_info("read_control called on the peripheral %d\n", index);
 		// 00 for 512, 01 for 384, 10 for 256 and 11 for 224
@@ -198,14 +197,19 @@ static ssize_t read_control(struct device *dev, struct device_attribute *attr, c
 	return strlen(buf);
 }
 
-// Writable, it's always zero, OTHERS_WRITABLE? BAD IDEA - kernel
+/**
+ * Writable, it's always zero, OTHERS_WRITABLE? BAD IDEA - kernel
+ * I'm also resetting the hash size to 512 don't ask me why, probably a bad idea since i'm changing
+ * the meaning of the control register but i'm desperate
+*/
 static DEVICE_ATTR(command, 0220, NULL, write_command);
 static ssize_t write_command(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
 {
 	int peripheral;
-	int reset;
-	struct ketchup_driver_local selected_peripheral;
+	uint32_t reset;
+	struct ketchup_driver_local* curr_device;
 	sscanf(buf, "%d,%d", &peripheral, &reset);
+	pr_info("write_command called!\n");
 	pr_info("peripheral: %d\n", peripheral);
 	pr_info("reset: %d\n", reset);
 	if (peripheral < 0 || peripheral > NUM_INSTANCES - 1)
@@ -219,7 +223,10 @@ static ssize_t write_command(struct device *dev, struct device_attribute *attr, 
 		return strlen(buf);
 	}
 	// At this point we have a valid index and a correct command
-	writel((uint32_t)1, my_device.all_registered_peripherals[peripheral].command);
+	curr_device = &my_device.all_registered_peripherals[peripheral];
+	writel((uint32_t)reset, curr_device->command);
+	// Let's also reset the hash size to a default 512
+	//writel((uint32_t))
 	pr_info("Peripheral number %d reset completed\n", peripheral);
 	return strlen(buf);
 }
@@ -280,10 +287,13 @@ static ssize_t dev_read(struct file *filep, char *buf, size_t len, loff_t *off)
 	uint32_t control_register_value = 0;
 	uint32_t tmp;
 	int index_of_assigned_peripheral = (int)(uintptr_t)filep->private_data;
+	struct ketchup_driver_local * curr_device = &my_device.all_registered_peripherals[index_of_assigned_peripheral];
 	char buffer[4] = {0};
 	int num_of_output_regs = 0;
+	// Variable needed to clear the peripheral at the end of the function
+	uint32_t reset = 1;
 	// We need to know the hash size
-	switch (my_device.all_registered_peripherals[index_of_assigned_peripheral].setted_hash_size)
+	switch (curr_device->setted_hash_size)
 	{
 		case HASH_512:
 			num_of_output_regs = 512/32;
@@ -311,24 +321,23 @@ static ssize_t dev_read(struct file *filep, char *buf, size_t len, loff_t *off)
 	 * bits [1:0] must be equal to num_bytes_tmp_ker_buf
 	 * The following is a sketchy method  but in theory it should work. 
 	*/
-	tmp = my_device.all_registered_peripherals[index_of_assigned_peripheral].setted_hash_size;
+	tmp = curr_device->setted_hash_size;
 	pr_info("dev_read: tmp_value = %u\n", tmp);
 	control_register_value |= tmp << 4;
 	// The bit [2] must be 1
 	tmp = 1;
 	control_register_value |= tmp << 2;
 	// We need to set the bits [1:0] with the number of bytes
-	tmp = my_device.all_registered_peripherals[index_of_assigned_peripheral].num_bytes_tmp_ker_buf;
+	tmp = curr_device->num_bytes_tmp_ker_buf;
 	control_register_value |= tmp;
 	// We can now write into the control register
 	pr_info("dev_read: sending the last input command to the peripheral\n");
-	writel(control_register_value, my_device.all_registered_peripherals[index_of_assigned_peripheral].control);
+	writel(control_register_value, curr_device->control);
 	// We need to check if there is some residual data to copy
-	if (my_device.all_registered_peripherals[index_of_assigned_peripheral].num_bytes_tmp_ker_buf > 0)
+	if (curr_device->num_bytes_tmp_ker_buf > 0)
 	{
 		// We have bytes to copy
-		memcpy(buffer, my_device.all_registered_peripherals[index_of_assigned_peripheral].tmp_ker_buf,
-			my_device.all_registered_peripherals[index_of_assigned_peripheral].num_bytes_tmp_ker_buf);
+		memcpy(buffer, curr_device->tmp_ker_buf, curr_device->num_bytes_tmp_ker_buf);
 		pr_info("dev_read: we have some residual data in tmp_ker_buf that must be copied into the input register\n");
 	} 
 	// we can now send data to the input register
@@ -339,7 +348,7 @@ static ssize_t dev_read(struct file *filep, char *buf, size_t len, loff_t *off)
 	//while ((readl(my_device.all_registered_peripherals[index_of_assigned_peripheral].status) & 1) == 0);
 	int flag = 1;
 	for (int i = 0; i < 100; i++) {
-  		if ((readl(my_device.all_registered_peripherals[index_of_assigned_peripheral].status) & 1) != 0) { 
+  		if ((readl(curr_device->status) & 1) != 0) { 
 			flag = 0; 
 			break; 
 		}
@@ -350,7 +359,7 @@ static ssize_t dev_read(struct file *filep, char *buf, size_t len, loff_t *off)
 	// When we get here we have the output, we now need to loop depending from the hash size
 	for (uint32_t i = 0; i < num_of_output_regs; i++)
 	{
-		uint32_t value = readl(my_device.all_registered_peripherals[index_of_assigned_peripheral].output_base + 4*i);
+		uint32_t value = readl(curr_device->output_base + 4*i);
 		pr_info("dev_read: inside the for loop we are reading value = %08x\n", value);
 		output_buffer[i*4 + 0] = (value >> 24) & 0xFF;
 		output_buffer[i*4 + 1] = (value >> 16) & 0xFF;
@@ -364,12 +373,20 @@ static ssize_t dev_read(struct file *filep, char *buf, size_t len, loff_t *off)
 	}
 	pr_info("dev_read: we can now reset the peripheral, we will return sizeof(output_buffer) = %d\n", sizeof(output_buffer));
 	// Resetting the peripheral
-	writel((uint32_t)1, my_device.all_registered_peripherals[index_of_assigned_peripheral].command);
-	// Setting the same hash_size as the one just concluded
-	tmp = my_device.all_registered_peripherals[index_of_assigned_peripheral].setted_hash_size;
+	/**
+	 * TODO: questionable way of resetting, in theory it should be ok but try with an explicit variable
+	*/
+	writel(reset, curr_device->command);
+	/**
+	 * After clearing we need to set the same hash size that was setted for the previous hash.
+	 * How? We get the previous value, so 0,1,2,3
+	 * We simply write that value inside control after shifting it by 4
+	*/
+	tmp = curr_device->setted_hash_size;
+	pr_info("dev_read: tmp = %d\n", tmp);
 	control_register_value = 0;
 	control_register_value |= tmp << 4;
-	writel(control_register_value, my_device.all_registered_peripherals[index_of_assigned_peripheral].control);
+	writel(control_register_value, curr_device->control);
 
 	return sizeof(output_buffer);
 }
@@ -379,13 +396,14 @@ void write_into_input_reg(char temporary_buffer[], size_t buffer_size, int index
 	uint32_t final_value = 0;
 	uint32_t tmp;
 	int byte_alignment = 4;
+	struct ketchup_driver_local * curr_device = &my_device.all_registered_peripherals[index];
 	pr_info("write_into_input_reg called!\n");
 	for (int i = 0; i < byte_alignment; i++)
 	{
 		tmp = temporary_buffer[i];
 		final_value |= tmp << ((3-i)*8); 
 	}
-	writel(final_value, my_device.all_registered_peripherals[index].input);	
+	writel(final_value, curr_device->input);	
 	// we clean also clean the temporary buffer
 	memset(temporary_buffer, 0, buffer_size);
 }
@@ -405,6 +423,7 @@ static ssize_t dev_write(struct file *filep, const char *buf, size_t len, loff_t
 	*/
 	// We need to retrieve from the file descriptor the peripheral index assigned
 	int index_of_assigned_peripheral = (int)(uintptr_t)filep->private_data;
+	struct ketchup_driver_local * curr_device = &my_device.all_registered_peripherals[index_of_assigned_peripheral];
 	pr_info("dev_write: Assigned peripheral given the file descriptor: %d\n", index_of_assigned_peripheral);
 	// This variable is needed at the end to know how many bytes we copied
 	int internal_buffer_too_small = 0;
@@ -420,7 +439,7 @@ static ssize_t dev_write(struct file *filep, const char *buf, size_t len, loff_t
 	if (len > BUF_SIZE)
 	{
 		// in this case we need to truncate, we can't copy it all in one read
-		if (copy_from_user(my_device.all_registered_peripherals[index_of_assigned_peripheral].input_ker_buf, buf, BUF_SIZE))
+		if (copy_from_user(curr_device->input_ker_buf, buf, BUF_SIZE))
 		{
 			pr_err("dev_write: error copying the user buffer in kernel space\n");
 			return -EAGAIN;
@@ -430,7 +449,7 @@ static ssize_t dev_write(struct file *filep, const char *buf, size_t len, loff_t
 	} else 
 	{
 		// if we are here it means that we have less than BUF_SIZE to copy, we can use len
-		if(copy_from_user(my_device.all_registered_peripherals[index_of_assigned_peripheral].input_ker_buf, buf, len))
+		if(copy_from_user(curr_device->input_ker_buf, buf, len))
 		{
 			pr_err("dev_write: error copying the user buffer in kernel space \n");
 			return -EAGAIN;
@@ -442,29 +461,26 @@ static ssize_t dev_write(struct file *filep, const char *buf, size_t len, loff_t
 	 * Now inside the peripheral ker_buf buffer we have the data the user wants us to send to the peripheral
 	 * We can begin the copy but first we need to handle the potential presence of data inside the tmp_ker_buf 
 	*/
-	if (my_device.all_registered_peripherals[index_of_assigned_peripheral].num_bytes_tmp_ker_buf > 0)
+	if (curr_device->num_bytes_tmp_ker_buf > 0)
 	{
 		pr_info("dev_write: we had previous data, getting ready to copy it\n");
 		/**
 		 * If we are here we have some data left from a previous write, we can copy it without problems since
 		 * the tmp_buffer size is 4 and at max the peripheral tmp_ker_buf has 3 bytes
 		*/
-		memcpy(tmp_buffer, my_device.all_registered_peripherals[index_of_assigned_peripheral].tmp_ker_buf,
-		    my_device.all_registered_peripherals[index_of_assigned_peripheral].num_bytes_tmp_ker_buf);
+		memcpy(tmp_buffer, curr_device->tmp_ker_buf,curr_device->num_bytes_tmp_ker_buf);
 		/**
 		 * After the copy inside tmp_buffer we'll still have some space empty, but how much? It depends from the 
 		 * value of num_bytes_tmp_ker_buf
 		*/
-		int bytes_left = byte_alignment - my_device.all_registered_peripherals[index_of_assigned_peripheral].num_bytes_tmp_ker_buf;
+		int bytes_left = byte_alignment - curr_device->num_bytes_tmp_ker_buf;
 		// We can now completely fill the tmp_buf
-		memcpy(tmp_buffer + my_device.all_registered_peripherals[index_of_assigned_peripheral].num_bytes_tmp_ker_buf, 
-				my_device.all_registered_peripherals[index_of_assigned_peripheral].input_ker_buf,
-				bytes_left);
+		memcpy(tmp_buffer + curr_device->num_bytes_tmp_ker_buf, curr_device->input_ker_buf, bytes_left);
 		// At this point the tmp_buf is ready to be sent to the peripheral
 		write_into_input_reg(tmp_buffer, sizeof(tmp_buffer), index_of_assigned_peripheral);
 		// We can clear the peripheral's tmp_ker_buf for future usage
-		memset(my_device.all_registered_peripherals[index_of_assigned_peripheral].tmp_ker_buf, 0, 
-				sizeof(my_device.all_registered_peripherals[index_of_assigned_peripheral].tmp_ker_buf));
+		memset(curr_device->tmp_ker_buf, 0, sizeof(((struct ketchup_driver_local *)0)->tmp_ker_buf));
+		
 	}
 
 	/**
@@ -474,12 +490,12 @@ static ssize_t dev_write(struct file *filep, const char *buf, size_t len, loff_t
 	*/
 	// we can calculate all the parameters
 	int num_of_write_cycles;
-	if (my_device.all_registered_peripherals[index_of_assigned_peripheral].num_bytes_tmp_ker_buf > 0)
+	if (curr_device->num_bytes_tmp_ker_buf > 0)
 	{
 		// if we have copied data from two buffers we need to consider an offset
-		offset = my_device.all_registered_peripherals[index_of_assigned_peripheral].num_bytes_tmp_ker_buf;
+		offset = curr_device->num_bytes_tmp_ker_buf;
 		// we can now reset the peripheral buffer data for future usage
-		my_device.all_registered_peripherals[index_of_assigned_peripheral].num_bytes_tmp_ker_buf = 0;
+		curr_device->num_bytes_tmp_ker_buf = 0;
 		remaining_bytes_to_be_sent = len - offset;
 		// now we can check if all the data will be copied without problems
 		num_of_write_cycles = remaining_bytes_to_be_sent / byte_alignment;
@@ -500,7 +516,7 @@ static ssize_t dev_write(struct file *filep, const char *buf, size_t len, loff_t
 	// We can now copy everything
 	while (num_of_write_cycles != 0)
 	{
-		memcpy(tmp_buffer, my_device.all_registered_peripherals[index_of_assigned_peripheral].input_ker_buf + offset, 4);
+		memcpy(tmp_buffer, curr_device->input_ker_buf + offset, 4);
 		write_into_input_reg(tmp_buffer, sizeof(tmp_buffer), index_of_assigned_peripheral);
 		offset += 4;
 		pr_info("dev_write: first copy cycle of %d completed\n", num_of_write_cycles);
@@ -514,16 +530,14 @@ static ssize_t dev_write(struct file *filep, const char *buf, size_t len, loff_t
 	{
 		pr_info("dev_write: we still have some bytes that must be saved into the tmp_ker_buf\n");
 		// we still have remaining_bytes that must be copied inside the tmp_ker_buf buffer
-		memcpy(my_device.all_registered_peripherals[index_of_assigned_peripheral].tmp_ker_buf,
-		my_device.all_registered_peripherals[index_of_assigned_peripheral].input_ker_buf + offset, remaining_bytes);
+		memcpy(curr_device->tmp_ker_buf, curr_device->input_ker_buf + offset, remaining_bytes);
 		// We also need to set how many bytes are present in the tmp_ker_buf
-		my_device.all_registered_peripherals[index_of_assigned_peripheral].num_bytes_tmp_ker_buf = remaining_bytes;
+		curr_device->num_bytes_tmp_ker_buf = remaining_bytes;
 		pr_info("dev_write: we copied the data inside the tmp_ker_buf, we buffer now cointains %d bytes\n", remaining_bytes);
 	}
 	// Are we over?
 	// Maybe we can also clean the internal buffer
-	memset(my_device.all_registered_peripherals[index_of_assigned_peripheral].input_ker_buf, 0, 
-		sizeof(my_device.all_registered_peripherals[index_of_assigned_peripheral].input_ker_buf));
+	memset(curr_device->input_ker_buf, 0, sizeof(((struct ketchup_driver_local *)0)->input_ker_buf));
 	// Based on the the variable setted at the beginning of the function, we can return how many bytes we copied
 	pr_info("dev_write: we are returning internal_buffer_too_smal = %d | len = %d", internal_buffer_too_small, len);
 	if (internal_buffer_too_small)
@@ -538,19 +552,21 @@ int peripheral_array_access(struct file * filep)
 	// A questo punto il thread ha accesso esclusivo all'array delle periferiche
 	int found = 0;
 	int index_assigned = 0;
+	struct ketchup_driver_local * curr_device;
 	for (int i = 0; i < my_device.count; i++)
 	{
 		pr_info("guardo la periferica numero %d \n", i);
-		if (my_device.all_registered_peripherals[i].peripheral_available == AVAILABLE)
+		curr_device = &my_device.all_registered_peripherals[i];
+		if (curr_device->peripheral_available == AVAILABLE)
 		{
 			// Ne abbiamo trovata una, e' nostra
 			pr_info("la periferica %d e' disponiible \n", i);
-			my_device.all_registered_peripherals[i].peripheral_available = NOT_AVAILABLE;
+			curr_device->peripheral_available = NOT_AVAILABLE;
 			index_assigned = i;
 			filep->private_data = (void *)(uintptr_t)i;
 			found = 1;
 			// We also must reset it
-			writel((uint32_t)1, my_device.all_registered_peripherals[i].command);
+			writel((uint32_t)1, curr_device->command);
 			break;
 		}
 	}
@@ -568,8 +584,9 @@ int peripheral_release(struct file * filep)
 	mutex_lock(&my_device.lock);
 	pr_info("Lock acquired -> peripheral release \n");
 	int peripheral_index = (int)(uintptr_t)filep->private_data;
-	my_device.all_registered_peripherals[peripheral_index].peripheral_available = AVAILABLE;
-	writel((uint32_t)1, my_device.all_registered_peripherals[peripheral_index].command);
+	struct ketchup_driver_local * cur_dev = &my_device.all_registered_peripherals[peripheral_index];
+	cur_dev->peripheral_available = AVAILABLE;
+	writel((uint32_t)1, cur_dev->command);
 	mutex_unlock(&my_device.lock);
 	return 1;
 }
