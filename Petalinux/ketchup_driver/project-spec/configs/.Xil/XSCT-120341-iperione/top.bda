@@ -175,12 +175,12 @@
         ],
         "vertices": {
             "V0": {
-                "VM": "processing",
+                "VM": "top",
                 "VT": "BC"
             },
             "V1": {
                 "VH": "2",
-                "VM": "processing",
+                "VM": "top",
                 "VT": "VR"
             },
             "V2": {
@@ -197,12 +197,12 @@
                 "MA": "Data",
                 "MX": "/processing_system7_0",
                 "MI": "M_AXI_GP0",
-                "MS": "SEG_KetchupPeripheralPar_0_S00_AXI_reg",
+                "MS": "SEG_KetchupPeripheral_0_S00_AXI_reg",
                 "MV": "xilinx.com:ip:processing_system7:5.5",
-                "SX": "/KetchupPeripheralPar_0",
+                "SX": "/KetchupPeripheral_0",
                 "SI": "S00_AXI",
                 "SS": "S00_AXI_reg",
-                "SV": "user.org:user:KetchupPeripheralParametrized:1.0",
+                "SV": "user.org:user:KetchupPeripheral:1.0",
                 "TM": "both",
                 "TU": "register"
             },
@@ -215,12 +215,12 @@
                 "MA": "Data",
                 "MX": "/processing_system7_0",
                 "MI": "M_AXI_GP0",
-                "MS": "SEG_KetchupPeripheralPar_1_S00_AXI_reg",
+                "MS": "SEG_KetchupPeripheral_1_S00_AXI_reg",
                 "MV": "xilinx.com:ip:processing_system7:5.5",
-                "SX": "/KetchupPeripheralPar_1",
+                "SX": "/KetchupPeripheral_1",
                 "SI": "S00_AXI",
                 "SS": "S00_AXI_reg",
-                "SV": "user.org:user:KetchupPeripheralParametrized:1.0",
+                "SV": "user.org:user:KetchupPeripheral:1.0",
                 "TM": "both",
                 "TU": "register"
             },
@@ -233,12 +233,12 @@
                 "MA": "Data",
                 "MX": "/processing_system7_0",
                 "MI": "M_AXI_GP0",
-                "MS": "SEG_KetchupPeripheralPar_2_S00_AXI_reg",
+                "MS": "SEG_KetchupPeripheral_2_S00_AXI_reg",
                 "MV": "xilinx.com:ip:processing_system7:5.5",
-                "SX": "/KetchupPeripheralPar_2",
+                "SX": "/KetchupPeripheral_2",
                 "SI": "S00_AXI",
                 "SS": "S00_AXI_reg",
-                "SV": "user.org:user:KetchupPeripheralParametrized:1.0",
+                "SV": "user.org:user:KetchupPeripheral:1.0",
                 "TM": "both",
                 "TU": "register"
             },
@@ -251,30 +251,12 @@
                 "MA": "Data",
                 "MX": "/processing_system7_0",
                 "MI": "M_AXI_GP0",
-                "MS": "SEG_KetchupPeripheralPar_3_S00_AXI_reg",
+                "MS": "SEG_KetchupPeripheral_3_S00_AXI_reg",
                 "MV": "xilinx.com:ip:processing_system7:5.5",
-                "SX": "/KetchupPeripheralPar_3",
+                "SX": "/KetchupPeripheral_3",
                 "SI": "S00_AXI",
                 "SS": "S00_AXI_reg",
-                "SV": "user.org:user:KetchupPeripheralParametrized:1.0",
-                "TM": "both",
-                "TU": "register"
-            },
-            "V7": {
-                "VT": "AC",
-                "BA": "0x43C40000",
-                "HA": "0x43C4FFFF",
-                "BP": "C_S00_AXI_BASEADDR",
-                "HP": "C_S00_AXI_HIGHADDR",
-                "MA": "Data",
-                "MX": "/processing_system7_0",
-                "MI": "M_AXI_GP0",
-                "MS": "SEG_KetchupPeripheralPar_4_S00_AXI_reg",
-                "MV": "xilinx.com:ip:processing_system7:5.5",
-                "SX": "/KetchupPeripheralPar_4",
-                "SI": "S00_AXI",
-                "SS": "S00_AXI_reg",
-                "SV": "user.org:user:KetchupPeripheralParametrized:1.0",
+                "SV": "user.org:user:KetchupPeripheral:1.0",
                 "TM": "both",
                 "TU": "register"
             }
@@ -305,11 +287,6 @@
             },
             {
                 "src": "V6",
-                "trg": "V2",
-                "EH": "2"
-            },
-            {
-                "src": "V7",
                 "trg": "V2",
                 "EH": "2"
             }

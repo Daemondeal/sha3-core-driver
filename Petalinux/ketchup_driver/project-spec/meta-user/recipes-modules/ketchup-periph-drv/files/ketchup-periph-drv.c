@@ -15,7 +15,7 @@
 #include <linux/fs.h>
 #include <linux/errno.h>
 #include <linux/ioctl.h>
-#include "ketchup-driver.h"
+#include "ketchup-periph-drv.h"
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Ivan Piri was here");
@@ -170,22 +170,22 @@ static ssize_t read_control(struct device *dev, struct device_attribute *attr, c
 		const char *message;
 		switch (extracted_bits)
 		{
-		case 0:
-			/* code */
-			message = "Hash size: 512\n";
-			break;
-		case 1:
-			message = "Hash size: 384\n";
-			break;
-		case 2:
-			message = "Hash size: 256\n";
-			break;
-		case 3:
-			message = "Hash size: 224\n";
-			break; 
-		default:
-			message = "Error! \n";
-			break;
+			case 0:
+				/* code */
+				message = "Hash size: 512\n";
+				break;
+			case 1:
+				message = "Hash size: 384\n";
+				break;
+			case 2:
+				message = "Hash size: 256\n";
+				break;
+			case 3:
+				message = "Hash size: 224\n";
+				break; 
+			default:
+				message = "Error! \n";
+				break;
 		}
 		char index_str[2];
         snprintf(index_str, sizeof(index_str), "%d", index);

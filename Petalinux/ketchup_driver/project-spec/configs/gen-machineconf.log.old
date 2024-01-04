@@ -1,7 +1,7 @@
 [DEBUG] Using xsct from : /tools/Xilinx/Petalinux/2023.2/tools/xsct/bin/xsct
 [DEBUG] Using conf/mconf from : /tools/Xilinx/Petalinux/2023.2/components/yocto/buildtools/sysroots/x86_64-petalinux-linux/usr/bin/mconf
 [INFO] Silentconfig project
-[DEBUG] Running CMD: yes "" | env KCONFIG_CONFIG=/home/lorenzo/group9/Petalinux/ketchup_driver/project-spec/configs/config conf /home/lorenzo/group9/Petalinux/ketchup_driver/project-spec/configs/configs/Kconfig
+[DEBUG] Running CMD: yes "" | env KCONFIG_CONFIG=/home/lorenzo/group9/Petalinux2/ketchup_driver/project-spec/configs/config conf /home/lorenzo/group9/Petalinux2/ketchup_driver/project-spec/configs/configs/Kconfig
 [DEBUG] *
 * PetaLinux System Configuration
 *
@@ -246,10 +246,10 @@ Enable Buildtools Extended (YOCTO_BUILDTOOLS_EXTENDED) [N/y/?]
 *
 user layer 0 (USER_LAYER_0) [] 
 #
-# configuration written to /home/lorenzo/group9/Petalinux/ketchup_driver/project-spec/configs/config
+# configuration written to /home/lorenzo/group9/Petalinux2/ketchup_driver/project-spec/configs/config
 #
 [INFO] Silentconfig rootfs
-[DEBUG] Running CMD: yes "" | env KCONFIG_CONFIG=/home/lorenzo/group9/Petalinux/ketchup_driver/project-spec/configs/rootfs_config conf /home/lorenzo/group9/Petalinux/ketchup_driver/project-spec/configs/rootfsconfigs/Kconfig
+[DEBUG] Running CMD: yes "" | env KCONFIG_CONFIG=/home/lorenzo/group9/Petalinux2/ketchup_driver/project-spec/configs/rootfs_config conf /home/lorenzo/group9/Petalinux2/ketchup_driver/project-spec/configs/rootfsconfigs/Kconfig
 [DEBUG] *
 * Configuration
 *
@@ -1464,9 +1464,9 @@ libgphoto2-dev (libgphoto2-dev) [N/y/?]
 *
 * libgpiod
 *
-libgpiod (libgpiod) [Y/n/?] 
-libgpiod-dev (libgpiod-dev) [Y/n/?] 
-libgpiod-dgb (libgpiod-dbg) [Y/n/?] 
+libgpiod (libgpiod) [N/y/?] 
+libgpiod-dev (libgpiod-dev) [N/y/?] 
+libgpiod-dgb (libgpiod-dbg) [N/y/?] 
 *
 * libgudev 
 *
@@ -3577,7 +3577,7 @@ packagegroup-petalinux-x11-dev (packagegroup-petalinux-x11-dev) [N/y/?]
 *
 * Image Features
 *
-ssh-server-dropbear (imagefeature-ssh-server-dropbear) [Y/n/?] 
+ssh-server-dropbear (imagefeature-ssh-server-dropbear) [N/y/?] 
 ssh-server-openssh (imagefeature-ssh-server-openssh) [Y/n/?] 
 hwcodecs (imagefeature-hwcodecs) [Y/n/?] 
 package-management (imagefeature-package-management) [N/y/?] 
@@ -3591,7 +3591,7 @@ choice[1-2]: *
 * user packages 
 *
 gpio-demo (gpio-demo) [Y/n/?] 
-ketchup-driver (ketchup-driver) [Y/n/?] 
+ketchup-periph-drv (ketchup-periph-drv) [Y/n/?] 
 peekpoke (peekpoke) [Y/n/?] 
 sharutils (sharutils) [Y/n/?] 
 *
@@ -3602,5 +3602,5 @@ Create new Groups (CREATE_NEW_GROUPS) [aie;]
 Add Users to Groups (ADD_USERS_TO_GROUPS) [petalinux:audio,video,aie,input;] 
 Add Users to Sudo users (ADD_USERS_TO_SUDOERS) [petalinux] 
 #
-# configuration written to /home/lorenzo/group9/Petalinux/ketchup_driver/project-spec/configs/rootfs_config
+# configuration written to /home/lorenzo/group9/Petalinux2/ketchup_driver/project-spec/configs/rootfs_config
 #
