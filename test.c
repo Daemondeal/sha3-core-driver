@@ -37,9 +37,7 @@ int main()
         printf("Value is %d\n", value);
     }
     */
-    printf("we will only test the ioctl");
-    while (1)
-    {    
+    
         printf("Enter the wanted hash size [0:512, 1:384 2:256 3:224]\n");
         scanf("%d",&number);
         printf("Writing Value to Driver\n");
@@ -48,11 +46,12 @@ int main()
         printf("Reading the hash size from the driver\n");
         ioctl(fd, RD_PERIPH_HASH_SIZE, (uint32_t*) &value);
         printf("Value is %d\n", value);
-    }
-    /*
+    
+    
     printf("*********************Let's now test a write****************\n");
     // How we want to suffer
     int err = write(fd, "Hello", 5);
+
     if (err < 0){
         printf("sad face\n");
     }
@@ -66,7 +65,7 @@ int main()
         printf("%02x", digest[i]);
     }
     printf("\n");
-    */
+    
     printf("Closing the driver\n");
     close(fd);
 }
