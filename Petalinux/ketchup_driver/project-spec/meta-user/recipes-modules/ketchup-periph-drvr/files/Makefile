@@ -1,4 +1,4 @@
-obj-m := ketchup-periph-drv.o
+obj-m := ketchup-periph-drvr.o
 
 MY_CFLAGS += -g -DDEBUG
 ccflags-y += ${MY_CFLAGS}

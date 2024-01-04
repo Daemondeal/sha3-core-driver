@@ -4,4 +4,4 @@
 CONFIG_gpio-demo
 CONFIG_peekpoke
 CONFIG_sharutils
-CONFIG_ketchup-periph-drv
+CONFIG_ketchup-periph-drvr

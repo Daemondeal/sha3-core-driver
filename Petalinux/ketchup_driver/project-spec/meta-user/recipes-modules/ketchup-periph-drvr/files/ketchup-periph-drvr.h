@@ -8,7 +8,7 @@
 */
 #define DRIVER_NAME "ketchup-driver"
 #define CLASS_NAME "KEKKAK_ACCELERATORS"
-#define DEBUG
+#define KECCAK_DEBUG
 #define NUM_INSTANCES 5
 #define BUF_SIZE 1024
 /******************* FUNCTIONS *******************/
@@ -28,6 +28,7 @@ static ssize_t read_current_usage(struct device *, struct device_attribute *, ch
 void write_into_input_reg(char [], size_t, int);
 int peripheral_release(struct file *);
 static long kekkac_ioctl(struct file *, unsigned int, unsigned long);
+
 typedef enum {
     NOT_AVAILABLE,
     AVAILABLE
