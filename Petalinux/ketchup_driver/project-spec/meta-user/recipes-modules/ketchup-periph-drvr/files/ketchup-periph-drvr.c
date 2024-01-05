@@ -19,7 +19,7 @@
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Ivan Piri was here");
-MODULE_DESCRIPTION("ketchup-driver - TODO");
+MODULE_DESCRIPTION("ketchup-driver - a character device driver for the ketchup peripheral");
 
 /**
  * Struct representing the character device
@@ -32,9 +32,13 @@ static struct file_operations fops = {
 	.release=dev_release,
 };
 
+/**
+ * Needed for the platform bus, thanks to the compatible string
+ * the driver is loaded automatically at boot time
+*/
 static struct of_device_id ketchup_driver_of_match[] = {
 	{ .compatible = "xlnx,KetchupPeripheral-1.0", },
-	{ /* end of list */ },
+	{},
 };
 MODULE_DEVICE_TABLE(of, ketchup_driver_of_match);
 
@@ -60,7 +64,7 @@ struct ketchup_driver_local {
 	void __iomem *input;
 	void __iomem *command;
 	void __iomem *output_base;
-	// un buffer per ogni "istanza" del driver
+	// Each peripheral will have it's own kernel buffer
 	char input_ker_buf[BUF_SIZE];
 	char tmp_ker_buf[3];
 	int num_bytes_tmp_ker_buf;
@@ -73,13 +77,13 @@ static struct char_dev {
     dev_t device;
     struct cdev c_dev;
     struct device *test_device;
-    /**
-    * Array containing a pointer to the ketchup_driver_local strcut of each peripheral
-    */
+    //Array containing a pointer to the ketchup_driver_local strcut of each peripheral
     struct ketchup_driver_local all_registered_peripherals[NUM_INSTANCES];
 	// The number of the peripherals registered
 	int registered_periph_number;
 	struct mutex lock;
+	// Array in which we save the pid of every process using one of our peripherals
+	pid_t peripherals_usage[NUM_INSTANCES];
 } ketchup_drvr_data = {
 	.driver_class = NULL,
 	.registered_periph_number = 0
@@ -98,8 +102,6 @@ static struct char_dev {
  * Command Number is the number that is assigned to the ioctl. This is used to differentiate the 
  * commands from one another.
  * The last is the type of data.
- * #define WR_SIZE _IOW(MAJOR(ketchup_drvr_data.device), 1, uint32_t*)
-#define RD_SIZE _IOR(MAJOR(ketchup_drvr_data.device), 2, uint32_t*)
 */
 #define WR_PERIPH_HASH_SIZE _IOW('ketchup', 1, uint32_t*)
 #define RD_PERIPH_HASH_SIZE _IOR('ketchup', 2, uint32_t*)
@@ -136,7 +138,7 @@ static long kekkac_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 			}
 			break;
 		default:
-			pr_info("default\n");
+			pr_err("keccak_ioctl: we shouldn't be here\n");
 			return -EINVAL;
 	}
 	return 0;
@@ -159,48 +161,45 @@ static DEVICE_ATTR(control, 0444, read_control, NULL);
 static ssize_t read_control(struct device *dev, struct device_attribute *attr, char *buf)
 {
 	uint32_t mask = 0x30;  // 0x110000
-	int len = 0;
+	uint32_t control_register_value = 0;
+	uint32_t extracted_bits = 0;
 	struct ketchup_driver_local * curr_device;
+	char buffer[200];
+	int len = 0;
 	for (int index = 0; index < ketchup_drvr_data.registered_periph_number; index++){
 		curr_device = &ketchup_drvr_data.all_registered_peripherals[index];
-		uint32_t control_register_value = readl(curr_device->control);
-		uint32_t extracted_bits = (control_register_value & mask) >> 4;
-		pr_info("read_control called on the peripheral %d\n", index);
+		control_register_value = readl(curr_device->control);
+		extracted_bits = (control_register_value & mask) >> 4;
 		// 00 for 512, 01 for 384, 10 for 256 and 11 for 224
-		const char *message;
 		switch (extracted_bits)
 		{
 			case 0:
 				/* code */
-				message = "Hash size: 512\n";
+				len += snprintf(buffer + len, sizeof(buffer)- len, "Hash_size[%d] = 512\n", index);
 				break;
 			case 1:
-				message = "Hash size: 384\n";
+				len += snprintf(buffer + len, sizeof(buffer)- len, "Hash_size[%d] = 384\n", index);
 				break;
 			case 2:
-				message = "Hash size: 256\n";
+				len += snprintf(buffer + len, sizeof(buffer)- len, "Hash_size[%d] = 256\n", index);
 				break;
 			case 3:
-				message = "Hash size: 224\n";
+				len += snprintf(buffer + len, sizeof(buffer)- len, "Hash_size[%d] = 224\n", index);
 				break; 
 			default:
-				message = "Error! \n";
+				len += snprintf(buffer + len, sizeof(buffer)- len, "Error!\n", index);
 				break;
 		}
-		char index_str[2];
-        snprintf(index_str, sizeof(index_str), "%d", index);
-        strcat(buf, "Periferica ");
-        strcat(buf, index_str);
-        strcat(buf, ": ");
-        strcat(buf, message);
 	}
-	return strlen(buf);
+	strcpy(buf, buffer);
+	return len;
 }
 
 /**
  * Writable, it's always zero, OTHERS_WRITABLE? BAD IDEA - kernel
- * I'm also resetting the hash size to 512 don't ask me why, probably a bad idea since i'm changing
- * the meaning of the control register but i'm desperate
+ * I'm also resetting the hash size to 512 don't ask me why, probably a bad idea since i'm 
+ * changing the meaning of the control register but it's an easy and quick way of resetting
+ * a peripheral when testing
 */
 static DEVICE_ATTR(command, 0220, NULL, write_command);
 static ssize_t write_command(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
@@ -209,9 +208,11 @@ static ssize_t write_command(struct device *dev, struct device_attribute *attr, 
 	uint32_t reset;
 	struct ketchup_driver_local* curr_device;
 	sscanf(buf, "%d,%d", &peripheral, &reset);
+	#ifdef KECCAK_DEBUG
 	pr_info("write_command called!\n");
-	pr_info("peripheral: %d\n", peripheral);
-	pr_info("reset: %d\n", reset);
+	pr_info("write_command_peripheral_argument: %d\n", peripheral);
+	pr_info("write_command_reset_argument: %d\n", reset);
+	#endif
 	if (peripheral < 0 || peripheral > NUM_INSTANCES - 1)
 	{
 		pr_err("The peripheral number specified is invalid!\n");
@@ -226,24 +227,44 @@ static ssize_t write_command(struct device *dev, struct device_attribute *attr, 
 	curr_device = &ketchup_drvr_data.all_registered_peripherals[peripheral];
 	writel((uint32_t)reset, curr_device->command);
 	// Let's also reset the hash size to a default 512
-	//writel((uint32_t))
+	writel((uint32_t)0, ketchup_drvr_data.all_registered_peripherals[peripheral].control);
+	#ifdef KECCAK_DEBUG
 	pr_info("Peripheral number %d reset completed\n", peripheral);
+	#endif
 	return strlen(buf);
 }
 
 /**
- * TODO: implementation, we want pid -> peripheral in use
+ * This attributes reveals the current usage of all the peripherals
+ * When called you will be able to see all the peripherals and the 
+ * pid of the process currently using it
 */
 static DEVICE_ATTR(current_usage, 0444, read_current_usage, NULL);
 static ssize_t read_current_usage(struct device *dev, struct device_attribute *attr, char *buf)
 {
-	pr_info("read_current_usage called! \n");
-	return strlen(buf);
+	// Abbiamo un array, andiamo dentro e ci prendiamo i dati
+	char buffer[200];
+	int len = 0;
+	pid_t *array = ketchup_drvr_data.peripherals_usage;
+	for (int i = 0; i < NUM_INSTANCES-1; i++){
+		if(array[i] == 0){
+			// If we are here it means that the peripheral is not in usage
+			len += snprintf(buffer + len, sizeof(buffer) - len, "%d:\n", i);
+		} else {
+			// ne aggiungi un'altra
+			len += snprintf(buffer + len, sizeof(buffer) - len, "%d:%ld\n", i, array[i]);
+		}
+	}
+	// Now we need to copy data to the user space
+	strcpy(buf, buffer);
+	return len;
 }
 
 /**
  * This is the function that is called whenever a new open syscall is made with our
- * driver device file (/dev/kechtup_driver) as an argument
+ * driver device file (/dev/kechtup_driver) as an argument.
+ * We are also saving the pid of the process currently opening the file inside an 
+ * array for the current_usage attribute
 */
 static int dev_open(struct inode *inod, struct file *fil)
 {
@@ -252,52 +273,73 @@ static int dev_open(struct inode *inod, struct file *fil)
 	 * peripheral that can serve the request.
 	 * If all the peripherals are already assigned, we return -EBUSY
 	*/
+	int assigned_periph_index = peripheral_array_access(fil);
+	// We are doing it after we got a peripheral, no problems of concurrency
+	ketchup_drvr_data.peripherals_usage[assigned_periph_index] = task_pid_nr(current);
 	#ifdef KECCAK_DEBUG
 	pr_info("dev_open: a new file descriptor has been opened\n");
-	#endif
-	int assigned_periph_index = peripheral_array_access(fil);
-	#ifdef KECCAK_DEBUG
 	pr_info("dev_open: the peripheral assigned to this file descriptor is the numer %d\n", assigned_periph_index);
+	pr_info("dev_open: the pid of the process using it is %ld\n", (long)ketchup_drvr_data.peripherals_usage[assigned_periph_index]);
+	//pr_info("dev_open: the pid of the process using it is %ld\n", (long)task_pid_nr(current));
 	#endif
 	if (assigned_periph_index == -EBUSY)
 		return -EBUSY;
 	return 0;
 }
 
+/**
+ * This function is called when a file descriptor opened of our character device file 
+ * (i.e /dev/ketchup_driver) is closed.
+ * What we do is we reset the peripheral and than we mark is as available inside the 
+ * array
+*/
 static int dev_release(struct inode *inod, struct file *fil)
 {
-	#ifdef KECCAK_DEBUG
-	pr_info("Device ketchup_accel closed \n");
-	#endif
+	/**
+	 * Before releasing the peripheral we clean up the pid array, We don't have problems
+	 * of concurrency since we still have exclusive access to this particular peripheral
+	*/
+	int assigned_periph_index = (int)(uintptr_t)fil->private_data;
+	ketchup_drvr_data.peripherals_usage[assigned_periph_index] = 0;
+	// Now we can release the peripheral
 	int op_result = peripheral_release(fil);
-	if (!op_result)
+	if (!op_result){
+		pr_err("dev_release: critical ");
 		return -EAGAIN;
+	}
+	#ifdef KECCAK_DEBUG
+	pr_info("dev_release: ketchup_driver fd closed \n");
+	#endif
 	return 0;
 }
 
+/**
+ * This function is the one responsible for handling all the read operations performed
+ * on the /dev/ketchup_driver file.
+ * When the user reads we need to:
+ * 1. Set this write as the last one
+ * 2. Copy data from the tmp_ker_buf into the input register
+ * 3. Start polling the peripheral on the status register
+ * 4. Once the output is ready, buffer it and return it to the user
+ * 5. Reset the peripheral
+ * 6. Set the same hash size as before in control
+*/
 static ssize_t dev_read(struct file *filep, char *buf, size_t len, loff_t *off)
 {
-	#ifdef KECCAK_DEBUG
-	pr_info("dev_read called!\n");
-	#endif
-	/**
-	 * Now we handle the read. When the user reads we need to:
-	 * 1. Set this write as the last one
-	 * 2. Copy data from the tmp_ker_buf into the input register 
-	 * 3. Start polling the peripheral on the status register
-	 * 4. Once the output is ready, buffer it and return it to the user
-	 * 5. Reset the peripheral
-	 * 6. Set the same hash size as before in control
-	*/
 	// Let's set this as the last write, we need to craft a specific value
 	uint32_t control_register_value = 0;
 	uint32_t tmp;
 	int assigned_periph_index = (int)(uintptr_t)filep->private_data;
 	struct ketchup_driver_local * curr_device = &ketchup_drvr_data.all_registered_peripherals[assigned_periph_index];
+	// This buffer content's will be what we'll write inside the input reg
 	char buffer[4] = {0};
+	// This is the number of output regs we have to read (depends from the hash size)
 	int num_of_output_regs = 0;
 	// Variable needed to clear the peripheral at the end of the function
 	uint32_t reset = 1;
+	uint8_t output_buffer[512/8] = {0};
+	uint32_t value = 0;
+	int flag = 1;
 	// We need to know the hash size
 	switch (curr_device->setted_hash_size)
 	{
@@ -314,21 +356,19 @@ static ssize_t dev_read(struct file *filep, char *buf, size_t len, loff_t *off)
 			num_of_output_regs = 224/32;
 			break;
 		default:
-			pr_info("dev_read: impossible\n");
+			pr_err("dev_read: the peripheral %d has an impossible hash size!\n", assigned_periph_index);
 	}
-	uint8_t output_buffer[512/8] = {0};
-	uint32_t output_packed[512/32] = {0};
-	pr_info("dev_read: init phase completed\n");
+	#ifdef KECCAK_DEBUG
+	pr_info("dev_read called!\n");
 	pr_info("dev_read: assigned_periph_index = %d\n", assigned_periph_index);
 	pr_info("dev_read: num_of_output_regs =  %d\n", num_of_output_regs);
+	#endif
 	/**
 	 * bits [5:4] must be the same as the ones in setted_hash_size
 	 * bit [2] must be 1
-	 * bits [1:0] must be equal to num_bytes_tmp_ker_buf
-	 * The following is a sketchy method  but in theory it should work. 
+	 * bits [1:0] must be equal to num_bytes_tmp_ker_buf 
 	*/
 	tmp = curr_device->setted_hash_size;
-	pr_info("dev_read: tmp_value = %u\n", tmp);
 	control_register_value |= tmp << 4;
 	// The bit [2] must be 1
 	tmp = 1;
@@ -337,25 +377,24 @@ static ssize_t dev_read(struct file *filep, char *buf, size_t len, loff_t *off)
 	tmp = curr_device->num_bytes_tmp_ker_buf;
 	control_register_value |= tmp;
 	// We can now write into the control register
+	#ifdef KECCAK_DEBUG
+	pr_info("dev_read: setted hash size = %u (0:512|1:384|2:256|3:224)\n");
+	pr_info("dev_read: number of bytes inside the tmp_ker_buf = %u\n");
 	pr_info("dev_read: sending the last input command to the peripheral\n");
+	#endif
 	writel(control_register_value, curr_device->control);
 	// We need to check if there is some residual data to copy
 	if (curr_device->num_bytes_tmp_ker_buf > 0)
 	{
 		// We have bytes to copy
 		memcpy(buffer, curr_device->tmp_ker_buf, curr_device->num_bytes_tmp_ker_buf);
-		pr_info("dev_read: we have some residual data in tmp_ker_buf that must be copied into the input register\n");
 	} 
 	// we can now send data to the input register
-	pr_info("dev_read: sending data to the input register\n");
 	write_into_input_reg(buffer, sizeof(buffer), assigned_periph_index);
-
+	// we need to clear the number of bytes inside the tmp buffer
 	curr_device->num_bytes_tmp_ker_buf = 0;
-
-	pr_info("dev_read: from now we poll the peripheral\n");
 	// Now we need to poll the peripheral, is it possible that some other bits flip? I'm supposing to have a constant 0
 	//while ((readl(ketchup_drvr_data.all_registered_peripherals[assigned_periph_index].status) & 1) == 0);
-	int flag = 1;
 	for (int i = 0; i < 100; i++) {
   		if ((readl(curr_device->status) & 1) != 0) { 
 			flag = 0; 
@@ -364,12 +403,13 @@ static ssize_t dev_read(struct file *filep, char *buf, size_t len, loff_t *off)
 	}
 	if (flag) pr_info("polling failed");
 	
-	pr_info("dev_read: we can now read the output\n");
 	// When we get here we have the output, we now need to loop depending from the hash size
 	for (uint32_t i = 0; i < num_of_output_regs; i++)
 	{
-		uint32_t value = readl(curr_device->output_base + 4*i);
-		pr_info("dev_read: inside the for loop we are reading value = %08x\n", value);
+		value = readl(curr_device->output_base + 4*i);
+		#ifdef KECCAK_DEBUG
+		pr_info("dev_read: output_reg[%d] = %08x\n", i, value);
+		#endif
 		output_buffer[i*4 + 0] = (value >> 24) & 0xFF;
 		output_buffer[i*4 + 1] = (value >> 16) & 0xFF;
 		output_buffer[i*4 + 2] = (value >> 8) & 0xFF;
@@ -380,11 +420,7 @@ static ssize_t dev_read(struct file *filep, char *buf, size_t len, loff_t *off)
 		pr_err("dev_read: error copying the kernel buffer to user space\n");
 		return -EAGAIN;
 	}
-	pr_info("dev_read: we can now reset the peripheral, we will return sizeof(output_buffer) = %d\n", sizeof(output_buffer));
-	// Resetting the peripheral
-	/**
-	 * TODO: questionable way of resetting, in theory it should be ok but try with an explicit variable
-	*/
+	// Clearing the peripheral
 	writel(reset, curr_device->command);
 	/**
 	 * After clearing we need to set the same hash size that was setted for the previous hash.
@@ -396,7 +432,9 @@ static ssize_t dev_read(struct file *filep, char *buf, size_t len, loff_t *off)
 	control_register_value = 0;
 	control_register_value |= tmp << 4;
 	writel(control_register_value, curr_device->control);
-
+	#ifdef KECCAK_DEBUG
+	pr_info("dev_read: returning sizeof(output_buffer) = %d\n", sizeof(output_buffer));
+	#endif
 	return sizeof(output_buffer);
 }
 
@@ -406,9 +444,7 @@ void write_into_input_reg(char temporary_buffer[], size_t buffer_size, int index
 	uint32_t tmp;
 	int byte_alignment = 4;
 	struct ketchup_driver_local * curr_device = &ketchup_drvr_data.all_registered_peripherals[index];
-	pr_info("write_into_input_reg called!\n");
-	for (int i = 0; i < byte_alignment; i++)
-	{
+	for (int i = 0; i < byte_alignment; i++){
 		tmp = temporary_buffer[i];
 		final_value |= tmp << ((3-i)*8); 
 	}
@@ -419,9 +455,6 @@ void write_into_input_reg(char temporary_buffer[], size_t buffer_size, int index
 
 static ssize_t dev_write(struct file *filep, const char *buf, size_t len, loff_t *off)
 {
-	#ifdef KECCAK_DEBUG
-	pr_info("dev_write called!\n");
-	#endif
 	/**
 	 * The plan is the following:
 	 * 1. we copy inside kernel space the data the user wants to write, keeping in mind that the
@@ -433,7 +466,6 @@ static ssize_t dev_write(struct file *filep, const char *buf, size_t len, loff_t
 	// We need to retrieve from the file descriptor the peripheral index assigned
 	int assigned_periph_index = (int)(uintptr_t)filep->private_data;
 	struct ketchup_driver_local * curr_device = &ketchup_drvr_data.all_registered_peripherals[assigned_periph_index];
-	pr_info("dev_write: Assigned peripheral given the file descriptor: %d\n", assigned_periph_index);
 	// This variable is needed at the end to know how many bytes we copied
 	int internal_buffer_too_small = 0;
 	// I'll use this buffer to store the data before the writel in order to facilitate the copy-paste from buffers
@@ -443,8 +475,14 @@ static ssize_t dev_write(struct file *filep, const char *buf, size_t len, loff_t
 	int remaining_bytes_to_be_sent = 0;
 	// This variable will be used in case the tmp_ker_buff will be necessary
 	int remaining_bytes = 0;
+	int bytes_left = 0;
+	int num_of_write_cycles;
 	// Now we want to bring inside kernel space the new write data, but how much data the user is passing?
+	#ifdef KECCAK_DEBUG
+	pr_info("dev_write called!\n");
 	pr_info("dev_write: init phase completed\n");
+	pr_info("dev_write: Assigned peripheral given the file descriptor: %d\n", assigned_periph_index);
+	#endif
 	if (len > BUF_SIZE)
 	{
 		// in this case we need to truncate, we can't copy it all in one read
@@ -454,25 +492,27 @@ static ssize_t dev_write(struct file *filep, const char *buf, size_t len, loff_t
 			return -EAGAIN;
 		}
 		internal_buffer_too_small = 1;
+		#ifdef KECCAK_DEBUG
 		pr_info("dev_write: the user is asking to write too much data, we copied only 1024 bytes in kernel space \n");
-	} else 
-	{
+		#endif
+	} else {
 		// if we are here it means that we have less than BUF_SIZE to copy, we can use len
 		if(copy_from_user(curr_device->input_ker_buf, buf, len))
 		{
 			pr_err("dev_write: error copying the user buffer in kernel space \n");
 			return -EAGAIN;
 		}
-		pr_info("dev_write: we copied the user buffer in kernel space\n");
 	}
+	#ifdef KECCAK_DEBUG
+	pr_info("dev_write: we copied the user buffer in kernel space\n");
 	pr_info("dev_write: now we are going to check the tmp_ker_buf for some old data \n");
+	#endif
 	/**
 	 * Now inside the peripheral ker_buf buffer we have the data the user wants us to send to the peripheral
 	 * We can begin the copy but first we need to handle the potential presence of data inside the tmp_ker_buf 
 	*/
 	if (curr_device->num_bytes_tmp_ker_buf > 0)
 	{
-		pr_info("dev_write: we had previous data, getting ready to copy it\n");
 		/**
 		 * If we are here we have some data left from a previous write, we can copy it without problems since
 		 * the tmp_buffer size is 4 and at max the peripheral tmp_ker_buf has 3 bytes
@@ -482,14 +522,16 @@ static ssize_t dev_write(struct file *filep, const char *buf, size_t len, loff_t
 		 * After the copy inside tmp_buffer we'll still have some space empty, but how much? It depends from the 
 		 * value of num_bytes_tmp_ker_buf
 		*/
-		int bytes_left = byte_alignment - curr_device->num_bytes_tmp_ker_buf;
+		bytes_left = byte_alignment - curr_device->num_bytes_tmp_ker_buf;
 		// We can now completely fill the tmp_buf
 		memcpy(tmp_buffer + curr_device->num_bytes_tmp_ker_buf, curr_device->input_ker_buf, bytes_left);
 		// At this point the tmp_buf is ready to be sent to the peripheral
 		write_into_input_reg(tmp_buffer, sizeof(tmp_buffer), assigned_periph_index);
 		// We can clear the peripheral's tmp_ker_buf for future usage
 		memset(curr_device->tmp_ker_buf, 0, sizeof(((struct ketchup_driver_local *)0)->tmp_ker_buf));
-		
+		#ifdef KECCAK_DEBUG
+		pr_info("dev_write: the tmp_ker_buf was not empty, we copied the data inside the buffer\n");
+		#endif
 	}
 
 	/**
@@ -498,7 +540,6 @@ static ssize_t dev_write(struct file *filep, const char *buf, size_t len, loff_t
 	 * we can only send 4 bytes at a time
 	*/
 	// we can calculate all the parameters
-	int num_of_write_cycles;
 	if (curr_device->num_bytes_tmp_ker_buf > 0)
 	{
 		// if we have copied data from two buffers we need to consider an offset
@@ -515,6 +556,7 @@ static ssize_t dev_write(struct file *filep, const char *buf, size_t len, loff_t
 		num_of_write_cycles = len / byte_alignment;
 		remaining_bytes = len % byte_alignment;
 	}
+	#ifdef KECCAK_DEBUG
 	pr_info("dev_write: we now copy the user data inside the peripheral!\n");
 	pr_info("dev_write parameters:\n");
 	pr_info("OFFSET: %d\n", offset);
@@ -522,13 +564,16 @@ static ssize_t dev_write(struct file *filep, const char *buf, size_t len, loff_t
 	pr_info("NUM_OF_WRITE_CYCLES: %d\n", num_of_write_cycles);
 	pr_info("REMAINING_BYTES: %d\n", remaining_bytes);
 	pr_info("INTERNAL_BUFFER_TOO_SMALL: %d\n", internal_buffer_too_small);
+	#endif
 	// We can now copy everything
 	while (num_of_write_cycles != 0)
 	{
 		memcpy(tmp_buffer, curr_device->input_ker_buf + offset, 4);
 		write_into_input_reg(tmp_buffer, sizeof(tmp_buffer), assigned_periph_index);
 		offset += 4;
+		#ifdef KECCAK_DEBUG
 		pr_info("dev_write: first copy cycle of %d completed\n", num_of_write_cycles);
+		#endif
 		num_of_write_cycles--;
 	}
 	/**
@@ -537,26 +582,31 @@ static ssize_t dev_write(struct file *filep, const char *buf, size_t len, loff_t
 	*/
 	if (remaining_bytes)
 	{
-		pr_info("dev_write: we still have some bytes that must be saved into the tmp_ker_buf\n");
 		// we still have remaining_bytes that must be copied inside the tmp_ker_buf buffer
 		memcpy(curr_device->tmp_ker_buf, curr_device->input_ker_buf + offset, remaining_bytes);
 		// We also need to set how many bytes are present in the tmp_ker_buf
 		curr_device->num_bytes_tmp_ker_buf = remaining_bytes;
-		pr_info("dev_write: we copied the data inside the tmp_ker_buf, we buffer now cointains %d bytes\n", remaining_bytes);
+		#ifdef KECCAK_DEBUG
+		pr_info("dev_write: we copied the data inside the tmp_ker_buf, the buffer now cointains %d bytes\n", remaining_bytes);
+		#endif
 	}
 	// Are we over?
 	// Maybe we can also clean the internal buffer
 	memset(curr_device->input_ker_buf, 0, sizeof(((struct ketchup_driver_local *)0)->input_ker_buf));
 	// Based on the the variable setted at the beginning of the function, we can return how many bytes we copied
+	#ifdef KECCAK_DEBUG
 	pr_info("dev_write: we are returning internal_buffer_too_smal = %d | len = %d", internal_buffer_too_small, len);
+	#endif
 	if (internal_buffer_too_small)
 		return BUF_SIZE;
 	return len;
 }
 
 /**
- * This function
- * TODO: complete
+ * This function is called only by dev_open.
+ * The main idea is that when a new file descriptor is opened the driver has to find and
+ * available peripheral so that we can uniquely assign to each open file descriptor a unique
+ * peripheral (if there's one available).
  * The value we are returning is an index of the all_registered_peripherals array at which
  * is present an available peripheral that from this moment will be assigned to the file 
  * descriptor passed as an argument
@@ -596,7 +646,7 @@ int peripheral_array_access(struct file * filep)
 	}
 	mutex_unlock(&ketchup_drvr_data.lock);
 	#ifdef KECCAK_DEBUG
-	pr_info("peripheral_array_access: lock released, were we able to find a periphera? found = %d\n", found);
+	pr_info("peripheral_array_access: lock released, were we able to find a peripheral? found = %d\n", found);
 	#endif
 	// If found == 0 than all the peripherals are already assigned
 	if (found == 0)
@@ -608,11 +658,13 @@ int peripheral_array_access(struct file * filep)
 int peripheral_release(struct file * filep)
 {
 	mutex_lock(&ketchup_drvr_data.lock);
-	pr_info("Lock acquired -> peripheral release \n");
 	int peripheral_index = (int)(uintptr_t)filep->private_data;
 	struct ketchup_driver_local * cur_dev = &ketchup_drvr_data.all_registered_peripherals[peripheral_index];
 	cur_dev->peripheral_available = AVAILABLE;
 	writel((uint32_t)1, cur_dev->command);
+	#ifdef KECCAK_DEBUG
+	pr_info("peripheral_release: lock acquired, releasing and marking the peripheral as available \n");
+	#endif
 	mutex_unlock(&ketchup_drvr_data.lock);
 	return 1;
 }
@@ -690,6 +742,9 @@ static int ketchup_driver_probe(struct platform_device *pdev)
 	pr_info("(virtual)command_address: 0x%08x\n", lp->command);	
 	pr_info("(virtual)output_base_address: 0x%08x\n", lp->output_base);
 	pr_info("peripheral_availability: %d\n", lp->peripheral_available);
+	/**
+	 * TODO: remove the two following pr_info's
+	*/
 	pr_info("sizeof(input_ker_buf): %zu\n", sizeof(lp->input_ker_buf));
 	pr_info("sizeof(tmp_ker_buf): %zu\n", sizeof(lp->tmp_ker_buf));
 	pr_info("Successfully allocated ketchup peripheral at index %d \n", ketchup_drvr_data.registered_periph_number);
@@ -717,6 +772,9 @@ static int ketchup_driver_remove(struct platform_device *pdev)
 	release_mem_region(lp->mem_start, lp->mem_end - lp->mem_start + 1);
 	kfree(lp);
 	dev_set_drvdata(dev, NULL);
+	#ifdef KECCAK_DEBUG
+	pr_info("ketchup_driver_remove: removing a platform driver instance\n");
+	#endif
 	return 0;
 }
 
@@ -802,6 +860,9 @@ static int __init ketchup_driver_init(void)
 
 	// Initializing the mutex in for the array access
 	mutex_init(&ketchup_drvr_data.lock);
+
+	// We also need to initialize the struct containing all pids
+	memset(&ketchup_drvr_data.peripherals_usage, 0, sizeof(ketchup_drvr_data.peripherals_usage));
 
 	return platform_driver_register(&ketchup_driver_driver);
 }

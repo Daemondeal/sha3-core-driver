@@ -8,7 +8,7 @@
 */
 #define DRIVER_NAME "ketchup-driver"
 #define CLASS_NAME "KEKKAK_ACCELERATORS"
-#define KECCAK_DEBUG
+// #define KECCAK_DEBUG
 #define NUM_INSTANCES 5
 #define BUF_SIZE 1024
 /******************* FUNCTIONS *******************/
