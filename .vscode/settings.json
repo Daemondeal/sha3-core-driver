@@ -1,7 +1,0 @@
-{
-    "files.associations": {
-        "fs.h": "c",
-        "ranges": "c",
-        "stacktrace": "c"
-    }
-}
