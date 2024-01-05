@@ -3,35 +3,29 @@
 #include <xparameters.h>
 #include "ketchup.h"
 
-#define KETCHUP_BASE_512_1 XPAR_KETCHUPPERIPHERALPAR_0_BASEADDR
-#define KETCHUP_BASE_384_1 XPAR_KETCHUPPERIPHERALPAR_1_BASEADDR
-#define KETCHUP_BASE_256_1 XPAR_KETCHUPPERIPHERALPAR_2_BASEADDR
-#define KETCHUP_BASE_224_1 XPAR_KETCHUPPERIPHERALPAR_3_BASEADDR
-#define KETCHUP_BASE_512_2 XPAR_KETCHUPPERIPHERALPAR_4_BASEADDR
-
-
-void sha3_512_init_2(Sha3Context *context) {
-    context->base_address = KETCHUP_BASE_512_2;
-    context->digest_length = 512/8;
-}
+#define KC_BASE XPAR_KETCHUPPERIPHERAL_0_BASEADDR
 
 void sha3_512_init(Sha3Context *context) {
-    context->base_address = KETCHUP_BASE_512_1;
+    context->base_address = KC_BASE;
+    context->mode = 0;
     context->digest_length = 512/8;
 }
 
 void sha3_384_init(Sha3Context *context) {
-    context->base_address = KETCHUP_BASE_384_1;
+    context->base_address = KC_BASE;
+    context->mode = 1;
     context->digest_length = 384/8;
 }
 
 void sha3_256_init(Sha3Context *context) {
-    context->base_address = KETCHUP_BASE_256_1;
+    context->base_address = KC_BASE;
+    context->mode = 2;
     context->digest_length = 256/8;
 }
 
 void sha3_224_init(Sha3Context *context) {
-    context->base_address = KETCHUP_BASE_224_1;
+    context->base_address = KC_BASE;
+    context->mode = 3;
     context->digest_length = 224/8;
 }
 
@@ -41,14 +35,12 @@ void sha3(Sha3Context context, void const *input, u32 input_size, u8 *output, u3
     u32 reg_input = context.base_address + 8;
     u32 reg_command = context.base_address + 12;
     u32 reg_output = context.base_address + 16;
-    printf("Control: %08x\n", reg_control);
-
 
     // Reset the peripheral
     Xil_Out32(reg_command, 1);
 
     // Deal with the 4-byte aligned input
-    Xil_Out32(reg_control, 0);
+    Xil_Out32(reg_control, 0 + (context.mode << 4));
     for (u32 i = 0; i < input_size/4; i++) {
         uint32_t point = ((u32*)input)[i];
 
@@ -72,7 +64,7 @@ void sha3(Sha3Context context, void const *input, u32 input_size, u8 *output, u3
     }
     
     // printf("Last Chunk = %08x (command = %02x)\n", final, (1 << 2) | remaining);
-    Xil_Out32(reg_control, (1 << 2) | remaining);
+    Xil_Out32(reg_control, (context.mode << 4) | (1 << 2) | remaining);
     Xil_Out32(reg_input, final);
 
     // Now we have to wait for the peripheral to answer
