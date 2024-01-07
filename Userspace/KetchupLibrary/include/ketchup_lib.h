@@ -31,6 +31,7 @@ struct kc_sha3_context_s {
 typedef enum kc_sha3_error_e {
     KC_ERR_NONE,
     KC_ERR_BUSY,
+    KC_ERR_UNSUPPORTED_SIZE,
     // NOTE: This is not ideal, remove this after
     //       the driver is fully defined and 
     //       all possible errors have been enumerated

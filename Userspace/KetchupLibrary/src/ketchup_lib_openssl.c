@@ -1,4 +1,4 @@
-#include "./ketchup_lib.h"
+#include "../include/ketchup_lib.h"
 
 #include <openssl/evp.h>
 #include <openssl/evperr.h>

@@ -1,4 +1,4 @@
-#include "./ketchup_lib.h"
+#include "../include/ketchup_lib.h"
 
 kc_error kc_sha3_512(void const *data, uint32_t data_length, uint8_t *digest, uint32_t *digest_length) {
     kc_sha3_context context;

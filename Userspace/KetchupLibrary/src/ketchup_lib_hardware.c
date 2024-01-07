@@ -1,10 +1,20 @@
-#include "./ketchup_lib.h"
+#include "../include/ketchup_lib.h"
 
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <sys/ioctl.h>
 
-#define KC_DEVICE_PATH "/dev/ketchup"
+#include <stdio.h>
+
+#define KC_DEVICE_PATH "/dev/ketchup_driver"
+#define WR_PERIPH_HASH_SIZE _IOW(0xFC, 1, uint32_t*)
+#define RD_PERIPH_HASH_SIZE _IOR(0xFC, 2, uint32_t*)
+
+#define KC_DIGEST_512 0
+#define KC_DIGEST_384 1
+#define KC_DIGEST_256 2
+#define KC_DIGEST_224 3
 
 static kc_error kc_init_peripheral(kc_sha3_context *context, uint8_t digest_length) {
     int fd = open(KC_DEVICE_PATH, O_RDWR);
@@ -16,7 +26,32 @@ static kc_error kc_init_peripheral(kc_sha3_context *context, uint8_t digest_leng
         return KC_ERR_OTHER;
     }
 
+    uint32_t dev_digest_setting = 0;
     // TODO: Set the peripheral to the appropriate size
+    switch (digest_length) {
+        case 512/8:
+            dev_digest_setting = KC_DIGEST_512;
+            break;
+        case 384/8:
+            dev_digest_setting = KC_DIGEST_384;
+            break;
+        case 256/8:
+            dev_digest_setting = KC_DIGEST_256;
+            break;
+        case 224/8:
+            dev_digest_setting = KC_DIGEST_224;
+            break;
+        default:
+            return KC_ERR_UNSUPPORTED_SIZE;
+    }
+
+    int ioctl_retval = ioctl(fd, WR_PERIPH_HASH_SIZE, &dev_digest_setting);
+
+    if (ioctl_retval != 0) {
+        close(fd);
+        return KC_ERR_UNSUPPORTED_SIZE;
+    }
+
     context->fd = fd;
     context->digest_length = digest_length;
 
@@ -60,7 +95,7 @@ void kc_sha3_update(kc_sha3_context *context, const void *new_data, uint32_t new
 }
 
 void kc_sha3_final(kc_sha3_context *context, uint8_t *digest, uint32_t *digest_length) {
-    size_t remaining_data = context->digest_length;
+    ssize_t remaining_data = context->digest_length;
     ssize_t data_read;
 
     uint8_t *digest_ptr = digest;

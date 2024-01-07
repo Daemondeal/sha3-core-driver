@@ -2,7 +2,7 @@
 #include <string.h>
 #include <errno.h>
 
-#include "../../KetchupLibrary/src/ketchup_lib.h"
+#include "../include/ketchup_lib.h"
 
 #define BUFFER_SIZE 256
 
@@ -50,6 +50,7 @@ int main(int argc, char *argv[]) {
     for (uint32_t i = 0; i < digest_length; i++) {
         printf("%02x", digest[i]);
     }
+    printf("\n");
 
     kc_sha3_close(&context);
 
