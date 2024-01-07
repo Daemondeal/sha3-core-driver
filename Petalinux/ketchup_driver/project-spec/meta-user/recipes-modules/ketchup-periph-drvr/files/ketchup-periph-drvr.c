@@ -1,25 +1,29 @@
-#include <asm-generic/errno-base.h>
+// Global Module Utils
 #include <linux/kernel.h>
-#include <linux/init.h>
 #include <linux/module.h>
-#include <linux/slab.h>
-#include <linux/io.h>
 #include <linux/interrupt.h>
+
+// Probing and Memory Mapping
 #include <linux/of_address.h>
 #include <linux/of_device.h>
 #include <linux/of_platform.h>
-#include <linux/string.h>
-#include <asm/uaccess.h>
+#include <linux/io.h>
+
+// Character Device and Platform Device
 #include <linux/device.h>
 #include <linux/cdev.h>
 #include <linux/fs.h>
-#include <linux/errno.h>
 #include <linux/ioctl.h>
 
 // Concurrency Primitives
 #include <linux/semaphore.h>
 #include <linux/mutex.h>
 #include <linux/signal.h>
+
+// Utilities
+#include <linux/errno.h>
+#include <linux/string.h>
+#include <linux/slab.h>
 
 #include "ketchup-periph-drvr.h"
 
