@@ -552,25 +552,23 @@ static int ketchup_release(struct inode *inod, struct file *fil)
 
 /**
  * The various attributes that will pop up in /sys/class/CLASS_NAME/DRIVER_NAME/
- * The macro arguments are attribute_name, r/w, read_callback, write_callback
- * Remember that each attribute will expand in dev_attr_attribute-name so add the
+ * The DEVICE_ATTR macro arguments are attribute_name, r/w, read_callback, write_callback
+ * Remember that each attribute will expand in dev_attr_(attribute-name) so add the
  * correct code in the init and exit functions.
- * I'm setting the permissions in numeric mode. 
- * Remember the order: owner, group, other users. The possible values are:
- * r (read): 4
- * w (write): 2
- * x (execute): 1
 */
-// Read only
-static DEVICE_ATTR(control, 0444, read_control, NULL);
-static ssize_t read_control(struct device *dev, struct device_attribute *attr, char *buf)
+
+/**
+ * This declares the attribute as read only. This will expand 
+ * into dev_attr_hash_size, and will call the function hash_size_show.
+ * It also declares the permissions as r-- r-- r-- (0444)
+*/
+static DEVICE_ATTR_RO(hash_size);
+static ssize_t hash_size_show(struct device *dev, struct device_attribute *attr, char *buf)
 {
-	uint32_t hash_size_mask;
-	uint32_t control_register_value = 0;
-	uint32_t extracted_bits = 0;
-	struct ketchup_device * curr_device;
 	struct ketchup_devices_container *container;
-	char buffer[200];
+	struct ketchup_device * curr_device;
+	// ~ 20 char for device
+	char buffer[MAX_DEVICES * 24];
 	int len = 0;
 
 	container = &ketchup_drvr_data.devices;
@@ -579,28 +577,28 @@ static ssize_t read_control(struct device *dev, struct device_attribute *attr, c
 
 	for (int index = 0; index < container->registered_devices_len; index++){
 		curr_device = container->registered_devices[index];
-
-		control_register_value = readl(curr_device->control);
-		hash_size_mask = 0x30; // 0b_0011_0000
-		extracted_bits = (control_register_value & hash_size_mask) >> 4;
-		// 00 for 512, 01 for 384, 10 for 256 and 11 for 224
-		switch (extracted_bits)
+		switch (curr_device->hash_size)
 		{
-			case 0:
+			case HASH_512:
 				/* code */
 				len += snprintf(buffer + len, sizeof(buffer) - len, "HashSize[%d] = 512\n", index);
 				break;
-			case 1:
+			case HASH_384:
 				len += snprintf(buffer + len, sizeof(buffer) - len, "HashSize[%d] = 384\n", index);
 				break;
-			case 2:
+			case HASH_256:
 				len += snprintf(buffer + len, sizeof(buffer) - len, "HashSize[%d] = 256\n", index);
 				break;
-			case 3:
+			case HASH_224:
 				len += snprintf(buffer + len, sizeof(buffer) - len, "HashSize[%d] = 224\n", index);
 				break; 
 			default:
-				len += snprintf(buffer + len, sizeof(buffer) - len, "Error!\n");
+				kc_err(
+					"[sysfs_hash_size] invalid hash size for peripheral %d: %d\n", 
+					index, 
+					curr_device->hash_size
+				);
+				len += snprintf(buffer + len, sizeof(buffer) - len, "HashSize[%d] = invalid\n", index);
 				break;
 		}
 	}
@@ -611,80 +609,39 @@ static ssize_t read_control(struct device *dev, struct device_attribute *attr, c
 	return len;
 }
 
-/**
- * Writable, it's always zero, OTHERS_WRITABLE? BAD IDEA - kernel
- * I'm also resetting the hash size to 512 don't ask me why, probably a bad idea since i'm 
- * changing the meaning of the control register but it's an easy and quick way of resetting
- * a peripheral when testing
-*/
-/*
-static DEVICE_ATTR(command, 0220, NULL, write_command);
-static ssize_t write_command(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
-{
-	int peripheral;
-	uint32_t reset;
-	struct ketchup_device *curr_device;
-	struct ketchup_devices_container *container;
 
-	sscanf(buf, "%d,%d", &peripheral, &reset);
-
-	kc_info("[write_command] called!\n");
-	kc_info("[write_command] peripheral_argument: %d\n", peripheral);
-	kc_info("[write_command] reset_argument: %d\n", reset);
-
-	if (peripheral < 0 || peripheral > NUM_INSTANCES - 1)
-	{
-		pr_err("The peripheral number specified is invalid!\n");
-		return strlen(buf);
-	}
-	if (reset != 1)
-	{
-		pr_err("Invalid command, pass 1 to reset the selected peripheral\n");
-		return strlen(buf);
-	}
-	// At this point we have a valid index and a correct command
-	curr_device = &ketchup_drvr_data.all_registered_peripherals[peripheral];
-	writel((uint32_t)reset, curr_device->command);
-	// Let's also reset the hash size to a default 512
-	writel((uint32_t)0, ketchup_drvr_data.all_registered_peripherals[peripheral].control);
-	#ifdef KECCAK_DEBUG
-	pr_info("Peripheral number %d reset completed\n", peripheral);
-	#endif
-	return strlen(buf);
-}
-*/
-
+static DEVICE_ATTR_RO(current_usage);
 /**
  * This attributes reveals the current usage of all the peripherals
  * When called you will be able to see all the peripherals and the 
  * pid of the process currently using it
 */
-static DEVICE_ATTR(current_usage, 0444, read_current_usage, NULL);
-static ssize_t read_current_usage(struct device *dev, struct device_attribute *attr, char *buf)
+static ssize_t current_usage_show(struct device *dev, struct device_attribute *attr, char *buf)
 {
-	// Abbiamo un array, andiamo dentro e ci prendiamo i dati
-	char buffer[200];
-	int len = 0;
-	struct ketchup_devices_container *container = &ketchup_drvr_data.devices;
 	struct ketchup_device *curr_device;
+	struct ketchup_devices_container *container = &ketchup_drvr_data.devices;
+	// ~ 15 char per device, conservative estimate
+	char buffer[MAX_DEVICES * 15];
+	int len = 0;
 
 	mutex_lock(&container->array_write_lock);
 
 	for (int i = 0; i < container->registered_devices_len; i++){
 		curr_device = container->registered_devices[i];
 
-		if(curr_device->current_process == 0){
-			// If we are here it means that the peripheral is not in usage
+		// If the peripheral is available, it means 
+		// that no process is currently holding it
+		if(curr_device->peripheral_available == AVAILABLE){
 			len += snprintf(buffer + len, sizeof(buffer) - len, "%d:\n", i);
 		} else {
-			// ne aggiungi un'altra
 			len += snprintf(buffer + len, sizeof(buffer) - len, "%d:%d\n", i, curr_device->current_process);
 		}
 	}
 
 	mutex_unlock(&container->array_write_lock);
 
-	// Now we need to copy data to the user space
+	// Now we need to copy data to the user space.
+	// No need for copy_to_user here. 
 	strcpy(buf, buffer);
 	return len;
 }
@@ -905,7 +862,7 @@ static int __init ketchup_driver_init(void)
 	}
 
 	// control, command, current_usage
-	if (device_create_file(ketchup_drvr_data.registered_device, &dev_attr_control) < 0)
+	if (device_create_file(ketchup_drvr_data.registered_device, &dev_attr_hash_size) < 0)
 	{
         kc_err("[ketchup_driver_init] control sysfs initialization failed\n");
 	}
@@ -929,7 +886,7 @@ static int __init ketchup_driver_init(void)
 static void __exit ketchup_driver_exit(void)
 {
 	cdev_del(&ketchup_drvr_data.c_dev);
-	device_remove_file(ketchup_drvr_data.registered_device, &dev_attr_control);
+	device_remove_file(ketchup_drvr_data.registered_device, &dev_attr_hash_size);
 	device_remove_file(ketchup_drvr_data.registered_device, &dev_attr_current_usage);
 	device_destroy(ketchup_drvr_data.driver_class, ketchup_drvr_data.device_number);
 	class_destroy(ketchup_drvr_data.driver_class);

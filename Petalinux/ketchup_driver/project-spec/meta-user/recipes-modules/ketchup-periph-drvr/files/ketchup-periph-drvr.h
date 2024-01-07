@@ -11,7 +11,7 @@
 #define CLASS_NAME "keccak_accelerators"
 
 // Enable this for debugging
-#define KECCAK_DEBUG
+// #define KECCAK_DEBUG
 
 
 /******************* FUNCTIONS *******************/
@@ -32,9 +32,8 @@ static int ketchup_driver_probe(struct platform_device *);
 static int ketchup_driver_remove(struct platform_device *);
 
 // sysfs
-static ssize_t read_control(struct device *, struct device_attribute *, char *);
-// static ssize_t write_command(struct device *, struct device_attribute *, const char *, size_t);
-static ssize_t read_current_usage(struct device *, struct device_attribute *, char *);
+static ssize_t current_usage_show(struct device *, struct device_attribute *, char *);
+static ssize_t hash_size_show(struct device *dev, struct device_attribute *attr, char *buf);
 
 
 typedef enum {
