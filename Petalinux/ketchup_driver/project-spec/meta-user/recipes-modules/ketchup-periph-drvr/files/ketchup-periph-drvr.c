@@ -41,6 +41,10 @@ MODULE_DESCRIPTION("ketchup-driver - a character device driver for the ketchup p
 
 #define kc_err(...) pr_err(DRIVER_NAME ": " __VA_ARGS__)
 
+// How big the buffer for copying data to kernel space is
+#define KC_BUF_SIZE 1024
+
+// How many devices we can support at maximum
 #define MAX_DEVICES 128
 
 /**
@@ -94,14 +98,18 @@ struct ketchup_device {
 
 	Availability peripheral_available;
 	pid_t current_process;
-	Hash_size setted_hash_size;
+	HashSize hash_size;
 };
 
 /**
  * This is a collection of all registered peripherals
 */ 
 struct ketchup_devices_container {
+	// Used to protect the registered_devices array
 	struct mutex array_write_lock;
+
+	// Used to make sure that only registered_devices_len
+	// processes at a time can access a peripheral
 	struct semaphore dev_free_sema;
 
 	struct ketchup_device *registered_devices[MAX_DEVICES];
@@ -112,11 +120,24 @@ struct ketchup_devices_container {
 // needed for the driver
 static struct char_dev {
     struct class *driver_class;
-    dev_t device;
-    struct cdev c_dev;
-    struct device *test_device;
 
+	// Contains both the major number and 
+	// the minor number for our device
+    dev_t device_number;
+
+	// Representing the character device
+    struct cdev c_dev;
+
+	// This is the device file registered with
+	// sysfs, and represents the file that will
+	// show up inside /dev
+    struct device *registered_device;
+
+	// This is a container for all registered peripherals,
+	// with some concurrency primitives to keep processes 
+	// from accessing the same peripheral at the same time
 	struct ketchup_devices_container devices;
+
 } ketchup_drvr_data = {
 	.driver_class = NULL,
 };
@@ -131,19 +152,19 @@ static void peripheral_clear(struct ketchup_device *device) {
 	device->peripheral_available = AVAILABLE;
 	device->current_process = 0;
 	device->data_to_send_length = 0;
-	device->setted_hash_size = HASH_512;
+	device->hash_size = HASH_512;
 
+	// Clears internal state and output
 	writel(1, device->command);
 }
 
 /**
- * This function is called only by dev_open.
- * The main idea is that when a new file descriptor is opened the driver has to find and
- * available peripheral so that we can uniquely assign to each open file descriptor a unique
- * peripheral (if there's one available).
- * The value we are returning is an index of the registered_devices array at which
- * is present an available peripheral that from this moment will be assigned to the file 
- * descriptor passed as an argument
+ * This function is called only by ketchup_open.
+ * Checks if any peripherals are available to use, and assigns one
+ * to the process requesting it. If there are none, it either makes
+ * the process sleep until one becomes available, or if nonblocking
+ * behaviour is requested returns -EAGAIN. 
+ * This returns the index of the assigned peripheral on success.
 */
 static int peripheral_acquire(int should_block) 
 {
@@ -207,7 +228,7 @@ static int peripheral_acquire(int should_block)
 			curr_device->current_process = task_pid_nr(current);
 			
 			// Set the default hash size
-			curr_device->setted_hash_size = HASH_512;
+			curr_device->hash_size = HASH_512;
 			
 			kc_info("[peripheral_acquire] assigned device %d to process %d.\n", i, task_pid_nr(current));
 			break;
@@ -225,6 +246,10 @@ static int peripheral_acquire(int should_block)
 	}
 }
 
+/** 
+ * Releases the peripheral for future use. It also clears the peripheral
+ * to make sure that no leftover data can be accessed from any future user.
+*/
 static void peripheral_release(int index)
 {
 	struct ketchup_device *curr_device;
@@ -242,16 +267,17 @@ static void peripheral_release(int index)
 	up(&container->dev_free_sema);
 }
 
+/**
+ * Small utility that retrieves a pointer to the peripheral owned by a fd
+*/
 static inline struct ketchup_device *kc_get_device(struct file *filep) {
 	int assigned_periph_index = (int)(uintptr_t)filep->private_data;
 	return ketchup_drvr_data.devices.registered_devices[assigned_periph_index];
 }
 
 /**
- * This is the function that is called whenever a new open syscall is made with our
- * driver device file (/dev/kechtup_driver) as an argument.
- * We are also saving the pid of the process currently opening the file inside an 
- * array for the current_usage attribute
+ * This is the function that is called whenever a new open syscall is made to our
+ * driver device file (/dev/kechtup_driver).
 */
 static int ketchup_open(struct inode *inod, struct file *fil)
 {
@@ -260,7 +286,6 @@ static int ketchup_open(struct inode *inod, struct file *fil)
 	 * peripheral that can serve the request.
 	 * If all the peripherals are already assigned, we return -EAGAIN
 	*/
-	struct ketchup_device *curr_device;
 	int should_block = (fil->f_flags & O_NONBLOCK) == 0;
 
 	int assigned_peripheral = peripheral_acquire(should_block);
@@ -269,13 +294,11 @@ static int ketchup_open(struct inode *inod, struct file *fil)
 		return assigned_peripheral;
 	}
 
-
 	// Save index for read and write
 	fil->private_data = (void*)(uintptr_t)assigned_peripheral;
 
 	return 0;
 }
-
 
 
 /**
@@ -288,7 +311,8 @@ static int ketchup_open(struct inode *inod, struct file *fil)
  * The Magic Number is a unique number or character that will differentiate our set of ioctl calls 
  * from the other ioctl calls. some times the major number for the device is used here.
  * Command Number is the number that is assigned to the ioctl. This is used to differentiate the 
- * commands from one another.
+ * commands from one another in case of an ioctl to the wrong device.
+ * We chose 0xFC only because it's not used by anything else in the kernel by default.
  * The last is the type of data.
 */
 #define WR_PERIPH_HASH_SIZE _IOW(0xFC, 1, uint32_t*)
@@ -314,13 +338,13 @@ static long ketchup_ioctl(struct file *filp, unsigned int cmd, unsigned long arg
 				kc_err("[kekkac_ioctl] invalid hash size!\n");
 				return -EINVAL;
 			}
-			curr_device->setted_hash_size = command;
+			curr_device->hash_size = command;
 			command = command << 4;
 			writel(command, curr_device->control);
 			break;
 		case RD_PERIPH_HASH_SIZE:
 			// We want to return the value of the hash size
-			command = curr_device->setted_hash_size;
+			command = curr_device->hash_size;
 			if (copy_to_user((uint32_t *)arg, &command, sizeof(command))) {
 				kc_err("[keccak_ioctl] error copying data to user space");
 				return -1;
@@ -333,8 +357,16 @@ static long ketchup_ioctl(struct file *filp, unsigned int cmd, unsigned long arg
 	return 0;
 }
 
+/**
+ * Finds the minimum between two numbers. For some reason the kernel implementation 
+ * was giving me some warnings, so I opted to implement it myself
+*/
 #define kc_min(x, y) ((x) < (y) ? (x) : (y))
 
+/**
+ * Packs a byte array into a big endian uint32_t number.
+ * NOTE: This expects the array to be at least 4 long.
+*/
 static inline uint32_t pack_to_u32_big_endian(uint8_t const data[4]) {
 	return ((uint32_t)data[0] << 24)
 		 | ((uint32_t)data[1] << 16)
@@ -348,20 +380,20 @@ static ssize_t ketchup_write(struct file *filep, const char *user_buffer, size_t
 	 * The plan is the following:
 	 * 1. we copy inside kernel space the data the user wants to write, keeping in mind that the
 	 * internal buffer is limited to KC_BUF_SIZE
-	 * 2. once we have the new buf data in kernel space we start doing copy-pasting if there's previous
-	 * data
-	 * 3. once we are over with it we handle residual data (if present)
+	 * 2. we send all the data we got from the user to the peripheral, alongside any residual
+	 * unaligned data from the previous write call if present.
 	*/
-	// We need to retrieve from the file descriptor the peripheral index assigned
-	struct ketchup_device *curr_device = kc_get_device(filep);
 	uint8_t buffer[KC_BUF_SIZE];
 	size_t buffer_length, buffer_position;
 	int error;
 	int peripheral_index = (int)(uintptr_t)filep->private_data;
 
+	// We need to retrieve from the file descriptor the peripheral index assigned
+	struct ketchup_device *curr_device = kc_get_device(filep);
+
 	kc_info(
 		"[ketchup_write] beginning write for peripheral %d task %d. hash_size = %d\n",
-		peripheral_index, current->pid, curr_device->setted_hash_size
+		peripheral_index, current->pid, curr_device->hash_size
 	);
 
 	// 1. Copy from user space to kernel space the data to write
@@ -396,12 +428,13 @@ static ssize_t ketchup_write(struct file *filep, const char *user_buffer, size_t
  * This function is the one responsible for handling all the read operations performed
  * on the /dev/ketchup_driver file.
  * When the user reads we need to:
- * 1. Set this write as the last one
- * 2. Copy data from the tmp_ker_buf into the input register
- * 3. Start polling the peripheral on the status register
- * 4. Once the output is ready, buffer it and return it to the user
- * 5. Reset the peripheral
- * 6. Set the same hash size as before in control
+ * 1. Set this write as the last one;
+ * 2. Send the last packet of input data to the peripheral;
+ * 3. Start polling the peripheral on the status register;
+ * 4. Once the output is ready, we save the output into a buffer;
+ * 5. We copy the output buffer to user space;
+ * 6. Reset the peripheral;
+ * 7. Set the same hash size as before in control.
 */
 static ssize_t ketchup_read(struct file *filep, char *user_buffer, size_t user_len, loff_t *off)
 {
@@ -413,7 +446,7 @@ static ssize_t ketchup_read(struct file *filep, char *user_buffer, size_t user_l
 	int error;
 
 	// First of all, check that user requested the correct amount of bytes
-	switch (curr_device->setted_hash_size)
+	switch (curr_device->hash_size)
 	{
 		case HASH_512:
 			hash_size_bytes = 512/8;
@@ -430,14 +463,14 @@ static ssize_t ketchup_read(struct file *filep, char *user_buffer, size_t user_l
 		default:
 			kc_err(
 				"[ketchup_read] the peripheral %d owned by task %d has an impossible hash size (%d)!\n", 
-				assigned_periph_index, current->pid, curr_device->setted_hash_size
+				assigned_periph_index, current->pid, curr_device->hash_size
 			);
 			return -EINVAL;
 	}
 
 	// Make sure that the user requested at least as many 
 	// bytes as the output, otherwise we might copy more
-	// than the user asked, which is dangerous
+	// than the user asked, which is potentially dangerous
 	if (user_len < hash_size_bytes) {
 		return -EINVAL;
 	}
@@ -451,7 +484,7 @@ static ssize_t ketchup_read(struct file *filep, char *user_buffer, size_t user_l
 	control_value |= 1 << 2;
 
 	// Hash size
-	control_value |= curr_device->setted_hash_size << 4;
+	control_value |= curr_device->hash_size << 4;
 	writel(control_value, curr_device->control);
 	kc_info("[ketchup_read] writing %08x to control\n", control_value);
 
@@ -483,9 +516,10 @@ static ssize_t ketchup_read(struct file *filep, char *user_buffer, size_t user_l
 	// 5. Send output to user
 	data_to_copy = min(hash_size_bytes, user_len);
 	error = copy_to_user(user_buffer, output_buffer, data_to_copy);
-	// TODO: Handle Error
-	if (error != 0) {
+
+	if (error < 0) {
 		kc_err("[ketchup_read] copy_to_user failed. retval = %d\n", error);
+		return error;
 	}
 
 	// 6. Reset the peripheral, for good measure
@@ -493,7 +527,7 @@ static ssize_t ketchup_read(struct file *filep, char *user_buffer, size_t user_l
 	curr_device->data_to_send_length = 0;
 
 	// 7. Reset previous hash size into control
-	control_value = curr_device->setted_hash_size << 4;
+	control_value = curr_device->hash_size << 4;
 	writel(control_value, curr_device->control);
 	kc_info("[ketchup_read] writing %08x to control\n", control_value);
 
@@ -503,8 +537,7 @@ static ssize_t ketchup_read(struct file *filep, char *user_buffer, size_t user_l
 /**
  * This function is called when a file descriptor opened of our character device file 
  * (i.e /dev/ketchup_driver) is closed.
- * What we do is we reset the peripheral and than we mark is as available inside the 
- * array
+ * What we do is we reset the peripheral and than we release the acquired peripheral
 */
 static int ketchup_release(struct inode *inod, struct file *fil)
 {
@@ -555,16 +588,16 @@ static ssize_t read_control(struct device *dev, struct device_attribute *attr, c
 		{
 			case 0:
 				/* code */
-				len += snprintf(buffer + len, sizeof(buffer) - len, "Hash_size[%d] = 512\n", index);
+				len += snprintf(buffer + len, sizeof(buffer) - len, "HashSize[%d] = 512\n", index);
 				break;
 			case 1:
-				len += snprintf(buffer + len, sizeof(buffer) - len, "Hash_size[%d] = 384\n", index);
+				len += snprintf(buffer + len, sizeof(buffer) - len, "HashSize[%d] = 384\n", index);
 				break;
 			case 2:
-				len += snprintf(buffer + len, sizeof(buffer) - len, "Hash_size[%d] = 256\n", index);
+				len += snprintf(buffer + len, sizeof(buffer) - len, "HashSize[%d] = 256\n", index);
 				break;
 			case 3:
-				len += snprintf(buffer + len, sizeof(buffer) - len, "Hash_size[%d] = 224\n", index);
+				len += snprintf(buffer + len, sizeof(buffer) - len, "HashSize[%d] = 224\n", index);
 				break; 
 			default:
 				len += snprintf(buffer + len, sizeof(buffer) - len, "Error!\n");
@@ -741,25 +774,6 @@ static int ketchup_driver_probe(struct platform_device *pdev)
 
 	up(&container->dev_free_sema);
 
-	/* 
-	ketchup_drvr_data.all_registered_peripherals[ketchup_drvr_data.registered_periph_number] = *lp;
-	ketchup_drvr_data.registered_periph_number++;
-	#ifdef KECCAK_DEBUG
-	pr_info("***********ketchup_peripheral probing***************\n");
-	dev_info(dev, "(peripheral_physical_address)");
-	pr_info("(virtual)base_address: 0x%08x\n", lp->base_addr);
-	pr_info("(virtual)control_address: 0x%08x\n", lp->control);
-	pr_info("(virtual)status_address: 0x%08x\n", lp->status);
-	pr_info("(virtual)input_address: 0x%08x\n", lp->input);
-	pr_info("(virtual)command_address: 0x%08x\n", lp->command);	
-	pr_info("(virtual)output_base_address: 0x%08x\n", lp->output_base);
-	pr_info("peripheral_availability: %d\n", lp->peripheral_available);
-	pr_info("sizeof(input_ker_buf): %zu\n", sizeof(lp->input_ker_buf));
-	pr_info("sizeof(tmp_ker_buf): %zu\n", sizeof(lp->tmp_ker_buf));
-	pr_info("Successfully allocated ketchup peripheral at index %d \n", ketchup_drvr_data.registered_periph_number);
-	#endif
-	*/
-
 	return 0;
 error2:
 	release_mem_region(lp->mem_start, lp->mem_end - lp->mem_start + 1);
@@ -818,30 +832,40 @@ static char *ketchup_devnode(struct device *dev, umode_t *mode)
 // ===================== Module Functions ==========================
 
 /**
- * init function, it's the first one that is called when the driver is loaded
+ * init function, it's the first function that is called when the driver is loaded
 */
 static int __init ketchup_driver_init(void)
 {
-	#ifdef KECCAK_DEBUG
-	pr_info("ketchup_driver_init: starting...\n");
-	#endif
+	kc_info("[ketchup_driver_init] starting up...\n");
 	/**
+	 * Allocates both a major and minor number for our device dynamically
 	 * The parameters are:
 	 * - output parameter for the first assigned number
 	 * - first of the requested range of minor numbers
 	 * - the number of minor numbers required
 	 * - the name of the associated device or driver
 	*/
-	if (alloc_chrdev_region(&ketchup_drvr_data.device, 0, 1, DRIVER_NAME) < 0)
+	if (alloc_chrdev_region(&ketchup_drvr_data.device_number, 0, 1, DRIVER_NAME) < 0)
 	{
+		kc_err("[ketchup_driver_init] could not allocate device number\n");
 		return -1;
 	}
 
+	kc_info(
+		"[ketchup_driver_init] device number = %d, major = %d, minor = %d\n", 
+		ketchup_drvr_data.device_number,
+		MAJOR(ketchup_drvr_data.device_number),
+		MINOR(ketchup_drvr_data.device_number)
+	);
+
+	/**
+	 * Create the device class
+	*/
 	ketchup_drvr_data.driver_class = class_create(THIS_MODULE, CLASS_NAME);
-	if (ketchup_drvr_data.driver_class == NULL)
+	if (IS_ERR(ketchup_drvr_data.driver_class))
 	{
-		pr_info("Create class failed \n");
-		unregister_chrdev_region(ketchup_drvr_data.device, 1);
+		kc_err("[ketchup_driver_init] could not create class\n");
+		unregister_chrdev_region(ketchup_drvr_data.device_number, 1);
 		return -1;
 	}
 
@@ -850,41 +874,45 @@ static int __init ketchup_driver_init(void)
 	*/
 	ketchup_drvr_data.driver_class->devnode = ketchup_devnode;
 
-	ketchup_drvr_data.test_device = device_create(ketchup_drvr_data.driver_class, NULL, ketchup_drvr_data.device, NULL, "ketchup_driver");
-	if (ketchup_drvr_data.test_device == NULL)
+	/**
+	 * Register the device with sysfs, this will create the file in /dev
+	*/
+	ketchup_drvr_data.registered_device = device_create(
+		ketchup_drvr_data.driver_class,   
+		NULL,                             // Parent  
+		ketchup_drvr_data.device_number,  
+		NULL,                             // drvdata
+		DEVICE_NAME	
+	);
+	if (IS_ERR(ketchup_drvr_data.registered_device))
 	{
-		pr_info("Create device failed \n");
+		kc_err("[ketchup_driver_init] device initialization failed\n");
 		class_destroy(ketchup_drvr_data.driver_class);
-		unregister_chrdev_region(ketchup_drvr_data.device, 1);
+		unregister_chrdev_region(ketchup_drvr_data.device_number, 1);
 		return -1;
 	}
 
+	// Initialize the character device
 	cdev_init(&ketchup_drvr_data.c_dev, &fops);
 
-	if (cdev_add(&ketchup_drvr_data.c_dev, ketchup_drvr_data.device, 1) == -1)
+	if (cdev_add(&ketchup_drvr_data.c_dev, ketchup_drvr_data.device_number, 1) == -1)
 	{
-		pr_info("create character device failed\n");
-		device_destroy(ketchup_drvr_data.driver_class, ketchup_drvr_data.device);
+        kc_err("[ketchup_driver_init] cdev initialization failed\n");
+		device_destroy(ketchup_drvr_data.driver_class, ketchup_drvr_data.device_number);
 		class_destroy(ketchup_drvr_data.driver_class);
-		unregister_chrdev_region(ketchup_drvr_data.device, 1);
+		unregister_chrdev_region(ketchup_drvr_data.device_number, 1);
 		return -1;
 	}
 
 	// control, command, current_usage
-	if (device_create_file(ketchup_drvr_data.test_device, &dev_attr_control) < 0)
+	if (device_create_file(ketchup_drvr_data.registered_device, &dev_attr_control) < 0)
 	{
-		pr_err("ketchup_driver_init: control attribute creation failed\n");
+        kc_err("[ketchup_driver_init] control sysfs initialization failed\n");
 	}
-	/*
-	if (device_create_file(ketchup_drvr_data.test_device, &dev_attr_command) < 0)
-	{
-		pr_err("ketchup_driver_init: command attribute creation failed\n");
-	}
-	*/
 
-	if (device_create_file(ketchup_drvr_data.test_device, &dev_attr_current_usage) < 0)
+	if (device_create_file(ketchup_drvr_data.registered_device, &dev_attr_current_usage) < 0)
 	{
-		pr_err("ketchup_driver_init: current_usage attribute creation failed\n");
+        kc_err("[ketchup_driver_initb current_usage initialization failed\n");
 	}
 
 	// Initialize devices container
@@ -901,15 +929,13 @@ static int __init ketchup_driver_init(void)
 static void __exit ketchup_driver_exit(void)
 {
 	cdev_del(&ketchup_drvr_data.c_dev);
-	device_remove_file(ketchup_drvr_data.test_device, &dev_attr_control);
-	// device_remove_file(ketchup_drvr_data.test_device, &dev_attr_command);
-	device_remove_file(ketchup_drvr_data.test_device, &dev_attr_current_usage);
-	device_destroy(ketchup_drvr_data.driver_class, ketchup_drvr_data.device);
+	device_remove_file(ketchup_drvr_data.registered_device, &dev_attr_control);
+	device_remove_file(ketchup_drvr_data.registered_device, &dev_attr_current_usage);
+	device_destroy(ketchup_drvr_data.driver_class, ketchup_drvr_data.device_number);
 	class_destroy(ketchup_drvr_data.driver_class);
 	platform_driver_unregister(&ketchup_driver_driver);
-	#ifdef KECCAK_DEBUG
-	pr_info("ketchup_driver_exit: exiting..\n");
-	#endif
+
+	kc_info("[ketchup_driver_exit] Module unloaded\n");
 }
 
 module_init(ketchup_driver_init);

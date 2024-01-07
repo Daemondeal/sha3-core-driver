@@ -7,12 +7,12 @@
  * CLASS_NAME -> name of the class in /sys/class/
 */
 #define DRIVER_NAME "ketchup-driver"
+#define DEVICE_NAME "ketchup_driver"
 #define CLASS_NAME "keccak_accelerators"
 
 // Enable this for debugging
-// #define KECCAK_DEBUG
+#define KECCAK_DEBUG
 
-#define KC_BUF_SIZE 1024
 
 /******************* FUNCTIONS *******************/
 
@@ -36,10 +36,6 @@ static ssize_t read_control(struct device *, struct device_attribute *, char *);
 // static ssize_t write_command(struct device *, struct device_attribute *, const char *, size_t);
 static ssize_t read_current_usage(struct device *, struct device_attribute *, char *);
 
-// other
-// int peripheral_array_access(struct file *);
-// void write_into_input_reg(char [], size_t, int);
-// int peripheral_release(struct file *);
 
 typedef enum {
     NOT_AVAILABLE,
@@ -51,5 +47,5 @@ typedef enum {
     HASH_384 = 1,
     HASH_256 = 2,
     HASH_224 = 3
-} Hash_size;
+} HashSize;
 #endif
