@@ -1,3 +1,4 @@
+#include <asm-generic/errno-base.h>
 #include <linux/kernel.h>
 #include <linux/init.h>
 #include <linux/module.h>
@@ -18,6 +19,7 @@
 // Concurrency Primitives
 #include <linux/semaphore.h>
 #include <linux/mutex.h>
+#include <linux/signal.h>
 
 #include "ketchup-periph-drvr.h"
 
@@ -83,11 +85,6 @@ struct ketchup_device {
 	void __iomem *command;
 	void __iomem *output_base;
 
-	// Each peripheral will have it's own kernel buffer
-	char input_ker_buf[BUF_SIZE];
-	char tmp_ker_buf[3];
-	int num_bytes_tmp_ker_buf;
-
 	char data_to_send[4];
 	int data_to_send_length;
 
@@ -116,14 +113,24 @@ static struct char_dev {
     struct device *test_device;
 
 	struct ketchup_devices_container devices;
-
-	// Array in which we save the pid of every process using one of our peripherals
-	pid_t peripherals_usage[NUM_INSTANCES];
 } ketchup_drvr_data = {
 	.driver_class = NULL,
 };
 
+
 // ======================= Character Device ========================
+
+/**
+ * Completely clears all the internal state of a given peripheral
+*/
+static void peripheral_clear(struct ketchup_device *device) {
+	device->peripheral_available = AVAILABLE;
+	device->current_process = 0;
+	device->data_to_send_length = 0;
+	device->setted_hash_size = HASH_512;
+
+	writel(1, device->command);
+}
 
 /**
  * This function is called only by dev_open.
@@ -137,25 +144,68 @@ static struct char_dev {
 static int peripheral_acquire(int should_block) 
 {
 	int i, found, assigned_index;
+	int down_retval, is_sig;
 	struct ketchup_device *curr_device;
 	struct ketchup_devices_container *container = &ketchup_drvr_data.devices;
 
-	// TODO: Implement this
-	(void)should_block;
+	pid_t pid = task_pid_nr(current);
+
+	kc_info("[peripheral_acquire] task %d trying to acquire peripheral (blocking = %d)\n", pid, should_block);
+
+	if (should_block) {
+		kc_info("[peripheral_acquire] task %d before locking\n", pid);
+		// Block if all peripherals are taken
+		down_retval = down_interruptible(&container->dev_free_sema);
+		kc_info("[peripheral_acquire] task %d got unblocked. down_retval = %d\n", pid, down_retval);
+
+		// We should immediately return if it was a signal that unblocked us
+        for (i = 0; i < _NSIG_WORDS && !is_sig; i++)  {
+            is_sig = current->pending.signal.sig[i] & ~current->blocked.sig[i]; 
+        }
+
+        if (is_sig || down_retval != 0) {
+			kc_err(
+				"[peripheral_acquire] something interrupted task %d. is_sig = %d, down_retval = %d",
+				pid, is_sig, down_retval
+			);
+
+            return -EINTR;
+        }
+	} else {
+		down_retval = down_trylock(&container->dev_free_sema);
+
+		if (down_retval != 0) {
+			// Not enough available peripherals
+			return -EAGAIN;
+		}
+	}
 
 	mutex_lock(&container->array_write_lock);
-	kc_info("[assign_peripheral] acquired lock\n");
+	kc_info("[peripheral_acquire] task %d acquired lock. Searching for free peripheral\n", pid);
 
 	found = 0;
 	for (i = 0; i < container->registered_devices_len; i++) {
 		curr_device = container->registered_devices[i];
+
 		if (curr_device->peripheral_available == AVAILABLE) {
+			// We found a suitable peripheral
+
 			found = 1;
 			assigned_index = i;
+
+			// First clear all previous state
+			peripheral_clear(curr_device);
+
+			// Make sure no other process can take this peripheral
 			curr_device->peripheral_available = NOT_AVAILABLE;
+
+			// Assign peripheral to owner process
 			curr_device->current_process = task_pid_nr(current);
 			
-			kc_info("[assign_peripheral] assigned device %d to process %d.\n", i, task_pid_nr(current));
+			// Set the default hash size
+			curr_device->setted_hash_size = HASH_512;
+			
+			kc_info("[peripheral_acquire] assigned device %d to process %d.\n", i, task_pid_nr(current));
 			break;
 		}
 	}
@@ -163,10 +213,11 @@ static int peripheral_acquire(int should_block)
 	mutex_unlock(&container->array_write_lock);
 
 	if (found) {
+		kc_info("[peripheral_acquire] task %d got device %d\n", pid, assigned_index);
 		return assigned_index;
 	} else {
-		kc_info("[assign_peripheral] could not assign peripheral to process %d.\n", task_pid_nr(current));
-		return -EAGAIN;
+		kc_err("[assign_peripheral] could not assign peripheral to process %d past the lock.\n", task_pid_nr(current));
+		return -ENODEV;
 	}
 }
 
@@ -180,13 +231,11 @@ static void peripheral_release(int index)
 
 	kc_info("[peripheral_release] releasing device %d\n", index);
 	curr_device = container->registered_devices[index];
-	curr_device->peripheral_available = AVAILABLE;
-	curr_device->current_process = 0;
 
-	// Just to be sure
-	writel(1, curr_device->command);
+	peripheral_clear(curr_device);
 
 	mutex_unlock(&container->array_write_lock);
+	up(&container->dev_free_sema);
 }
 
 static inline struct ketchup_device *kc_get_device(struct file *filep) {
@@ -207,11 +256,15 @@ static int ketchup_open(struct inode *inod, struct file *fil)
 	 * peripheral that can serve the request.
 	 * If all the peripherals are already assigned, we return -EAGAIN
 	*/
-	// TODO: Implement should_block
-	int assigned_peripheral = peripheral_acquire(0);
+	struct ketchup_device *curr_device;
+	int should_block = (fil->f_flags & O_NONBLOCK) == 0;
+
+	int assigned_peripheral = peripheral_acquire(should_block);
+
 	if (assigned_peripheral < 0) {
 		return assigned_peripheral;
 	}
+
 
 	// Save index for read and write
 	fil->private_data = (void*)(uintptr_t)assigned_peripheral;
@@ -290,20 +343,25 @@ static ssize_t ketchup_write(struct file *filep, const char *user_buffer, size_t
 	/**
 	 * The plan is the following:
 	 * 1. we copy inside kernel space the data the user wants to write, keeping in mind that the
-	 * internal buffer is limited to BUF_SIZE
+	 * internal buffer is limited to KC_BUF_SIZE
 	 * 2. once we have the new buf data in kernel space we start doing copy-pasting if there's previous
 	 * data
 	 * 3. once we are over with it we handle residual data (if present)
 	*/
 	// We need to retrieve from the file descriptor the peripheral index assigned
-	// int assigned_periph_index = (int)(uintptr_t)filep->private_data;
 	struct ketchup_device *curr_device = kc_get_device(filep);
-	uint8_t buffer[BUF_SIZE];
+	uint8_t buffer[KC_BUF_SIZE];
 	size_t buffer_length, buffer_position;
 	int error;
+	int peripheral_index = (int)(uintptr_t)filep->private_data;
+
+	kc_info(
+		"[ketchup_write] beginning write for peripheral %d task %d. hash_size = %d\n",
+		peripheral_index, current->pid, curr_device->setted_hash_size
+	);
 
 	// 1. Copy from user space to kernel space the data to write
-	buffer_length = kc_min(BUF_SIZE, user_length);
+	buffer_length = kc_min(KC_BUF_SIZE, user_length);
 	error = copy_from_user(buffer, user_buffer, buffer_length);
 	if (error != 0) {
 		kc_err("[ketchup_write] coudln't copy data from user. retval = %d\n", error);
@@ -366,7 +424,10 @@ static ssize_t ketchup_read(struct file *filep, char *user_buffer, size_t user_l
 			hash_size_bytes = 224/8;
 			break;
 		default:
-			kc_err("[ketchup_read] the peripheral %d has an impossible hash size!\n", assigned_periph_index);
+			kc_err(
+				"[ketchup_read] the peripheral %d owned by task %d has an impossible hash size (%d)!\n", 
+				assigned_periph_index, current->pid, curr_device->setted_hash_size
+			);
 			return -EINVAL;
 	}
 
@@ -653,12 +714,8 @@ static int ketchup_driver_probe(struct platform_device *pdev)
 
 	// Initialize device state
 	lp->peripheral_available = AVAILABLE;
+	lp->current_process = 0;
 	lp->data_to_send_length = 0;
-
-	// TODO: DELETE
-	lp->num_bytes_tmp_ker_buf = 0;
-	memset(lp->input_ker_buf, 0, sizeof(lp->input_ker_buf));
-	memset(lp->tmp_ker_buf, 0, sizeof(lp->tmp_ker_buf));
 	
 
 	// Save device into container
@@ -678,6 +735,7 @@ static int ketchup_driver_probe(struct platform_device *pdev)
 	kc_info("[ketchup_driver_probe] registered device number %d\n", container->registered_devices_len);
 	mutex_unlock(&container->array_write_lock);
 
+	up(&container->dev_free_sema);
 
 	/* 
 	ketchup_drvr_data.all_registered_peripherals[ketchup_drvr_data.registered_periph_number] = *lp;
@@ -829,9 +887,6 @@ static int __init ketchup_driver_init(void)
 	mutex_init(&ketchup_drvr_data.devices.array_write_lock);
 	sema_init(&ketchup_drvr_data.devices.dev_free_sema, 0);
 
-
-	// We also need to initialize the struct containing all pids
-	memset(&ketchup_drvr_data.peripherals_usage, 0, sizeof(ketchup_drvr_data.peripherals_usage));
 
 	return platform_driver_register(&ketchup_driver_driver);
 }
