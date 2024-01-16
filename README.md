@@ -5,11 +5,13 @@ In this project we are developing a crypto core that accelerates the computation
 ## Project Status
 
 The project status is as follows: (Last updated by Pietro on the 2024-01-07)
+
 - Peripheral: Now complete and working, it also has an automatic test suite that generates test vectors with python;
 - HardwarePlatform: Complete and working, it also has some tests with Vitis. While they aren't fully automated or very comprehensive, i feel it's unnecessary since the platform will be also tested for the driver;
 - Driver & Userspace: The driver is also complete and working, but it lacks an automated test suite. One cool thing that we could do is directly implement the [official NIST tests](https://csrc.nist.gov/projects/cryptographic-algorithm-validation-program/secure-hashing), which I think would not take as much time as it seems, and which would look very good. Also, we need some more tests for the concurrent peripheral assignment part, making sure that no more than four peripherals are assigned at a time, and that they all work correctly even when used in parallel. One last thing I would add is a little benchmark comparing it to OpenSSL, so that we can show how much faster this implementation is.
 
 The main thing missing as of now is documentation, a lot of documentation. This includes:
+
 - Algorithm: I'm not really sure if we need to explain it, but even a section in this README which explains what it is, what it's for and why it was created more deeply would go a long way;
 - Peripheral: Full docs on the peripheral, and what were our changes compared to the one we got from opencores.com;
 - HardwarePlatform: Here we have something, but it needs to be a bit cleaned up and updated;
@@ -39,9 +41,9 @@ Inside this repository we can find:
 
 - Peripheral: inside this folder there is the SHA3 peripheral;
 - HardwarePlatform: here you can find:
-    - The Vivado project for bot the final peripheral, and the hardware platform;
-    - The `.xsa` for the final hardware platform;
-    - Some sample code to be used within Vitis to test out the peripheral's functionalities in a bare metal environment.
+  - The Vivado project for bot the final peripheral, and the hardware platform;
+  - The `.xsa` for the final hardware platform;
+  - Some sample code to be used within Vitis to test out the peripheral's functionalities in a bare metal environment.
 - Petalinux: here you can find the Petalinux project, alongside the description of the driver;
 - Userspace: here you can find reference implementations for the desired algorithm, alongside some demos to be run within the Petalinux linux environment to check the driver's correctness;
 - Tutorials: here you can find a collection of a variety of tutorials written by us regarding all the steps necessary to work with the environment and also some "deep" dives into the different topics that must be understood in order to develop a driver;
