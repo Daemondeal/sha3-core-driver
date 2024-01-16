@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "./src/ketchup_lib.h"
+#include "../include/ketchup_lib.h"
 
 // This is an example usage of the library
 
