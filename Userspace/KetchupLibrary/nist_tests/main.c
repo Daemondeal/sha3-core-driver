@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 #include "../include/ketchup_lib.h"
 
 void digest_print(FILE *fp, uint8_t *digest, uint32_t digest_len) {
@@ -40,20 +41,36 @@ uint8_t *read_input_line(FILE *fp, uint32_t *buflen ) {
     return output_buffer;
 }
 
-void write_resp_file(FILE *infile, FILE *outfile) {
+typedef kc_error kc_sha3_function(const void *, uint32_t, uint8_t*, uint32_t*);
+
+bool write_resp_file(char *infile_path, char *outfile_path, kc_sha3_function hash_function) {
     uint8_t *input;
     uint8_t output[KC_MAX_MD_SIZE];
     uint32_t input_len, output_len;
+    FILE *infile, *outfile;
+
+    infile = fopen(infile_path, "r");
+    outfile = fopen(outfile_path, "w+");
+
+    if (infile == NULL || outfile == NULL) {
+        fprintf(
+            stderr,
+            "Cannot open files \"%s\" \"%s\"\n",
+            infile_path,
+            outfile_path
+        );
+        return false;
+    }
 
     fprintf(outfile, "\n[L = 512]\n\n");
 
     for (;;) {
         input = read_input_line(infile, &input_len);
         if (input == NULL) {
-            return;
+            break;
         }
 
-        kc_sha3_512(input, input_len, output, &output_len);
+        hash_function(input, input_len, output, &output_len);
 
         fprintf(outfile, "Len = %d\nMsg = ", input_len * 8);
         digest_print(outfile, input, input_len);
@@ -64,19 +81,45 @@ void write_resp_file(FILE *infile, FILE *outfile) {
         free(input);
     }
 
-}
-
-int main() {
-    FILE *infile = fopen("./nist_tests/512_short", "r");
-    FILE *outfile = fopen("./nist_tests/out/512_short.resp", "w+");
-
-    if (infile == NULL || outfile == NULL)  {
-        fprintf(stderr, "Cannot open files\n");
-    }
-
-    write_resp_file(infile, outfile);
-
     fclose(infile);
     fclose(outfile);
+    return true;
+}
+
+bool compute_resp_file(char *resp_name, kc_sha3_function hash_function, char *indir, char *outdir) {
+    char infile_buff[1024];
+    char outfile_buff[1024];
+
+    sprintf(infile_buff, "%s/%s.in", indir, resp_name);
+    sprintf(outfile_buff, "%s/%s.rsp", outdir, resp_name);
+
+    return write_resp_file(infile_buff, outfile_buff, hash_function);
+}
+
+int main(int argc, char *argv[]) {
+    if (argc != 3) {
+        fprintf(stderr, "USAGE: infolder outfolder");
+        return -1;
+    }
+
+
+    printf("Computing SHA3-224...\n");
+    compute_resp_file("SHA3_224ShortMsg", kc_sha3_224, argv[1], argv[2]);
+    compute_resp_file("SHA3_224LongMsg", kc_sha3_224, argv[1], argv[2]);
+
+    printf("Computing SHA3-256...\n");
+    compute_resp_file("SHA3_256ShortMsg", kc_sha3_256, argv[1], argv[2]);
+    compute_resp_file("SHA3_256LongMsg", kc_sha3_256, argv[1], argv[2]);
+
+    printf("Computing SHA3-384...\n");
+    compute_resp_file("SHA3_384ShortMsg", kc_sha3_384, argv[1], argv[2]);
+    compute_resp_file("SHA3_384LongMsg", kc_sha3_384, argv[1], argv[2]);
+
+    printf("Computing SHA3-512...\n");
+    compute_resp_file("SHA3_512ShortMsg", kc_sha3_512, argv[1], argv[2]);
+    compute_resp_file("SHA3_512LongMsg", kc_sha3_512, argv[1], argv[2]);
+
+    printf("All done!\n");
+
 }
 
