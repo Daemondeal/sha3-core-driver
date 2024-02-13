@@ -43,7 +43,7 @@ uint8_t *read_input_line(FILE *fp, uint32_t *buflen ) {
 
 typedef kc_error kc_sha3_function(const void *, uint32_t, uint8_t*, uint32_t*);
 
-bool write_resp_file(char *infile_path, char *outfile_path, kc_sha3_function hash_function) {
+bool write_resp_file(char *infile_path, char *outfile_path, kc_sha3_function hash_function, uint32_t hash_len) {
     uint8_t *input;
     uint8_t output[KC_MAX_MD_SIZE];
     uint32_t input_len, output_len;
@@ -62,7 +62,7 @@ bool write_resp_file(char *infile_path, char *outfile_path, kc_sha3_function has
         return false;
     }
 
-    fprintf(outfile, "\n[L = 512]\n\n");
+    fprintf(outfile, "\n[L = %d]\n\n", hash_len);
 
     for (;;) {
         input = read_input_line(infile, &input_len);
@@ -86,14 +86,14 @@ bool write_resp_file(char *infile_path, char *outfile_path, kc_sha3_function has
     return true;
 }
 
-bool compute_resp_file(char *resp_name, kc_sha3_function hash_function, char *indir, char *outdir) {
+bool compute_resp_file(char *resp_name, kc_sha3_function hash_function, uint32_t hash_len, char *indir, char *outdir) {
     char infile_buff[1024];
     char outfile_buff[1024];
 
     sprintf(infile_buff, "%s/%s.in", indir, resp_name);
     sprintf(outfile_buff, "%s/%s.rsp", outdir, resp_name);
 
-    return write_resp_file(infile_buff, outfile_buff, hash_function);
+    return write_resp_file(infile_buff, outfile_buff, hash_function, hash_len);
 }
 
 int main(int argc, char *argv[]) {
@@ -104,20 +104,20 @@ int main(int argc, char *argv[]) {
 
 
     printf("Computing SHA3-224...\n");
-    compute_resp_file("SHA3_224ShortMsg", kc_sha3_224, argv[1], argv[2]);
-    compute_resp_file("SHA3_224LongMsg", kc_sha3_224, argv[1], argv[2]);
+    compute_resp_file("SHA3_224ShortMsg", kc_sha3_224, 224, argv[1], argv[2]);
+    compute_resp_file("SHA3_224LongMsg", kc_sha3_224, 224, argv[1], argv[2]);
 
     printf("Computing SHA3-256...\n");
-    compute_resp_file("SHA3_256ShortMsg", kc_sha3_256, argv[1], argv[2]);
-    compute_resp_file("SHA3_256LongMsg", kc_sha3_256, argv[1], argv[2]);
+    compute_resp_file("SHA3_256ShortMsg", kc_sha3_256, 256, argv[1], argv[2]);
+    compute_resp_file("SHA3_256LongMsg", kc_sha3_256, 256, argv[1], argv[2]);
 
     printf("Computing SHA3-384...\n");
-    compute_resp_file("SHA3_384ShortMsg", kc_sha3_384, argv[1], argv[2]);
-    compute_resp_file("SHA3_384LongMsg", kc_sha3_384, argv[1], argv[2]);
+    compute_resp_file("SHA3_384ShortMsg", kc_sha3_384, 384, argv[1], argv[2]);
+    compute_resp_file("SHA3_384LongMsg", kc_sha3_384, 384, argv[1], argv[2]);
 
     printf("Computing SHA3-512...\n");
-    compute_resp_file("SHA3_512ShortMsg", kc_sha3_512, argv[1], argv[2]);
-    compute_resp_file("SHA3_512LongMsg", kc_sha3_512, argv[1], argv[2]);
+    compute_resp_file("SHA3_512ShortMsg", kc_sha3_512, 512, argv[1], argv[2]);
+    compute_resp_file("SHA3_512LongMsg", kc_sha3_512, 512, argv[1], argv[2]);
 
     printf("All done!\n");
 
