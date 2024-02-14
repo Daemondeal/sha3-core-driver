@@ -9,9 +9,9 @@ test_file() {
     sed "/^#/d" "$RESPONSE_DIR/$1" | diff --strip-trailing-cr "$OUTFILES_DIR/$1" - > /dev/null
 
     if [ $? -eq 0 ] ; then
-        echo -e "\tPassed!"
+        echo -e "\t\tPassed!"
     else
-        echo -e "\tNot Passed!"
+        echo -e "\t\tNot Passed!"
     fi
 
 }
