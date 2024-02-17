@@ -174,7 +174,15 @@ With the command `petalinux-create -t apps --template c++ --name hello.c` a simp
 
 ## Booting from an SD Card
 
-TODO
+Booting from an SD card needs some setup:
+1. Make sure that inside the u-boot settings SD Cards as a boot media are enabled. You can find that option under `Boot options > Boot Media > "Support for booting from SD/EMMC"
+2. You need to package the project, by running the command `petalinux-package --boot --u-boot --fpga ./images/linux/system.bit`. Note that the `--fpga` parameter is required, otherwise it won't package the bitstream file needed to make the fpga work. Also note that this command will not work if you have already packaged it before unless you delete the `BOOT.BIN` file manually; to avoid this problem, you can pass the flag `--force`.
+3. You need to partition the SD Card as follows:
+    1. The first partition needs to be a 1GB FAT primrary partition, named `Boot`
+    2. The second partition needs to be an ext4 primary partition named `RootFS`, which can be as large as you want (Ideally, make it take rest of the available space).
+4. Now you should copy the files `BOOT.bin`, `boot.scr` and `image.ub` from the `<plnx-project>/images/linux/` folder to the `Boot` partition on the SD Card. Then you should extract the `rootfs.tar.gz` package from the `<plnx-project>/images/linux/` folder to the `RootFS` partition. If the image is small, one easy way to do this is to just copy the folder over to the partition, and run `tar -xzvf ./rootfs.tar.gz`. Another way of doing this is to run `sudo tar -xf ./rootfs.tar.gz -C /media/<username>/RootFS`.
+
+Note that even if you're using an SD card, the filesystem will still be immutable; i.e. on a reset every change you make from within the system will be lost.
 
 ## Aftermath
 
