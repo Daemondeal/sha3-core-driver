@@ -3840,7 +3840,10 @@ CONFIG_Init-manager-sysvinit=y
 #
 CONFIG_gpio-demo=y
 CONFIG_ketchup-periph-drvr=y
+CONFIG_nist-tests=y
 CONFIG_peekpoke=y
+CONFIG_sha3hash=y
+CONFIG_sha3hash-openssl=y
 CONFIG_sharutils=y
 
 #
