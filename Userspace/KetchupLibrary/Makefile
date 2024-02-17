@@ -30,7 +30,9 @@ x64_openssl: $(SOURCES) $(SOURCES_OPENSSL) ./sha3hash/main.c
 
 arm: $(SOURCES) $(SOURCES_OPENSSL) ./sha3hash/main.c
 	$(ARM_CC) -o sha3hash.arm.out ./sha3hash/main.c $(SOURCES) $(SOURCES_HARDWARE) $(CFLAGS) $(CFLAGS_HARDWARE)
+	$(ARM_CC) -o nist_tests.arm.out ./nist_tests/main.c $(SOURCES) $(SOURCES_HARDWARE) $(CFLAGS) $(CFLAGS_HARDWARE)
 	
+arm_encode: sha3hash.arm.enc
 	rm -rf ./*.enc
 	uuencode ./sha3hash.arm.out sha3hash > sha3hash.arm.enc
 
