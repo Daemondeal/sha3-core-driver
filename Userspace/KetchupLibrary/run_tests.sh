@@ -16,17 +16,10 @@ test_file() {
 
 }
 
-
-
-# rm $OUTFILES_DIR/*
-
-
 ./nist_tests.out $INFILES_DIR $OUTFILES_DIR
 
 for file in $(ls $OUTFILES_DIR) ; do
     test_file $file
 done
 
-
-
-
+rm $OUTFILES_DIR/*
