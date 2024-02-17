@@ -6,7 +6,7 @@ RESPONSE_DIR="./nist_tests/response_files"
 
 test_file() {
     echo -n "Checking $1..."
-    sed "/^#/d" "$RESPONSE_DIR/$1" | diff --strip-trailing-cr "$OUTFILES_DIR/$1" - > /dev/null
+    sed "/^#/d" "$RESPONSE_DIR/$1" | diff "$OUTFILES_DIR/$1" - > /dev/null
 
     if [ $? -eq 0 ] ; then
         echo -e "\t\tPassed!"
@@ -15,6 +15,11 @@ test_file() {
     fi
 
 }
+
+
+
+# rm $OUTFILES_DIR/*
+
 
 ./nist_tests.out $INFILES_DIR $OUTFILES_DIR
 
