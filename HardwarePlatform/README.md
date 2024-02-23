@@ -4,7 +4,7 @@ This folder is related to the hardware part of the Project. Under the Vitis fold
 
 ## KetchupPlatform Specification
 
-This is an hardware platform with five different Ketchup Peripherals implemented, all identical. The peripherals and their starting addresses are thus defined:
+This is an hardware platform with four different Ketchup Peripherals implemented, all identical. The peripherals and their starting addresses are thus defined:
 |Index|HashSize|BaseAddress|
 |-|-|-|
 |0|`0x43C00000`|
@@ -67,7 +67,7 @@ Note that it is a read-only register.
 
 This register contains the input for the hash function. Note that you need to write this register to send any data to the peripheral, even if you wish to send 0 bytes.
 
-If in the control register the number of bytes to transmit is less than 4, the least significant bytes will be ignored.
+If in the control register the number of bytes to transmit is less than 4, the least significant bytes will be ignored. The bytes inside this registers are in big endian form, so for example if you want your input to be "test", input should be: `['t', 'e', 's', 't'] = [0x74, 0x65, 0x73, 0x74] = 0x74657374`.
 
 ## Command Register
 

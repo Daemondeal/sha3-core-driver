@@ -28,5 +28,5 @@ for hash_length, hash_func in hash_sizes:
     with open(f"./testvectors/{hash_length}.mem", "w") as outfile:
         for string in test_strings:
             digest = hash_func(string).hexdigest()
-            outfile.write(f"{len(string)} {string.decode("utf-8")} {digest}\n")
+            outfile.write(f"{len(string)} {string.decode('utf-8')} {digest}\n")
         outfile.write("0")
