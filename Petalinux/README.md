@@ -10,13 +10,52 @@ Since the peripheral is contained into the FPGA part of the Pynq-Z2 board, we im
 
 Inside the Pynq-Z2 board we managed to fit 4 completely identical keccak-peripherals.
 
-As shown in the device tree file (screenshot attached below), all peripherals are integrated into the device tree structure under the _amba-pl_ node.
+As shown in the device tree file, all peripherals are integrated into the device tree structure under the _amba-pl_ node.
 
-> **Note**: add the screenshot
+```sh
+amba_pl: amba_pl {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		compatible = "simple-bus";
+		ranges ;
+		KetchupPeripheral_0: KetchupPeripheral@43c00000 {
+			clock-names = "s00_axi_aclk";
+			clocks = <&clkc 15>;
+			compatible = "xlnx,KetchupPeripheral-1.0";
+			reg = <0x43c00000 0x10000>;
+			xlnx,s00-axi-addr-width = <0x7>;
+			xlnx,s00-axi-data-width = <0x20>;
+		};
+		KetchupPeripheral_1: KetchupPeripheral@43c10000 {
+			clock-names = "s00_axi_aclk";
+			clocks = <&clkc 15>;
+			compatible = "xlnx,KetchupPeripheral-1.0";
+			reg = <0x43c10000 0x10000>;
+			xlnx,s00-axi-addr-width = <0x7>;
+			xlnx,s00-axi-data-width = <0x20>;
+		};
+		KetchupPeripheral_2: KetchupPeripheral@43c20000 {
+			clock-names = "s00_axi_aclk";
+			clocks = <&clkc 15>;
+			compatible = "xlnx,KetchupPeripheral-1.0";
+			reg = <0x43c20000 0x10000>;
+			xlnx,s00-axi-addr-width = <0x7>;
+			xlnx,s00-axi-data-width = <0x20>;
+		};
+		KetchupPeripheral_3: KetchupPeripheral@43c30000 {
+			clock-names = "s00_axi_aclk";
+			clocks = <&clkc 15>;
+			compatible = "xlnx,KetchupPeripheral-1.0";
+			reg = <0x43c30000 0x10000>;
+			xlnx,s00-axi-addr-width = <0x7>;
+			xlnx,s00-axi-data-width = <0x20>;
+		};
+	};
+```
 
-The same structure is reflected in the _sysfs_ file system: all peripheral-related files are located at the specified path (screenshot attached below).
+The same structure is reflected in the _sysfs_ file system: all the peripherals are located under the _amba_pl_ node as can be seen in the following screenshot.
 
-> **Note**: add the screenshot
+![devices_gerarchy](../Tutorials/Resources/petalinux/devices_ger.png)
 
 In terms of the driver, the steps required for successful communication with the peripheral differ depending on the operation requested. There are two cases to consider:
 
@@ -51,6 +90,111 @@ When a user application writes to the device file, the operating system (OS) ide
 
 In the diagram, we have also indicated the various system calls, or _syscalls_, provided by the Linux kernel that we utilized to register our driver with the OS.
 
-## Interacting with the driver
+A small glimpse of the class we created for our accelerator and the various attributes we are exposing with _sysfs_, refer to the following screenshot
 
-[qua dentro attributi che esponi, ioctl e custom library]
+![driver_interface](../Tutorials/Resources/petalinux/keccak_accel_class.png)
+
+## Driver inner workings
+
+As explained before, we have 4 identical but completely separated peripherals inside the programmable logic part.
+When a "hash requested" is initialized with a specific keccak peripheral, the operation must be concluded before starting a new one, otherwise the behaviour is undefined.
+
+For this reason, we had to ensure that once a peripheral is opened by a process (i.e., when a file descriptor is opened), there must be an "assignment process" of a specific peripheral to the specific file descriptor. Furthermore, until the file descriptor is closed, no other file descriptor should be assigned to the same peripheral.
+
+To solve this problem, we internally used an array of devices within the driver, where each device represents a specific physical peripheral. The relevant code is provided below:
+
+```C
+struct ketchup_devices_container {
+	// Used to protect the registered_devices array
+	struct mutex array_write_lock;
+
+	// Used to make sure that only registered_devices_len
+	// processes at a time can access a peripheral
+	struct semaphore dev_free_sema;
+
+	struct ketchup_device *registered_devices[MAX_DEVICES];
+	size_t registered_devices_len;
+};
+```
+
+Inside the `registered_devices` array we keep track of all the four peripherals at our disposal.
+
+In order to solve the problem of the match between a file descriptor and the specific peripheral, we had a bit of luck. By looking at the Linux kernel source we noticed that inside the `file` struct there is a field called `private_data`. By levereging this field we are able to save inside the file descriptor the index of the assigned peripheral to the file descriptor inside the array cointaining all the different peripherals.
+
+Inside the `registered_devices` array, we maintain the state of all four peripherals at our disposal.
+
+To address the issue of matching a file descriptor to a specific peripheral, we were fortunate. Upon examining the Linux kernel source, we discovered a field named private_data inside the `file` struct. By utilizing this field, we can save the index (in the array containing all the different peripherals) of the peripheral assigned to the file descriptor.
+
+```c
+/* needed for tty driver, and maybe others */
+	void			*private_data;
+```
+
+The code responsible for the "match" between a file descriptor and a peripheral can be seen below.
+
+```c
+static int ketchup_open(struct inode *inod, struct file *fil)
+{
+	/**
+	 * When a new file descriptor is opened we need to search for an available
+	 * peripheral that can serve the request.
+	 * If all the peripherals are already assigned, we return -EAGAIN
+	*/
+	int should_block = (fil->f_flags & O_NONBLOCK) == 0;
+
+	int assigned_peripheral = peripheral_acquire(should_block);
+
+	if (assigned_peripheral < 0) {
+		return assigned_peripheral;
+	}
+
+	// Save index for read and write
+	fil->private_data = (void*)(uintptr_t)assigned_peripheral;
+
+	return 0;
+}
+```
+
+Inside the `peripheral_acquire` function before proceeding with the assignment, we first of all acquire a lock in order to guarantee the uniqueness of the match.
+
+## Userspace
+
+For what concerns userspace, the driver exposes a few things:
+
+- the device file (`/dev/ketchup_driver`)
+- the `current_usage` attribute inside `sys/class/keccak_accelerators/ketchup_driver`
+- the `hash_size`attribute inside `sys/class/keccak_accelerators/ketchup_driver`
+
+### Sysfs attributes
+
+By executing `cat current_usage` from within `sys/class/keccak_accelerators/ketchup_driver`, the user can quickly see which peripherals are currently being used and if so by which process.
+
+Similarly, by executing `cat hash_size` also from `sys/class/keccak_accelerators/ketchup_driver`, the user can observe the hash size currently configured for each peripheral.
+
+### Ioctl
+
+As briefly explained in a previous paragraph, each peripheral has a configurable hash size (512, 384, 256, 224). The way we configure each peripheral is through the usage of _ioctl_.
+Inside the driver we defined two ioctl input operations,
+
+```c
+#define WR_PERIPH_HASH_SIZE _IOW(0xFC, 1, uint32_t*)
+#define RD_PERIPH_HASH_SIZE _IOR(0xFC, 2, uint32_t*)
+```
+
+one for reading and one for writing a new value inside the peripheral.
+Obivously setting a different hash size is a device-specific operation that differs from regular file operation semantics (like `read` and `write`), this is the reason we used ioctl.
+
+### User library
+
+Interacting directly with all these different parameters would be a bit cumbersome. For these reason we also developed a custom library that serves as a "wrapper" to all that's been presented up until now.
+
+A user that wants to use our peripheral can simply call one of the following functions that differ from one another only by the dimension of the output (as can be deducted from the function name).
+
+```c
+kc_error kc_sha3_512(void const *data, uint32_t data_length, uint8_t *digest, uint32_t *digest_length)
+kc_error kc_sha3_384(void const *data, uint32_t data_length, uint8_t *digest, uint32_t *digest_length)
+kc_error kc_sha3_256(void const *data, uint32_t data_length, uint8_t *digest, uint32_t *digest_length)
+kc_error kc_sha3_224(void const *data, uint32_t data_length, uint8_t *digest, uint32_t *digest_length)
+```
+
+## Compliancy
