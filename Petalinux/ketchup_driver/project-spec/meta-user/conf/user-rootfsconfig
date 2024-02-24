@@ -5,6 +5,8 @@ CONFIG_gpio-demo
 CONFIG_peekpoke
 CONFIG_sharutils
 CONFIG_ketchup-periph-drvr
-CONFIG_sha3hash
-CONFIG_sha3hash-openssl
 CONFIG_nist-tests
+CONFIG_sha3sum
+CONFIG_sha3sum-os
+CONFIG_multiprocessing-demo
+CONFIG_sysfs-demo

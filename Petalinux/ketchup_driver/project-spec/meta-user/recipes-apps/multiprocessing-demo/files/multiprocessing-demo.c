@@ -21,7 +21,7 @@ void child(int start_fd, int output_fd, int is_blocking) {
     int fd = open(DEVICE_LOCATION, flags);
 
     if (fd < 0) {
-        sprintf(buffer, "Error: (%d) (%d) %s", fd, errno, strerror(errno));
+        sprintf(buffer, "Error: %s (errno = %d)", strerror(errno), errno);
         write(output_fd, buffer, BUFSIZE);
         return;
     }
@@ -46,9 +46,19 @@ int main(int argc, char *argv[]) {
 
     int start_fd, is_blocking;
 
-    is_blocking = argc < 2 || (strcmp(argv[1], "-n") != 0);
+    if (argc == 2 && (strcmp(argv[1], "blocking") == 0)) {
+        is_blocking = 1;
+    } else if (argc == 2 && (strcmp(argv[1], "nonblocking") == 0)) {
+        is_blocking = 0;
+    } else {
+        printf("USAGE: multiprocessing-demo <blocking/nonblocking>\n");
+        return 0;
+    }
 
-    printf("Starting processess... (blocking = %d)\n", is_blocking);
+    printf(
+        "Starting processess...\n" 
+        "They will try to open the peripheral, wait for a second and then use it\n"
+    );
 
     pipe(start_pipe);
     start_fd = start_pipe[1];

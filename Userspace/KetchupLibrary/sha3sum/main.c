@@ -15,7 +15,7 @@ int main(int argc, char *argv[]) {
 
 
     if (argc < 2) {
-        printf("USAGE: sha3hash {224|256|384|512} [input]\n");
+        printf("USAGE: sha3sum {224|256|384|512} [input]\n");
         return -EINVAL;
     }
 

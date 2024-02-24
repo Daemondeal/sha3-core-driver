@@ -24,23 +24,16 @@ ARM_INCLUDES_OPENSSL := ./openssl/include
 ARM_LIBS_OPENSSL     := ./openssl/libcrypto.a
 
 
-x64_openssl: $(SOURCES) $(SOURCES_OPENSSL) ./sha3hash/main.c
-	$(CC) -o sha3hash.out ./sha3hash/main.c $(SOURCES) $(SOURCES_OPENSSL) $(CFLAGS) $(LIBS) $(LIBS_OPENSSL)
+x64_openssl: $(SOURCES) $(SOURCES_OPENSSL) ./sha3sum/main.c
+	$(CC) -o sha3sum.out ./sha3sum/main.c $(SOURCES) $(SOURCES_OPENSSL) $(CFLAGS) $(LIBS) $(LIBS_OPENSSL)
 	$(CC) -o nist_tests.out ./nist_tests/main.c $(SOURCES) $(SOURCES_OPENSSL) $(CFLAGS) $(LIBS) $(LIBS_OPENSSL)
 
-arm: $(SOURCES) $(SOURCES_OPENSSL) ./sha3hash/main.c
-	$(ARM_CC) -o sha3hash.arm.out ./sha3hash/main.c $(SOURCES) $(SOURCES_HARDWARE) $(CFLAGS) $(CFLAGS_HARDWARE)
+arm: $(SOURCES) $(SOURCES_OPENSSL) ./sha3sum/main.c
+	$(ARM_CC) -o sha3sum.arm.out ./sha3sum/main.c $(SOURCES) $(SOURCES_HARDWARE) $(CFLAGS) $(CFLAGS_HARDWARE)
 	$(ARM_CC) -o nist_tests.arm.out ./nist_tests/main.c $(SOURCES) $(SOURCES_HARDWARE) $(CFLAGS) $(CFLAGS_HARDWARE)
-	
-arm_encode: sha3hash.arm.enc
-	rm -rf ./*.enc
-	uuencode ./sha3hash.arm.out sha3hash > sha3hash.arm.enc
 
-arm_openssl: $(SOURCES) $(SOURCES_OPENSSL) ./sha3hash/main.c
-	$(ARM_CC) -o sha3hash.arm_openssl.out ./sha3hash/main.c $(SOURCES) $(SOURCES_OPENSSL) $(CFLAGS) -I$(ARM_INCLUDES_OPENSSL) $(ARM_LIBS_OPENSSL)
-
-	rm -rf ./*.enc
-	uuencode ./sha3hash.arm_openssl.out sha3hash_openssl > sha3hash.arm_openssl.enc
+arm_openssl: $(SOURCES) $(SOURCES_OPENSSL) ./sha3sum/main.c
+	$(ARM_CC) -o sha3sum.arm_openssl.out ./sha3sum/main.c $(SOURCES) $(SOURCES_OPENSSL) $(CFLAGS) -I$(ARM_INCLUDES_OPENSSL) $(ARM_LIBS_OPENSSL)
 
 .PHONY: clean
 clean:
