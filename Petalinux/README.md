@@ -196,5 +196,3 @@ kc_error kc_sha3_384(void const *data, uint32_t data_length, uint8_t *digest, ui
 kc_error kc_sha3_256(void const *data, uint32_t data_length, uint8_t *digest, uint32_t *digest_length)
 kc_error kc_sha3_224(void const *data, uint32_t data_length, uint8_t *digest, uint32_t *digest_length)
 ```
-
-## Compliancy
