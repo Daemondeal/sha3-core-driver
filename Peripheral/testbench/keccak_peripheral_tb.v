@@ -290,8 +290,6 @@ module peripheral_tb;
             @(!axi_bvalid);
 
             axi_bready <= 0;
-
-            // #(`PERIOD * 2);
         end
     endtask
 
