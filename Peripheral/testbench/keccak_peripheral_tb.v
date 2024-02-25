@@ -273,7 +273,6 @@ module peripheral_tb;
             axi_bready = 1;
 
             // Wait for the slave to send me the repsonse
-            // while (!axi_bvalid) #(`PERIOD);
             @(axi_bvalid);
 
             // Check if the slave said that everything is ok
@@ -284,8 +283,6 @@ module peripheral_tb;
             // We're done here, we can reset all signals now
             axi_awvalid <= 0;
             axi_wvalid <= 0;
-            // axi_bready <= 1;
-            // while (axi_bvalid) #(`PERIOD);
 
             @(!axi_bvalid);
 
