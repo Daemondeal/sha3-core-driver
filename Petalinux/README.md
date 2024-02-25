@@ -196,3 +196,13 @@ kc_error kc_sha3_384(void const *data, uint32_t data_length, uint8_t *digest, ui
 kc_error kc_sha3_256(void const *data, uint32_t data_length, uint8_t *digest, uint32_t *digest_length)
 kc_error kc_sha3_224(void const *data, uint32_t data_length, uint8_t *digest, uint32_t *digest_length)
 ```
+
+## Building the project
+
+To reduce the size of the repository, the content of the ketchup_driver folder is the result of the ```petalinux-build -x mrproper``` command that cleans all the artifacts produced by the build process.
+For this reason, the following steps are necessary to obtain an executable image:
+
+1. Copy the ```ketchup-driver``` folder to a location on your computer (it's recommended to avoid working directly inside the repository as different file paths could disrupt the build process).
+2. Navigate into the newly created folder and execute the following commands in this order without making any changes in the configuration menus: ```petalinux-config -c kernel```, ```petalinux-config -c u-boot```, ```petalinux-config -c rootfs```.
+3. Once the previous steps have been completed, run ```petalinux-build``` from the same folder.
+4. For packaging the image, refer to the 'petalinux-workflow' guide located in the Tutorials folder.
