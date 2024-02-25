@@ -256,8 +256,9 @@ module peripheral_tb;
             // All byte writes are valid, so write all ones
             axi_wstrb = 4'b1111;
 
+            // Wait for clock
+            @(posedge axi_clock);
 
-            while (axi_clock !== 0) #10;
 
             // The address is valid
             axi_awvalid = 1;
@@ -266,13 +267,14 @@ module peripheral_tb;
             axi_wvalid = 1;
 
             // Wait for the slave to ACK us about that
-            while (!(axi_awready && axi_wready)) #(`PERIOD);
+            @(!(axi_awready && axi_wready));
 
             // Signal the slave that I'm ready to receive a response
             axi_bready = 1;
 
             // Wait for the slave to send me the repsonse
-            while (!axi_bvalid) #(`PERIOD);
+            // while (!axi_bvalid) #(`PERIOD);
+            @(axi_bvalid);
 
             // Check if the slave said that everything is ok
             if (axi_rresp != 2'b00) begin
@@ -284,31 +286,41 @@ module peripheral_tb;
             axi_wvalid <= 0;
             // axi_bready <= 1;
             // while (axi_bvalid) #(`PERIOD);
+
+            @(!axi_bvalid);
+
             axi_bready <= 0;
 
-            #(`PERIOD * 2);
+            // #(`PERIOD * 2);
         end
     endtask
 
     task read_procedure;
         input [8:0] read_address;
         begin
-            axi_araddr = read_address; //7'h8;
 
-            // Wait for clock down
-            while (axi_clock !== 0) #10;
-
-            // The address on the line is valid
-            axi_arvalid = 1;
+            // Wait for clock
+            @(posedge axi_clock);
 
             // I'm ready to receive data
             axi_rready = 1;
 
+            // The address on the line is valid
+            axi_arvalid = 1;
+
+            // Sending the Read Address
+            axi_araddr = read_address; 
+
             // Wait for the slave to ACK my ready
-            while (!axi_arready) #(`PERIOD);
+            @(axi_arready == 1);
+
+            // After one clock period, we can lower arvalid
+            #(`PERIOD * 1);
+            axi_arvalid <= 0;
+            axi_araddr <= 0;
 
             // Wait for the slave to send valid data
-            while (!axi_rvalid) #(`PERIOD);
+            @(axi_rvalid == 1);
 
             // Check for read success. Response hould be 00
             if (axi_rresp != 2'b00) begin
@@ -318,11 +330,12 @@ module peripheral_tb;
             // Now read your value
             read_value = axi_rdata;
 
-            // We're done here, we remove rready and arvalid
-            axi_rready <= 0;
-            axi_arvalid <= 0;
+            // Wait for next transmission
+            @(axi_rvalid == 0);
 
-            #(`PERIOD * 2);
+            // We're done here, remove rready 
+            axi_rready = 0;
+
         end
     endtask
 

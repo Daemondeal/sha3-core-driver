@@ -1,65 +1,78 @@
 [*]
-[*] GTKWave Analyzer v3.3.104 (w)1999-2020 BSI
-[*] Thu Dec 21 19:58:17 2023
+[*] GTKWave Analyzer v3.3.100 (w)1999-2019 BSI
+[*] Sun Feb 25 11:48:10 2024
 [*]
-[dumpfile] "/home/daem/Desktop/OSEM/KeccakHardware/Simulation/signals.vcd"
-[dumpfile_mtime] "Thu Dec 21 19:57:58 2023"
-[dumpfile_size] 1873928
-[savefile] "/home/daem/Desktop/OSEM/KeccakHardware/Simulation/signals_setup.gtkw"
-[timestart] 402100
-[size] 1850 1016
-[pos] -1 -1
-*-17.010521 542700 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[dumpfile] "C:\Users\Daem\Desktop\ProgettoOS\group9\Peripheral\signals.vcd"
+[dumpfile_mtime] "Sun Feb 25 11:38:56 2024"
+[dumpfile_size] 32134710
+[savefile] "C:\Users\Daem\Desktop\ProgettoOS\group9\Peripheral\signals_setup.gtkw"
+[timestart] 0
+[size] 1858 1057
+[pos] -1859 9
+*-20.010521 2302000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] peripheral_tb.
 [treeopen] peripheral_tb.keccak_instance.
-[sst_width] 317
-[signals_width] 317
+[sst_width] 211
+[signals_width] 241
 [sst_expanded] 1
-[sst_vpaned_height] 313
+[sst_vpaned_height] 315
 @28
 peripheral_tb.axi_clock
 peripheral_tb.axi_aresetn
 peripheral_tb.axi_rresp[1:0]
 @200
 -Read Signals
-@22
-peripheral_tb.keccak_instance.axi_araddr[8:0]
 @28
 peripheral_tb.axi_arvalid
-peripheral_tb.axi_rready
 peripheral_tb.axi_arready
 @22
+peripheral_tb.axi_araddr[6:0]
+@200
+-
+@28
+peripheral_tb.keccak_instance.axi_rvalid
+peripheral_tb.axi_rready
+@22
 peripheral_tb.axi_rdata[31:0]
-peripheral_tb.keccak_instance.reg_idx_r[5:0]
-@29
-peripheral_tb.keccak_instance.core_idx_r[1:0]
 @200
 -Write Signals
 @22
 peripheral_tb.axi_wstrb[3:0]
-peripheral_tb.keccak_instance.axi_awaddr[8:0]
 @28
 peripheral_tb.axi_awvalid
-peripheral_tb.axi_wvalid
-peripheral_tb.axi_bready
 peripheral_tb.axi_awready
+@22
+peripheral_tb.axi_awaddr[6:0]
+@200
+-
+@28
+peripheral_tb.axi_wvalid
 peripheral_tb.axi_wready
-peripheral_tb.axi_bvalid
 @22
 peripheral_tb.axi_wdata[31:0]
 @200
+-
+@28
+peripheral_tb.axi_bvalid
+peripheral_tb.axi_bready
+@200
 -Keccak Core
 @28
-peripheral_tb.keccak_instance.sha3_reset_512
+peripheral_tb.keccak_instance.sha512_core.reset
 @22
-peripheral_tb.keccak_instance.sha3_input_512[31:0]
+peripheral_tb.keccak_instance.sha512_core.in[31:0]
 @28
-peripheral_tb.keccak_instance.sha3_byte_to_send_512[1:0]
-peripheral_tb.keccak_instance.sha3_is_sending_bytes_512
-peripheral_tb.keccak_instance.sha3_is_last_512
-peripheral_tb.keccak_instance.sha3_buffer_full_512
-peripheral_tb.keccak_instance.sha3_out_ready_512
+peripheral_tb.keccak_instance.sha512_core.in_ready
+peripheral_tb.keccak_instance.sha512_core.is_last
+peripheral_tb.keccak_instance.sha512_core.byte_num[1:0]
+peripheral_tb.keccak_instance.sha512_core.out_size[1:0]
+@200
+-
+@28
+peripheral_tb.keccak_instance.sha512_core.buffer_full
 @22
-peripheral_tb.keccak_instance.sha3_output_512[511:0]
+peripheral_tb.keccak_instance.sha512_core.out[511:0]
+@28
+peripheral_tb.keccak_instance.sha512_core.out_ready
 [pattern_trace] 1
 [pattern_trace] 0
