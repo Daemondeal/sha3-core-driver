@@ -2,6 +2,10 @@
 
 In this project we are developing a crypto core that accelerates the computation of the SHA (Secure Hash Algorithm) and concurrently creating the driver for the integration of the peripheral on the PYNQ-Z2 board running a Linux image created using Petalinux.
 
+## Demo
+
+![](./demo.mp4)
+
 ## The Peripheral
 
 The peripheral implements the Keccak hash function.
