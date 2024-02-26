@@ -4,7 +4,9 @@ This file details the step to replicate the demo of the project.
 
 ## Setup
 
-First of all, you have to go inside the `ketchup_driver` folder, and run the command `petalinux-build`. Once that's done, you either boot via JTAG using `petalinux-boot --kernel --jtag`, or via SD card using the steps detailed in the [tutorial](../Tutorials/04_petalinux_workflow.md). Don't forget to put the boot jumper in the correct position for this process.
+This setup assumes that you have the PetaLinux Tools installed at version 2023.2. These tools can be downloaded at [this link](https://www.xilinx.com/support/download/index.html/content/xilinx/en/downloadNav/embedded-design-tools.html).
+
+To build the project, you have to go inside the `Petalinux/ketchup_driver` folder, and run the command `petalinux-build`. Once that's done, you either boot via JTAG using `petalinux-boot --kernel --jtag`, or via SD card using the steps detailed in the [tutorial](../Tutorials/04_petalinux_workflow.md). Don't forget to put the boot jumper in the correct position for this process.
 
 ## Steps to replicate the demo
 

@@ -1,29 +1,28 @@
-# Embedded Linux with Custom Hardware
+# Ketchup Driver
 
-In this project we are developing a crypto core that accelerates the computation of the SHA (Secure Hash Algorithm) and concurrently creating the driver for the integration of the peripheral on the PYNQ-Z2 board running a Linux image created using Petalinux.
+This project consisted in using an Hardware implementation for the cryptographic family of functions SHA3, and writing both a bus interface for the AXI4-Lite bus protocol and a linux driver for the peripheral. The reference board used for the project was the PYNQ-Z2.
 
-## Demo
+
+## Demo of the project running in the PYNQ-Z2
 
 ![](./demo.mp4)
 
+All the steps needed to replicate this demo are detailed in the [DEMO.md](./DEMO.md) file.
+
 ## The Peripheral
 
-The peripheral implements the Keccak hash function.
-Keccak is a family of cryptographic hash functions designed by Guido Bertoni, Joan Daemen, Michael Peeters, and Gilles Van Assche. This family of hash functions was selected as the winner of the "SHA-3" (Secure Hash Algorithm 3) competition organized by the National Institute of Standards and Technology (NIST) of the United States in 2012.
-We started from a core that implemented the algorithm (from opencores.com, [link to repo](https://github.com/freecores/sha3)), and adapted it to our needs.
+The peripheral implements the SHA3-512, SHA3-384, SHA3-256 and SHA3-224 cryptographic hash functions, as defined by [FIPS 202](https://nvlpubs.nist.gov/nistpubs/fips/nist.fips.202.pdf).
+The functions that were implemented are part of the Keccak family, which were designed by Guido Bertoni, Joan Daemen, Michael Peeters, and Gilles Van Assche. This family of hash functions was selected as the winner of the "SHA-3" (Secure Hash Algorithm 3) competition organized by the National Institute of Standards and Technology (NIST) of the United States in 2012.
+The base for the implemetation is a core that implemented the original Keccak algorithm proposal (from opencores.com, [link to repo](https://github.com/freecores/sha3)), and adapted it both to be configurable, and to update it to the final published standard.
 Additional details about the core can be found within the `Peripheral` folder's [README](./Peripheral/README.md), while additional details about the hardware implementation and software interface to the peripheral can be found inside the `HardwarePlatform` folder's [README](./HardwarePlatform/README.md).
 
 ## The Driver
 
-The driver for the peripheral is a simple platform driver that exposes the device within /dev/ as a character device. It also exposes various attributes to the user within /sys/ using sysfs. Further details can be found in the `Petalinux` folder's [README](./Petalinux/README.md).
+The driver for the peripheral is a simple platform driver that exposes the device within /dev/ as a character device. It also exposes various attributes to the user within /sys/ using sysfs. The `Petalinux` folder contains a petalinux project, and further details about the project and the driver can be found in its [README](./Petalinux/README.md) file.
 
 ## The Library
 
 The driver offers also a small userspace library, which can be built both with an hardware backend and with an OpenSSL backend. Further information can be found inside the `Userspace/KetchupLibrary` folder's [README](./Userspace/KetchupLibrary/README.md).
-
-## Replicating the Demo
-
-All the steps needed to replicate the project's demo are detailed in the [DEMO.md](./Petalinux/DEMO.md) file.
 
 ## Contributing
 
