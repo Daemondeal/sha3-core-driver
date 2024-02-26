@@ -72,11 +72,11 @@ The peripheral remains "idle" until an additional write is performed on the same
 
 ### Read operation
 
-When a user process aims to read from the peripheral, there must be an already open file descriptor for the `/dev/ketchup_driver` file.
+When a user process wants to read from the peripheral, there must be an already open file descriptor for the `/dev/ketchup_driver` file.
 
-During the read attempt, the driver transmits a "last input" command to the peripheral, as well as any remaining data from the internal buffer (if available). If no data remains in the buffer, random data is transmitted. This isn't an issue because, when writing to the peripheral's input register, we include a field indicating the length of the input we're sending.
+During the read attempt, the driver transmits a "last input" command to the peripheral, as well as any remaining data from the internal buffer (if available). If no data remains in the buffer, whatever was left on the buffer is transmitted. This is not an issue since, when writing to the peripheral's input register, we have to specify the length of the last input, which can be zero.
 
-Upon sending the last input, we await the completion of the hashing operation by polling the peripheral's status register until it reads 1.
+Upon sending the last input, we await the completion of the hashing operation by polling the peripheral's status register until it reads 1. This polling is capped at maximum 100 iterations to keep the peripheral from locking up the entire system in case of faults (For example, if you try to use this when booting from QEMU with FPGA simulation disabled); note that the polling always takes much fewer cycles than 100.
 
 As soon as the result is available, we read it from the 15 output registers. The number of registers we read from depends on the hash that has been computed.
 
@@ -117,13 +117,10 @@ struct ketchup_devices_container {
 };
 ```
 
-Inside the `registered_devices` array we keep track of all the four peripherals at our disposal.
-
-In order to solve the problem of the match between a file descriptor and the specific peripheral, we had a bit of luck. By looking at the Linux kernel source we noticed that inside the `file` struct there is a field called `private_data`. By levereging this field we are able to save inside the file descriptor the index of the assigned peripheral to the file descriptor inside the array cointaining all the different peripherals.
 
 Inside the `registered_devices` array, we maintain the state of all four peripherals at our disposal.
 
-To address the issue of matching a file descriptor to a specific peripheral, we were fortunate. Upon examining the Linux kernel source, we discovered a field named private_data inside the `file` struct. By utilizing this field, we can save the index (in the array containing all the different peripherals) of the peripheral assigned to the file descriptor.
+To address the issue of matching a file descriptor to a specific peripheral, we were fortunate. Upon examining the Linux kernel source, we discovered a field named `private_data` inside the `file` struct. By utilizing this field, we can save the index (in the array containing all the different peripherals) of the peripheral assigned to the file descriptor.
 
 ```c
 /* needed for tty driver, and maybe others */

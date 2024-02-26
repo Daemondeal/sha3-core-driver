@@ -291,7 +291,7 @@
                 // Set appropriate bits in the peripheral 
                 // according to the control register.
                 // Control Register:
-                // Bit 1:0 - Amount of bits to transfer
+                // Bit 1:0 - Amount of bytes to transfer
                 // Bit 2   - Is this the last transmission?
 				// Bit 3   - Reserved
 				// Bit 5:4 - Size of output

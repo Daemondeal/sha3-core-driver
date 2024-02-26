@@ -1,6 +1,6 @@
 # Ketchup Library
 
-This is the code for the userspace library needed to use the peripheral from a C program.
+This is the code for the userspace library that facilitates the peripheral's usage from a C program.
 
 ## Reference
 
@@ -31,8 +31,6 @@ kc_error kc_sha3_close(kc_sha3_context *context);
 ```
 Note that since only one process can have access to the peripheral at a time, it is extremely important to call this function when you're done hashing, especially if you're going to do something else with the program afterwards.
 
-> Note: error handling currently not implemented, we will have to explore it once the driver is done.
-
 ## Sample Code
 
 There is a sample usage in `example.c`. There are three supported targets for this example:
@@ -46,5 +44,3 @@ sudo apt install libssl-dev
 ```
 
 Note that the `arm_openssl` target statically links OpenSSL, so expect the resulting binary to be somewhat large, making any UART transfer very slow.
-
-> Note: `make arm` currently not supported

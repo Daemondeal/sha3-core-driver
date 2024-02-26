@@ -45,7 +45,7 @@ It can output SHA3 hashes of varying sizes, based on the appropriate bits in the
 The control registers is thus defined:
 |Range|Purpose|
 |-|-|
-|`1:0`|Number of bits to be transmitted. Ignored if bit 2 is zero|
+|`1:0`|Number of bytes to be transmitted. Ignored if bit 2 is zero|
 |`2`|Is the next write to `INPUT` the last for this stream?|
 |`3`|Reserved|
 |`5:4`|Size of output hash. Accepted values are: 00 for 512, 01 for 384, 10 for 256 and 11 for 224|
