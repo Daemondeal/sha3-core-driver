@@ -4,7 +4,9 @@ This file details the step to replicate the demo of the project.
 
 ## Setup
 
-First of all, you have to go inside the `ketchup_driver` folder, and run the command `petalinux-build`. Once that's done, you either boot via JTAG using `petalinux-boot --kernel --jtag`, or via SD card using the steps detailed in the [tutorial](../Tutorials/04_petalinux_workflow.md). Don't forget to put the boot jumper in the correct position for this process.
+This setup assumes that you have the PetaLinux Tools installed at version 2023.2. These tools can be downloaded at [this link](https://www.xilinx.com/support/download/index.html/content/xilinx/en/downloadNav/embedded-design-tools.html).
+
+To build the project, you have to go inside the `Petalinux/ketchup_driver` folder, and run the command `petalinux-build`. Once that's done, you either boot via JTAG using `petalinux-boot --kernel --jtag`, or via SD card using the steps detailed in the [tutorial](../Tutorials/04_petalinux_workflow.md). Don't forget to put the boot jumper in the correct position for this process.
 
 ## Steps to replicate the demo
 
@@ -19,7 +21,7 @@ First of all, you have to go inside the `ketchup_driver` folder, and run the com
 9. Run `cat /sys/class/keccak_accelerators/ketchup_driver/current_usage`. Only three peripherals should be in use.
 10. Run `multiprocessing-demo nonblocking`. Now only one process should finish successfully.
 11. Run `cat /sys/class/keccak_accelerators/ketchup_driver/hash_size`. There should be all possible sizes, the order doesn't matter.
-12. Now run `kill -USR1 [PID]`, where \[PID\] is the PID that the sysfs-demo told you before.
+12. Now run `kill -USR1 [PID]`, where `[PID]` is the PID that the sysfs-demo told you before.
 13. If you now run `cat /sys/class/keccak_accelerators/ketchup_driver/current_usage`, no peripherals should be in use.
 14. Run `cd` to go back to the home folder.
 15. Run `cat /dev/random >> temp` and wait for a few seconds.

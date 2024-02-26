@@ -20,7 +20,7 @@ In order to start an hash procedure, you first have to reset the peripheral to p
 
 The hash size is set through the `hash_size` (Called `out_size` in the core) signal, which has to be steady from when you feed it the first four bytes of data until you stop reading the output.
 
-![Timing Diagram](./core_timings.png)
+<img src="./core_timings.png" width="600">
 
 ## Testbench
 
