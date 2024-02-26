@@ -19,7 +19,7 @@ First of all, you have to go inside the `ketchup_driver` folder, and run the com
 9. Run `cat /sys/class/keccak_accelerators/ketchup_driver/current_usage`. Only three peripherals should be in use.
 10. Run `multiprocessing-demo nonblocking`. Now only one process should finish successfully.
 11. Run `cat /sys/class/keccak_accelerators/ketchup_driver/hash_size`. There should be all possible sizes, the order doesn't matter.
-12. Now run `kill -USR1 [PID]`, where \[PID\] is the PID that the sysfs-demo told you before.
+12. Now run `kill -USR1 [PID]`, where `[PID]` is the PID that the sysfs-demo told you before.
 13. If you now run `cat /sys/class/keccak_accelerators/ketchup_driver/current_usage`, no peripherals should be in use.
 14. Run `cd` to go back to the home folder.
 15. Run `cat /dev/random >> temp` and wait for a few seconds.
