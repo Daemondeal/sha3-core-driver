@@ -17,6 +17,10 @@ The driver for the peripheral is a simple platform driver that exposes the devic
 
 The driver offers also a small userspace library, which can be built both with an hardware backend and with an OpenSSL backend. Further information can be found inside the `Userspace/KetchupLibrary` folder's [README](./Userspace/KetchupLibrary/README.md).
 
+## Replicating the Demo
+
+All the steps needed to replicate the project's demo are detailed in the [DEMO.md](./Petalinux/DEMO.md) file.
+
 ## Contributing
 
 Inside this repository we can find:
