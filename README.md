@@ -5,7 +5,8 @@ This project consisted in using an Hardware implementation for the cryptographic
 
 ## Demo of the project running in the PYNQ-Z2
 
-![](./demo.mp4)
+https://github.com/Daemondeal/sha3-core-driver/assets/16180334/994b9b0d-ea1f-476f-891b-4f0e79983aee
+
 
 All the steps needed to replicate this demo are detailed in the [DEMO.md](./DEMO.md) file.
 
