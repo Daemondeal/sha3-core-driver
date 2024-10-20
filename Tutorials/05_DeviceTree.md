@@ -2,7 +2,6 @@
 
 All of this is based on this youtube video [device tree](https://www.youtube.com/watch?v=Nz6aBffv-Ek). I knew nothing about the device tree so if you already know this stuff feel free to skip it.
 
-> I'm writing all of this in a very fast way, probably in the future i'll fix it but in the meantime sorry for the errors in the language
 
 ## Intro
 
