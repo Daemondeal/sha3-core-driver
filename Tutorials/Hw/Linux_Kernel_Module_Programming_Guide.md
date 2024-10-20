@@ -51,8 +51,8 @@ We can do better than this, what if we don't want to use the specific name of in
 static int data __initdata = 3;
 
 static int __init custom_name_init(void){
-	pr_info("Ciao dal mio modulo helloworld\n");
-	/* Se ritorni non zero vuol dire che il caricamento del modulo e' fallito */
+	pr_info("Hello from the module helloworld\n");
+	/* If you return a non-zero value it means the insertion failed */
 	return 0;
 }
 
